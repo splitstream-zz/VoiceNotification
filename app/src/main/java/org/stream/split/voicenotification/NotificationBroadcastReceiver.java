@@ -13,11 +13,12 @@ import java.util.Locale;
 /**
  * Created by split on 2015-10-19.
  */
-public class VoiceGenerator extends BroadcastReceiver {
+//TODO trzeba się zastanowić czy nie rpzenieść zawartości tej klasy do notification catcher
+public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     private final String TAG = this.getClass().getSimpleName();
     TextToSpeech tsp;
-    public VoiceGenerator(Context context)
+    public NotificationBroadcastReceiver(Context context)
     {
         tsp = new TextToSpeech(context, new TextToSpeech.OnInitListener() {
             @Override
@@ -32,13 +33,13 @@ public class VoiceGenerator extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
 
-
         Log.d(TAG, "voicegenerator");
         Log.d(TAG, intent.getExtras().getString(Notification.EXTRA_TITLE));
         Log.d(TAG, intent.getExtras().getString(Notification.EXTRA_TEXT));
         tsp.speak(intent.getExtras().getString("notification_event"), TextToSpeech.QUEUE_ADD, null);
         tsp.speak(intent.getExtras().getString(Notification.EXTRA_TITLE),TextToSpeech.QUEUE_ADD,null);
         tsp.speak(intent.getExtras().getString(Notification.EXTRA_TEXT), TextToSpeech.QUEUE_ADD, null);
+
     }
 
     public void Shutdown()

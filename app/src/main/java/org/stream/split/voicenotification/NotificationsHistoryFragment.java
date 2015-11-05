@@ -7,10 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 
 import org.stream.split.voicenotification.dummy.DummyContent;
@@ -24,14 +21,14 @@ import org.stream.split.voicenotification.dummy.DummyContent;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class InstalledAppsFragment extends Fragment  {
+public class NotificationsHistoryFragment extends Fragment  {
 
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
 
-    public InstalledAppsFragment() {
+    public NotificationsHistoryFragment() {
     }
 
     @Override
@@ -57,7 +54,7 @@ public class InstalledAppsFragment extends Fragment  {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         // specify an adapter (see also next example)
-        mAdapter = new MyAdapter(myDataset);
+        mAdapter = new NotificationsHistoryAdapter(myDataset);
         mRecyclerView.setAdapter(mAdapter);
 
         return view;

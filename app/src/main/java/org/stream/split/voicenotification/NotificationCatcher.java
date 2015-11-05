@@ -3,13 +3,9 @@ package org.stream.split.voicenotification;
 import android.app.Notification;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
-
-import java.util.List;
 
 /**
  * Created by split on 2015-10-18.
@@ -17,21 +13,22 @@ import java.util.List;
 public class NotificationCatcher extends NotificationListenerService {
 
     private final String TAG = this.getClass().getSimpleName();
-    private VoiceGenerator voiceGenerator;
+    private NotificationBroadcastReceiver mNotificationBroadcastReceiver;
+
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
         IntentFilter intentFilter = new IntentFilter(TAG);
-        voiceGenerator = new VoiceGenerator(this.getApplicationContext());
-        registerReceiver(voiceGenerator, intentFilter);
+        mNotificationBroadcastReceiver = new NotificationBroadcastReceiver(this.getApplicationContext());
+        registerReceiver(mNotificationBroadcastReceiver, intentFilter);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(voiceGenerator);
-        voiceGenerator.Shutdown();
+        unregisterReceiver(mNotificationBroadcastReceiver);
+        mNotificationBroadcastReceiver.Shutdown();
     }
 
 
@@ -40,10 +37,15 @@ public class NotificationCatcher extends NotificationListenerService {
         addBroadcastFilter(intentFilter);
     }
 
+
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
 
-
+        /*TODO zaimplemetowac dodawanie do bazy danych danych o wystąpionych powiadomieniach (histowyczne)
+         * potrzebne będą packageName, TimeStamp, utteranceID
+         *
+         */
+        sbn.getNotification().
         Log.d(TAG, "**********  onNotificationPosted");
         Log.d(TAG, "ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText + "t" + sbn.getPackageName());
         Intent intent = new Intent(TAG);

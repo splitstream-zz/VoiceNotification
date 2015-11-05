@@ -16,8 +16,6 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
 public class VoiceNotification extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener  {
@@ -106,7 +104,7 @@ public class VoiceNotification extends AppCompatActivity
 
 
         if (id == R.id.choose_apps) {
-            fragmentTransaction.replace(R.id.frame_content, new InstalledAppsFragment());
+            fragmentTransaction.replace(R.id.frame_content, new NotificationsHistoryFragment());
             // not sure if there is need for custom toolbar
             //Toolbar toolbar = findViewById()
             //setSupportActionBar(toolbar);
