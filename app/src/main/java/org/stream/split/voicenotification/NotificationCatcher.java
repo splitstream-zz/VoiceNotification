@@ -25,13 +25,13 @@ public class NotificationCatcher extends NotificationListenerService {
     private final String TAG = this.getClass().getSimpleName();
 
     private final IBinder mbinder = new NotificationCatcherBinder();
-    private VoiceGenerator voiceGenerator;
+    private NotificationBroadcastReceiver voiceGenerator;
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
         IntentFilter intentFilter = new IntentFilter(TAG);
-        voiceGenerator = new VoiceGenerator(this.getApplicationContext());
+        voiceGenerator = new NotificationBroadcastReceiver(this);
         registerReceiver(voiceGenerator, intentFilter);
     }
 
