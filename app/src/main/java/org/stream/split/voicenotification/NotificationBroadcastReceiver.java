@@ -36,6 +36,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         Log.d(TAG, "voicegenerator");
         Log.d(TAG, intent.getExtras().getString(Notification.EXTRA_TITLE));
         Log.d(TAG, intent.getExtras().getString(Notification.EXTRA_TEXT));
+
         tsp.speak(intent.getExtras().getString("notification_event"), TextToSpeech.QUEUE_ADD, null);
         tsp.speak(intent.getExtras().getString(Notification.EXTRA_TITLE),TextToSpeech.QUEUE_ADD,null);
         tsp.speak(intent.getExtras().getString(Notification.EXTRA_TEXT), TextToSpeech.QUEUE_ADD, null);

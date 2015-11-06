@@ -20,7 +20,7 @@ public class NotificationCatcher extends NotificationListenerService {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
         IntentFilter intentFilter = new IntentFilter(TAG);
-        mNotificationBroadcastReceiver = new NotificationBroadcastReceiver(this.getApplicationContext());
+        mNotificationBroadcastReceiver = new NotificationBroadcastReceiver(this);
         registerReceiver(mNotificationBroadcastReceiver, intentFilter);
     }
 
@@ -45,7 +45,7 @@ public class NotificationCatcher extends NotificationListenerService {
          * potrzebne będą packageName, TimeStamp, utteranceID
          *
          */
-        sbn.getNotification().
+
         Log.d(TAG, "**********  onNotificationPosted");
         Log.d(TAG, "ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText + "t" + sbn.getPackageName());
         Intent intent = new Intent(TAG);
