@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">VoiceNotification</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string name="Notification_title">powiadomienia głosowe</string>
+    <string name="Notification_text">aplikacja aktywna</string>
+    <string name="Notification_subtext">przejdz do ustawień</string>
+
+    <string name="service_name">notification catcher</string>
+
+    //navigation drawer item titles
+    <string name="apps_IT" >aplikacje</string>
+
+
+    <string name="add_app">dodaj</string>
+    <string name="CustomIntent_NotificationCatcher">org.stream.split.voicenotification.CustomIntent_NotificationCatcher</string>
+    <string name="delete_app">Usuń</string>
+
+</resources>
