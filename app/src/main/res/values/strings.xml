@@ -17,6 +17,7 @@
 
 
     <string name="add_app">dodaj</string>
-
+    <string name="CustomIntent_NotificationCatcher">org.stream.split.voicenotification.CustomIntent_NotificationCatcher</string>
+    <string name="delete_app">Usuń</string>
 
 </resources>

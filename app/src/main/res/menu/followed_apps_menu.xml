@@ -1,0 +1,11 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".VoiceNotification">
+    <item android:title="@string/delete_app"
+        android:id="@+id/delete_app"
+        android:icon="@drawable/ic_delete_app"
+        app:showAsAction="always"
+        />
+    <item android:id="@+id/action_settings" android:title="@string/action_settings"
+        android:orderInCategory="100" app:showAsAction="never" />
+</menu>

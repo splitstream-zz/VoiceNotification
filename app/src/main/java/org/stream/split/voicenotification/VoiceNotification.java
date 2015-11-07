@@ -1,11 +1,17 @@
 package org.stream.split.voicenotification;
 
+import android.app.Fragment;
+import android.app.FragmentTransaction;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
@@ -13,18 +19,31 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
+
+
+
+//TODO add "Back" functionality using back arrow(in place of dongle on appbar) or hardware back key
 
 public class VoiceNotification extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener  {
+        implements NavigationView.OnNavigationItemSelectedListener, AppFragment.OnFragmentInteractionListener  {
 
+    public NotificationCatcher notificationService;
+    private boolean mServiceBound = false;
     NotificationManager mNotificationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
         setContentView(R.layout.activity_voice_notification);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -45,20 +64,37 @@ public class VoiceNotification extends AppCompatActivity
 
 
 
-
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        // Bind to LocalService
+        Intent intent = new Intent(this, NotificationCatcher.class);
+        intent.setAction(getResources().getString(R.string.CustomIntent_NotificationCatcher));
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Unbind from the service
+        if (mServiceBound) {
+            unbindService(mConnection);
+            mServiceBound = false;
+        }
+    }
     /***
      * setting up Floating Action button to issue notification for testing purposes
      */
     void setUpFab()
     {
-        android.support.design.widget.FloatingActionButton testNotification = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
-        testNotification.setOnClickListener(new View.OnClickListener() {
+        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createNotification(mNotificationManager,"Tytuł","Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext",false,9);
-                Snackbar.make(v,"test notification was send",Snackbar.LENGTH_SHORT).show();
+                createNotification(mNotificationManager, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false, 9);
+                Snackbar.make(v, "test notification was send", Snackbar.LENGTH_SHORT).show();
             }
         });
     }
@@ -76,6 +112,7 @@ public class VoiceNotification extends AppCompatActivity
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+
         getMenuInflater().inflate(R.menu.voice_notification, menu);
         return true;
     }
@@ -89,10 +126,11 @@ public class VoiceNotification extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Snackbar.make(findViewById(R.id.coordinator_layout),"main activity", Snackbar.LENGTH_SHORT).show();
             return true;
         }
 
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -100,15 +138,24 @@ public class VoiceNotification extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        android.support.v4.app.FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        Fragment fragment = null;
 
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        Snackbar snackBar = null;
 
         if (id == R.id.choose_apps) {
-            fragmentTransaction.replace(R.id.frame_content, new NotificationsHistoryFragment());
+
+            fragment = AppFragment.newInstance(AppFragment.APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
+
+//            for screening purposes
+//            LayoutInflater li = getLayoutInflater();
+//            RelativeLayout container = (RelativeLayout) findViewById(R.id.frame_content);
+//            li.inflate(R.layout.apps_layout,container);
             // not sure if there is need for custom toolbar
             //Toolbar toolbar = findViewById()
             //setSupportActionBar(toolbar);
-        } else if (id == R.id.nav_gallery) {
+        } else if (id == R.id.conditions) {
 
         } else if (id == R.id.nav_slideshow) {
 
@@ -117,14 +164,18 @@ public class VoiceNotification extends AppCompatActivity
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
-
-        }
-        if(!fragmentTransaction.isEmpty())
-        {
-            fragmentTransaction.commit();
+            createNotification(mNotificationManager, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false, 9);
+            snackBar = Snackbar.make(drawer, "test notification was send", Snackbar.LENGTH_SHORT);
+            notificationService.dummyFunction();
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if(fragment != null) {
+            fragmentTransaction.replace(R.id.frame_content, fragment).commit();
+        }
+
+        if(snackBar != null)
+            snackBar.show();
+
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -138,13 +189,7 @@ public class VoiceNotification extends AppCompatActivity
     {
         Intent intent = new Intent(this,VoiceNotification.class);
 
-        /*TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
-        stackBuilder.addParentStack(VoiceNotification.class);
-        stackBuilder.addNextIntent(intent);
-        PendingIntent pendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);*/
-
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
 
         Resources res = getResources();
         Notification.Builder builder = new Notification.Builder(getApplicationContext());
@@ -168,5 +213,33 @@ public class VoiceNotification extends AppCompatActivity
                 res.getString(R.string.Notification_subtext),
                 true,
                 notificationId);
+
     }
+
+
+    /**
+     * Funkcja służaca do komunikacji pomiędzy Fragmentami
+     * @param id
+     */
+    @Override
+    public void onFragmentInteraction(long [] id) {
+        Snackbar.make(this.findViewById(R.id.frame_content),"sdasd",Snackbar.LENGTH_SHORT).show();
+    }
+
+    /**
+     *  Defines callbacks for service binding, passed to bindService()
+     */
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            NotificationCatcher.NotificationCatcherBinder binder = (NotificationCatcher.NotificationCatcherBinder) service;
+            notificationService = binder.getService();
+            mServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mServiceBound = false;
+        }
+    };
 }
