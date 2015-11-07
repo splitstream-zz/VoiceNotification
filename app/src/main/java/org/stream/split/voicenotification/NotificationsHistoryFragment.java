@@ -1,5 +1,8 @@
 package org.stream.split.voicenotification;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -26,6 +29,7 @@ public class NotificationsHistoryFragment extends Fragment  {
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private NotifyBroadcastReceiver mReceiver;
 
 
     public NotificationsHistoryFragment() {
@@ -34,6 +38,7 @@ public class NotificationsHistoryFragment extends Fragment  {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mReceiver
 
     }
 
@@ -102,5 +107,14 @@ public class NotificationsHistoryFragment extends Fragment  {
         // TODO: Update argument type and name
         public void onFragmentInteraction(String id);
     }
+
+    public class NotifyBroadcastReceiver extends BroadcastReceiver
+    {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        }
+    }
+
 
 }
