@@ -36,7 +36,7 @@ public class NotificationsHistoryFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private NotificationsHistoryAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private NotifyBroadcastReceiver mReceiver = new NotifyBroadcastReceiver();
+    private NotifyBroadcastReceiver mReceiver;
     private OnFragmentInteractionListener mListener;
     private NotificationServiceConnection mConnection;
 
@@ -47,7 +47,6 @@ public class NotificationsHistoryFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
     }
 
@@ -83,12 +82,13 @@ public class NotificationsHistoryFragment extends Fragment {
     public void onAttach(Activity context) {
         super.onAttach(context);
 
-        mConnection = new NotificationServiceConnection();
-        Intent intent = new Intent(this.getActivity(),NotificationCatcherService.class);
-        intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
-        this.getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//        Intent intent = new Intent(this.getActivity(),NotificationCatcherService.class);
+//        intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
+//        this.getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         IntentFilter filter = new IntentFilter(NotificationCatcherService.TAG);
-        mConnection.addReceiver(mReceiver,filter);
+        mReceiver = new NotifyBroadcastReceiver();
+        mConnection = NotificationServiceConnection.getInstance();
+        mConnection.registerReceiver(mReceiver,filter);
 
         try {
             mListener = (OnFragmentInteractionListener) context;
@@ -101,7 +101,6 @@ public class NotificationsHistoryFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        this.getActivity().unbindService(mConnection);
     }
 
 

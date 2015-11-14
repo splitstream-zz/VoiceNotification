@@ -39,6 +39,9 @@ public class VoiceNotificationActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Intent intent = new Intent(this,NotificationCatcherService.class);
+        startService(intent);
+
         setContentView(R.layout.activity_voice_notification);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -164,7 +167,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
         } else if (id == R.id.nav_send) {
             createNotification(mNotificationManager, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false, 9);
             snackBar = Snackbar.make(drawer, "test notification was send", Snackbar.LENGTH_SHORT);
-            NotificationService.dummyFunction();
         }
 
         if(fragment != null) {
