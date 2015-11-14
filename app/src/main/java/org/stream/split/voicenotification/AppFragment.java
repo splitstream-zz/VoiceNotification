@@ -1,6 +1,5 @@
 package org.stream.split.voicenotification;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -22,12 +21,11 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.stream.split.voicenotification.BussinessLayer.AppInfo;
+import org.stream.split.voicenotification.BussinessLayer.AppInfoEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 
 import java.util.ArrayList;
@@ -75,7 +73,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
      */
     private CustomListAdapter mAdapter;
 
-    private ArrayList<AppInfo> mAppsList = new ArrayList<>();
+    private ArrayList<AppInfoEntity> mAppsList = new ArrayList<>();
 
     /**
      * progressBar indicating application loading
@@ -111,7 +109,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
             mApplictaionsToShow = APPLICATIONS_TO_SHOW.valueOf(getArguments().getString(ApplicationsToshow));
         }
 
-        mAdapter = new CustomListAdapter(getActivity(),R.layout.apps_layout,mAppsList);
+        mAdapter = new CustomListAdapter(getActivity(),R.layout.fragment_app_item,mAppsList);
         LoadApplicationsAsync loadingApps = new LoadApplicationsAsync();
         loadingApps.execute(mApplictaionsToShow);
 
@@ -151,12 +149,12 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onAttach(Context context) {
+        super.onAttach(context);
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            mListener = (OnFragmentInteractionListener) context;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
+            throw new ClassCastException(context.toString()
                     + " must implement OnFragmentInteractionListener");
         }
     }
@@ -167,7 +165,6 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
         mListener = null;
     }
 
-    //TODO design custom menu accordingly to applications shown
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         //super.onCreateOptionsMenu(menu, inflater);
@@ -198,7 +195,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                 DBHelper db = new DBHelper(getActivity());
                 for(int i = 0;i< mAdapter.getCount();i++)
                 {
-                    AppInfo app = mAdapter.getItem(i);
+                    AppInfoEntity app = mAdapter.getItem(i);
                     if(app.IsSelected())
                     {
                         db.deleteApp(app);
@@ -206,6 +203,8 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
 
                 }
                 new LoadApplicationsAsync().execute(mApplictaionsToShow);
+                mDeleteMenuItem.setVisible(false);
+
                 return true;
             default:
                 return false;
@@ -213,7 +212,6 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
 
     }
 
-    // TODO find a way to change appbar accordingly to what is chosen or what kind of list is shown
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (null != mListener) {
@@ -227,7 +225,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
     private void SetUpFabFollowed()
     {
         FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
-        fab.setImageResource(R.drawable.ic_fab_plus);
+        fab.setImageResource(R.drawable.ic_add_applications);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -238,18 +236,17 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
         });
     }
 
-    //TODO implement adding checked positions in listview to database
     private void SetUpFabInstalled()
     {
         FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
-        fab.setImageResource(R.drawable.ic_add_applications);
+        fab.setImageResource(R.drawable.ic_apply_applications);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 DBHelper db = new DBHelper(getActivity());
                 for(int i = 0;i< mAdapter.getCount();i++)
                 {
-                    AppInfo app = mAdapter.getItem(i);
+                    AppInfoEntity app = mAdapter.getItem(i);
                     if(app.IsSelected()) {
                         long row  = db.addApp(app);
                         Log.d(TAG, "dodano applikacje do bazy danych: " + app.getPackageName() +" row#: " + row);
@@ -275,25 +272,10 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
         }
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(long[] id);
-    }
-
-    private class CustomListAdapter extends ArrayAdapter<AppInfo>
+    private class CustomListAdapter extends ArrayAdapter<AppInfoEntity>
     {
 
-        public CustomListAdapter(Context context, int resource, ArrayList<AppInfo> objects) {
+        public CustomListAdapter(Context context, int resource, ArrayList<AppInfoEntity> objects) {
             super(context, resource, objects);
             this.addAll(objects);
 
@@ -314,7 +296,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
             if(convertView == null)
             {
                 LayoutInflater vi =  (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = vi.inflate(R.layout.apps_layout,null);
+                convertView = vi.inflate(R.layout.fragment_app_item,null);
 
                 holder = new ViewHolder();
                 holder.name = (TextView) convertView.findViewById(R.id.app_name);
@@ -329,27 +311,27 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                 holder = (ViewHolder) convertView.getTag();
             PackageManager manager = getActivity().getPackageManager();
 
-            AppInfo appInfo = this.getItem(position);
-            holder.name.setText(appInfo.getPackageName());
-            holder.cbx.setChecked(appInfo.IsSelected());
+            AppInfoEntity appInfoEntity = this.getItem(position);
+            holder.name.setText(appInfoEntity.getPackageName());
+            holder.cbx.setChecked(appInfoEntity.IsSelected());
             try {
-                holder.icon.setImageDrawable(manager.getApplicationIcon(appInfo.getPackageName()));
+                holder.icon.setImageDrawable(manager.getApplicationIcon(appInfoEntity.getPackageName()));
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
-            holder.name.setTag(appInfo);
-            holder.cbx.setTag(appInfo);
+            holder.name.setTag(appInfoEntity);
+            holder.cbx.setTag(appInfoEntity);
 
 
             holder.cbx.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    AppInfo appInfo = (AppInfo) v.getTag();
-                    appInfo.setSelected(((CheckBox)v).isChecked());
+                    AppInfoEntity appInfoEntity = (AppInfoEntity) v.getTag();
+                    appInfoEntity.setSelected(((CheckBox)v).isChecked());
                     Boolean setDeleteVisibility = false;
                     if(mApplictaionsToShow == APPLICATIONS_TO_SHOW.SHOW_FOLLOWED ) {
                         for(int i = 0;i< mAdapter.getCount();i++) {
-                            AppInfo app = mAdapter.getItem(i);
+                            AppInfoEntity app = mAdapter.getItem(i);
                             if (app.IsSelected()) {
                                 setDeleteVisibility = true;
                                 break;
@@ -363,8 +345,8 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
             holder.name.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    AppInfo appInfo = (AppInfo) v.getTag();
-                    Snackbar.make(parent, "Clicked on Checkbox: " + appInfo.getPackageName() + " is " + appInfo.IsSelected(),
+                    AppInfoEntity appInfoEntity = (AppInfoEntity) v.getTag();
+                    Snackbar.make(parent, "Clicked on Checkbox: " + appInfoEntity.getPackageName() + " is " + appInfoEntity.IsSelected(),
                             Snackbar.LENGTH_SHORT).show();
                 }
             });
@@ -374,27 +356,28 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
         }
     }
 
-    private class LoadApplicationsAsync extends AsyncTask<APPLICATIONS_TO_SHOW,Void,ArrayList<AppInfo>>
+    private class LoadApplicationsAsync extends AsyncTask<APPLICATIONS_TO_SHOW,Void,ArrayList<AppInfoEntity>>
     {
 
         @Override
-        protected ArrayList<AppInfo> doInBackground(APPLICATIONS_TO_SHOW... params) {
+        protected ArrayList<AppInfoEntity> doInBackground(APPLICATIONS_TO_SHOW... params) {
 
-            ArrayList<AppInfo> appsInfo = new ArrayList<>();
+            ArrayList<AppInfoEntity> appsInfo = new ArrayList<>();
             DBHelper db = new DBHelper(getActivity());
 
             switch (params[0]) {
                 case SHOW_INSTALLED:
                     PackageManager packageManager = getActivity().getPackageManager();
+
                     List<ApplicationInfo> instaledApplications =
                             packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
 
 
                     for (ApplicationInfo info : instaledApplications) {
                         if(!db.isAppFollowed(info.packageName)) {
-                            AppInfo appInfo = new AppInfo();
-                            appInfo.setPackageName(info.packageName);
-                            appsInfo.add(appInfo);
+                            AppInfoEntity appInfoEntity = new AppInfoEntity();
+                            appInfoEntity.setPackageName(info.packageName);
+                            appsInfo.add(appInfoEntity);
                         }
                     }
                     break;
@@ -408,27 +391,12 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
         }
 
         @Override
-        protected void onPostExecute(ArrayList<AppInfo> apps)
+        protected void onPostExecute(ArrayList<AppInfoEntity> apps)
         {
             mProgressBar.setVisibility(View.GONE);
             mAdapter.clear();
             mAdapter.addAll(apps);
             mAdapter.notifyDataSetInvalidated();
-
-
-//            mAdapter = new CustomListAdapter(getActivity().getApplication(),R.layout.apps_layout,apps);
-//            // Set the adapter
-//            mListView = (ListView) getActivity().findViewById(android.R.id.list);
-//            ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
-//
-//            // Set OnItemClickListener so we can be notified on item clicks
-//            mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//                @Override
-//                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                    AppInfo info = (AppInfo) parent.getItemAtPosition(position);
-//                    Snackbar.make(parent, "Clicked on row: " + info.getPackageName(), Snackbar.LENGTH_SHORT).show();
-//                }
-//            });
 
         }
     }

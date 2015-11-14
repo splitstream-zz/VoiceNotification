@@ -7,9 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import org.stream.split.voicenotification.BussinessLayer.AppInfo;
+import org.stream.split.voicenotification.BussinessLayer.AppInfoEntity;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,9 +34,9 @@ public class DBHelper extends SQLiteOpenHelper {
         onCreate(db);
 
     }
-    public List<AppInfo> getAllApps()
+    public List<AppInfoEntity> getAllApps()
     {
-        List<AppInfo> apps = new ArrayList<>();
+        List<AppInfoEntity> apps = new ArrayList<>();
         String sqlQuery = "Select * from " + DBContract.AppFeed.TABLE_NAME;
         Log.d(TAG, sqlQuery);
 
@@ -46,7 +45,7 @@ public class DBHelper extends SQLiteOpenHelper {
         if(cursor.moveToFirst())
         {
             do {
-                AppInfo app = new AppInfo();
+                AppInfoEntity app = new AppInfoEntity();
                 app.setPackageName(cursor.getString(cursor.getColumnIndex(DBContract.AppFeed.COLUMN_NAME_PACKAGENAME)));
                 apps.add(app);
             }while(cursor.moveToNext());
@@ -55,21 +54,21 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * inserts AppInfo object into database table AppFeed
+     * inserts AppInfoEntity object into database table AppFeed
      * @param app
-     * @return row id of newely inserted AppInfo. -1 if there was error.
+     * @return row id of newely inserted AppInfoEntity. -1 if there was error.
      */
-    public long addApp(AppInfo app)
+    public long addApp(AppInfoEntity app)
     {
         ContentValues values = new ContentValues();
         values.put(DBContract.AppFeed.COLUMN_NAME_PACKAGENAME,app.getPackageName());
         return getWritableDatabase().insert(DBContract.AppFeed.TABLE_NAME, null, values);
     }
 
-    public List<Long> addApps(List<AppInfo> apps)
+    public List<Long> addApps(List<AppInfoEntity> apps)
     {
         List<Long> rows = new ArrayList<>();
-        for(AppInfo app:apps)
+        for(AppInfoEntity app:apps)
         {
             rows.add(addApp(app));
         }
@@ -88,7 +87,7 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         return false;
     }
-    public void deleteApp (AppInfo app)
+    public void deleteApp (AppInfoEntity app)
     {
         this.getWritableDatabase().delete(DBContract.AppFeed.TABLE_NAME,
                 DBContract.AppFeed.COLUMN_NAME_PACKAGENAME + " = ?",

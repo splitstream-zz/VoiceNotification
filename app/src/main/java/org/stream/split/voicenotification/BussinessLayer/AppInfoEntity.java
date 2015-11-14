@@ -1,18 +1,16 @@
 package org.stream.split.voicenotification.BussinessLayer;
 
-import android.content.pm.ApplicationInfo;
-import android.graphics.drawable.Drawable;
-
 /**
  * Created by split on 2015-11-01.
  */
-public class AppInfo {
+public class AppInfoEntity {
 
     boolean mIsSelected = false;
     String mPackageName;
 
-    public void setPackageName(String mPackageName) {
+    public AppInfoEntity setPackageName(String mPackageName) {
         this.mPackageName = mPackageName;
+        return this;
     }
 
     public String getPackageName() {
@@ -27,12 +25,16 @@ public class AppInfo {
         mIsSelected = bool;
     }
 
-    public AppInfo(String packageName, boolean selected)
+    public AppInfoEntity(String packageName, boolean selected)
     {
         mPackageName= packageName;
         mIsSelected = selected;
     }
-    public AppInfo()
+    public AppInfoEntity(String packageName)
+    {
+        this(packageName,false);
+    }
+    public AppInfoEntity()
     {
 
     }

@@ -13,7 +13,7 @@ import java.util.Locale;
 /**
  * Created by split on 2015-10-19.
  */
-//TODO trzeba się zastanowić czy nie przenieść zawartości tej klasy do VoiceNotification
+//TODO trzeba się zastanowić czy nie przenieść zawartości tej klasy do VoiceNotificationActivity
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     private final String TAG = this.getClass().getSimpleName();

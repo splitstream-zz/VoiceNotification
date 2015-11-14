@@ -1,11 +1,11 @@
 package org.stream.split.voicenotification;
 
 import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -20,30 +20,24 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.RelativeLayout;
-import android.widget.Toast;
-
 
 
 //TODO add "Back" functionality using back arrow(in place of dongle on appbar) or hardware back key
 
-public class VoiceNotification extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, AppFragment.OnFragmentInteractionListener  {
+public class VoiceNotificationActivity extends AppCompatActivity
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener  {
 
-    public NotificationCatcher notificationService;
+    public NotificationCatcherService NotificationService;
     private boolean mServiceBound = false;
     NotificationManager mNotificationManager;
+    FragmentManager mFragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 
         setContentView(R.layout.activity_voice_notification);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -54,14 +48,20 @@ public class VoiceNotification extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
+
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        mFragmentManager = getFragmentManager();
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
+        fragmentTransaction.replace(R.id.frame_content,new NotificationsHistoryFragment()).commit();
+        //NotificationService.dummyFunction();
 
         //creating persistent notification for purposes of informing user of running up
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         createPersistantAppNotification(mNotificationManager, R.integer.persistentNotificationID);
         setUpFab();
+
 
 
 
@@ -71,8 +71,8 @@ public class VoiceNotification extends AppCompatActivity
     protected void onStart() {
         super.onStart();
         // Bind to LocalService
-        Intent intent = new Intent(this, NotificationCatcher.class);
-        intent.setAction(getResources().getString(R.string.CustomIntent_NotificationCatcher));
+        Intent intent = new Intent(this, NotificationCatcherService.class);
+        intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
     }
 
@@ -139,7 +139,7 @@ public class VoiceNotification extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
+        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
         Fragment fragment = null;
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -152,22 +152,19 @@ public class VoiceNotification extends AppCompatActivity
 //            for screening purposes
 //            LayoutInflater li = getLayoutInflater();
 //            RelativeLayout container = (RelativeLayout) findViewById(R.id.frame_content);
-//            li.inflate(R.layout.apps_layout,container);
+//            li.inflate(R.layout.fragment_app_item,container);
             // not sure if there is need for custom toolbar
             //Toolbar toolbar = findViewById()
             //setSupportActionBar(toolbar);
-        } else if (id == R.id.conditions) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.history) {
+            fragment = new NotificationsHistoryFragment();
 
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
             createNotification(mNotificationManager, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false, 9);
             snackBar = Snackbar.make(drawer, "test notification was send", Snackbar.LENGTH_SHORT);
-            notificationService.dummyFunction();
+            NotificationService.dummyFunction();
         }
 
         if(fragment != null) {
@@ -188,7 +185,7 @@ public class VoiceNotification extends AppCompatActivity
      */
     public void createNotification(NotificationManager notificationManager,String title,String text, String subText, Boolean persistance, int notificationId)
     {
-        Intent intent = new Intent(this,VoiceNotification.class);
+        Intent intent = new Intent(this,VoiceNotificationActivity.class);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -230,11 +227,12 @@ public class VoiceNotification extends AppCompatActivity
     /**
      *  Defines callbacks for service binding, passed to bindService()
      */
-    private ServiceConnection mConnection = new ServiceConnection() {
+    protected ServiceConnection mConnection = new ServiceConnection() {
+        public NotificationCatcherService NotificationService;
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            NotificationCatcher.NotificationCatcherBinder binder = (NotificationCatcher.NotificationCatcherBinder) service;
-            notificationService = binder.getService();
+            NotificationCatcherService.NotificationCatcherBinder binder = (NotificationCatcherService.NotificationCatcherBinder) service;
+            NotificationService = binder.getService();
             mServiceBound = true;
         }
 

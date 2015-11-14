@@ -4,14 +4,12 @@
     <group android:checkableBehavior="single">
         <item android:title="Settings">
             <menu>
+                <item android:id="@+id/history" android:icon="@android:drawable/ic_menu_camera"
+                    android:title="@string/history_IT" />
                 <item android:id="@+id/choose_apps" android:icon="@android:drawable/ic_menu_camera"
                     android:title="@string/apps_IT" />
                 <item android:id="@+id/conditions" android:icon="@android:drawable/ic_menu_gallery"
                     android:title="Warunki" />
-                <item android:id="@+id/nav_slideshow" android:icon="@android:drawable/ic_menu_slideshow"
-                    android:title="Slideshow" />
-                <item android:id="@+id/nav_manage" android:icon="@android:drawable/ic_menu_manage"
-                    android:title="Tools" />
             </menu>
         </item>
     </group>

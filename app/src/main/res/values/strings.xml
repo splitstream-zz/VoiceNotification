@@ -14,6 +14,7 @@
 
     //navigation drawer item titles
     <string name="apps_IT" >aplikacje</string>
+    <string name="history_IT" >historia</string>
 
 
     <string name="add_app">dodaj</string>
