@@ -17,7 +17,7 @@ import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
  */
 public class NotificationCatcherService extends NotificationListenerService {
 
-    public static final String TAG = "org.stream.split.voicenotification";
+    public static final String TAG = "NotificationCatcherServicen";
 
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
 
@@ -26,26 +26,11 @@ public class NotificationCatcherService extends NotificationListenerService {
     private NotificationServiceConnection mConnection;
     private NotificationBroadcastReceiver mVoiceGenerator;
 
-    //TODO zastosować filtrowanie według aplikacji dodanych do bazy
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
-        mVoiceGenerator = new NotificationBroadcastReceiver(this);
-
-        IntentFilter allNotifications = new IntentFilter(TAG);
-        IntentFilter filtredNotifications = new IntentFilter();
-        for(AppInfoEntity app: new DBHelper(this).getAllApps())
-        {
-            filtredNotifications.addAction(app.getPackageName());
-        }
-
-        //TODO zmień intentfilter jka już będziesz wiedział na jakiej zasadzie to działa
-        mConnection = NotificationServiceConnection.getInstance();
-        mConnection.init(this);
-        mConnection.registerReceiver(mVoiceGenerator, filtredNotifications);
-
-
+        initializeVoiceReceivers();
     }
 
     @Override
@@ -53,6 +38,16 @@ public class NotificationCatcherService extends NotificationListenerService {
         super.onDestroy();
         mConnection.unregisterRecivers();
         mVoiceGenerator.Shutdown();
+    }
+
+    public void initializeVoiceReceivers()
+    {
+        mVoiceGenerator = new NotificationBroadcastReceiver(this);
+        IntentFilter intentFilter = new IntentFilter(TAG);
+        mConnection = NotificationServiceConnection.getInstance();
+        mConnection.init(this);
+        mConnection.registerReceiver(mVoiceGenerator, intentFilter);
+
     }
 
 
@@ -66,6 +61,7 @@ public class NotificationCatcherService extends NotificationListenerService {
         Log.d(TAG, "DummyFunction");
     }
 
+    // TODO sprawdzać czy nie jest null
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
 

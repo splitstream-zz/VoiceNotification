@@ -76,15 +76,15 @@ public class VoiceNotificationActivity extends AppCompatActivity
         // Bind to LocalService
         Intent intent = new Intent(this, NotificationCatcherService.class);
         intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        bindService(intent, NotificationServiceConnection.getInstance(), Context.BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         // Unbind from the service
-        if (mServiceBound) {
-            unbindService(mConnection);
+        if (NotificationServiceConnection.getInstance().isServiceBound()) {
+            unbindService(NotificationServiceConnection.getInstance());
             mServiceBound = false;
         }
     }
@@ -229,18 +229,18 @@ public class VoiceNotificationActivity extends AppCompatActivity
     /**
      *  Defines callbacks for service binding, passed to bindService()
      */
-    protected ServiceConnection mConnection = new ServiceConnection() {
-        public NotificationCatcherService NotificationService;
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            NotificationCatcherService.NotificationCatcherBinder binder = (NotificationCatcherService.NotificationCatcherBinder) service;
-            NotificationService = binder.getService();
-            mServiceBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mServiceBound = false;
-        }
-    };
+//    protected ServiceConnection mConnection = new ServiceConnection() {
+//        public NotificationCatcherService NotificationService;
+//        @Override
+//        public void onServiceConnected(ComponentName name, IBinder service) {
+//            NotificationCatcherService.NotificationCatcherBinder binder = (NotificationCatcherService.NotificationCatcherBinder) service;
+//            NotificationService = binder.getService();
+//            mServiceBound = true;
+//        }
+//
+//        @Override
+//        public void onServiceDisconnected(ComponentName name) {
+//            mServiceBound = false;
+//        }
+//    };
 }

@@ -129,8 +129,9 @@ public class NotificationsHistoryFragment extends Fragment {
     {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(TAG, "message received: " + intent.getAction());
-            mAdapter.addItem(new AppInfoEntity(intent.getAction()));
+            String packageName = intent.getExtras().getString("notification_pakageName");
+            Log.d(TAG, "message received: " + packageName);
+            mAdapter.addItem(new AppInfoEntity(packageName));
             mAdapter.notifyDataSetChanged();
         }
     }

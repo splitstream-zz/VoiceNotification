@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
@@ -46,7 +47,6 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                     public void onInit(int status) {
                         if (status != TextToSpeech.ERROR) {
                             tsp.setLanguage(Locale.getDefault());
-                            speak(intent);
                         } else {
                             tsp.shutdown();
 
@@ -58,7 +58,8 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 reapeat--;
 
 
-            }while(reapeat >0 && mTspConnected);
+            }while(reapeat >0 && !mTspConnected);
+            speak(intent);
 
         }
 
