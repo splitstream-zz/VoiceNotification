@@ -313,7 +313,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
 
             AppInfoEntity appInfoEntity = this.getItem(position);
             holder.name.setText(appInfoEntity.getPackageName());
-            holder.cbx.setChecked(appInfoEntity.IsSelected());
+            //holder.cbx.setChecked(appInfoEntity.IsSelected());
             try {
                 holder.icon.setImageDrawable(manager.getApplicationIcon(appInfoEntity.getPackageName()));
             } catch (PackageManager.NameNotFoundException e) {

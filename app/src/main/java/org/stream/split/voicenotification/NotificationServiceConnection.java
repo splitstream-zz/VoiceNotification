@@ -29,8 +29,17 @@ public class NotificationServiceConnection implements ServiceConnection {
         return mServiceBound;
     }
 
+    public boolean isServiceConntected()
+    {
+        boolean isConnected = false;
+        if(mContext != null)
+            isConnected = true;
+        return isConnected;
+    }
+
     private NotificationServiceConnection(Context context)
     { mContext = context; }
+
     private NotificationServiceConnection()
     {}
 

@@ -47,6 +47,7 @@ public class DBHelper extends SQLiteOpenHelper {
             do {
                 AppInfoEntity app = new AppInfoEntity();
                 app.setPackageName(cursor.getString(cursor.getColumnIndex(DBContract.AppFeed.COLUMN_NAME_PACKAGENAME)));
+                app.setSelected(true);
                 apps.add(app);
             }while(cursor.moveToNext());
         }

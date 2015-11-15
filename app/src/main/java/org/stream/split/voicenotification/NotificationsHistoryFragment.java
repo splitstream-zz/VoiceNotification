@@ -48,6 +48,8 @@ public class NotificationsHistoryFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        ArrayList<AppInfoEntity> apps = new ArrayList<>();
+        mAdapter = new NotificationsHistoryAdapter(apps);
     }
 
     private void registerNotificationReceiver(){
@@ -69,10 +71,6 @@ public class NotificationsHistoryFragment extends Fragment {
         mLayoutManager = new LinearLayoutManager(view.getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        // specify an adapter (see also next example)
-        ArrayList<AppInfoEntity> apps = new ArrayList<>();
-        apps.addAll(new DBHelper(this.getActivity()).getAllApps());
-        mAdapter = new NotificationsHistoryAdapter(apps);
         mRecyclerView.setAdapter(mAdapter);
         return view;
     }
@@ -86,6 +84,7 @@ public class NotificationsHistoryFragment extends Fragment {
 //        intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
 //        this.getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         IntentFilter filter = new IntentFilter(NotificationCatcherService.TAG);
+
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
         mConnection.registerReceiver(mReceiver,filter);

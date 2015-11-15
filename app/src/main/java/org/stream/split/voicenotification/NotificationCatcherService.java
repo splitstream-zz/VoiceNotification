@@ -17,7 +17,7 @@ import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
  */
 public class NotificationCatcherService extends NotificationListenerService {
 
-    public static final String TAG = "NotificationListenerService";
+    public static final String TAG = "org.stream.split.voicenotification";
 
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
 
@@ -34,7 +34,7 @@ public class NotificationCatcherService extends NotificationListenerService {
         mVoiceGenerator = new NotificationBroadcastReceiver(this);
 
         IntentFilter allNotifications = new IntentFilter(TAG);
-        IntentFilter filtredNotifications = new IntentFilter(TAG);
+        IntentFilter filtredNotifications = new IntentFilter();
         for(AppInfoEntity app: new DBHelper(this).getAllApps())
         {
             filtredNotifications.addAction(app.getPackageName());
@@ -43,21 +43,9 @@ public class NotificationCatcherService extends NotificationListenerService {
         //TODO zmień intentfilter jka już będziesz wiedział na jakiej zasadzie to działa
         mConnection = NotificationServiceConnection.getInstance();
         mConnection.init(this);
-        mConnection.registerReceiver(mVoiceGenerator, allNotifications);
+        mConnection.registerReceiver(mVoiceGenerator, filtredNotifications);
 
 
-//        mReceivers.add(mVoiceGenerator);
-//
-//        IntentFilter allNotifications = new IntentFilter(TAG);
-//        mReceivers.add(new NotificationBroadcastReceiver(this));
-//        for(BroadcastReceiver receiver: mReceivers) {
-//            if(receiver.getClass().equals(NotificationBroadcastReceiver.class))
-//            {
-//                registerReceiver(receiver, filtredNotifications);
-//            }
-//            else
-//                registerReceiver(receiver, allNotifications);
-//        }
     }
 
     @Override
@@ -83,8 +71,9 @@ public class NotificationCatcherService extends NotificationListenerService {
 
 
         Log.d(TAG, "**********  onNotificationPosted");
-        Log.d(TAG, "ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText + "t" + sbn.getPackageName());
+        Log.d(TAG, "ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
         Intent intent = new Intent(TAG);
+        intent.putExtra("notification_pakageName",sbn.getPackageName());
         intent.putExtra("notification_id",sbn.getNotification().when);
         intent.putExtra("notification_event",sbn.getNotification().tickerText);
         intent.putExtra(Notification.EXTRA_TITLE, sbn.getNotification().extras.getString(Notification.EXTRA_TITLE));
@@ -96,7 +85,7 @@ public class NotificationCatcherService extends NotificationListenerService {
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.d(TAG, "********** onNOtificationRemoved");
-        Log.d(TAG, "ID :" + sbn.getId() + "t" + sbn.getNotification().tickerText + "t" + sbn.getPackageName());
+        Log.d(TAG, "ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
     }
 
     @Override
