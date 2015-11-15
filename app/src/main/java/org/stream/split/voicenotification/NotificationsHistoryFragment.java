@@ -124,7 +124,8 @@ public class NotificationsHistoryFragment extends Fragment {
 //            ((TextView) emptyView).setText(emptyText);
 //        }
     }
-
+    //TODO zapisywać historię w bazie danych
+    //TODO wymazywać historię w momencie wyłanczania aplikacji
     public class NotifyBroadcastReceiver extends BroadcastReceiver
     {
         @Override

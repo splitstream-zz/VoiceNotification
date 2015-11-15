@@ -1,6 +1,9 @@
 package org.stream.split.voicenotification.BussinessLayer;
 
 
+import android.app.Notification;
+
+import java.sql.Timestamp;
 import java.util.Date;
 
 /**
@@ -10,7 +13,9 @@ public class NotificationEntity
 {
     String mPackageName;
     String mApplicationName;
-    Date mOcuranceTime;
+    String mText;
+    String mTitle;
+    Timestamp mOcuranceTime;
     int mUtteranceId;
 
     public String getPackageName() {
@@ -29,11 +34,11 @@ public class NotificationEntity
         this.mApplicationName = mApplicationName;
     }
 
-    public Date getOcuranceTime() {
+    public Timestamp getOcuranceTime() {
         return mOcuranceTime;
     }
 
-    public void setOcuranceTime(Date mOcuranceTime) {
+    public void setOcuranceTime(Timestamp mOcuranceTime) {
         this.mOcuranceTime = mOcuranceTime;
     }
 
@@ -45,17 +50,24 @@ public class NotificationEntity
         this.mUtteranceId = mUtteranceId;
     }
 
-    public NotificationEntity(String packageName, String aplicationName, Date occuranceTime, int utteranceId)
+    public NotificationEntity(Notification notification)
+    {
+StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(notification.)
+    }
+    public NotificationEntity(String packageName, String aplicationName, Timestamp occuranceTime, int utteranceId)
     {
         mPackageName = packageName;
         mApplicationName = aplicationName;
         mOcuranceTime = occuranceTime;
         mUtteranceId = utteranceId;
     }
-    public NotificationEntity(String packageName, String aplicationName, Date occuranceTime)
+    public NotificationEntity(String packageName, String aplicationName, Timestamp occuranceTime)
     {
         this(packageName,aplicationName,occuranceTime,0);
     }
+    public NotificationEntity()
+    {}
 
 
 }

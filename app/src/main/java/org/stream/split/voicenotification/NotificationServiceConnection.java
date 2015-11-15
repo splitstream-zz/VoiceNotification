@@ -3,11 +3,12 @@ package org.stream.split.voicenotification;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.nfc.Tag;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
  */
 public class NotificationServiceConnection implements ServiceConnection {
 
+    private final String TAG = "NotificationServiceConnection";
     private NotificationCatcherService mNotificationService;
     private boolean mServiceBound;
     private List<ReceiverIntent> mReceivers = new ArrayList<>();
@@ -29,36 +31,8 @@ public class NotificationServiceConnection implements ServiceConnection {
         return mServiceBound;
     }
 
-    public boolean isServiceConntected()
-    {
-        boolean isConnected = false;
-        if(mContext != null)
-            isConnected = true;
-        return isConnected;
-    }
-
-    private NotificationServiceConnection(Context context)
-    { mContext = context; }
-
     private NotificationServiceConnection()
     {}
-
-    /**
-     * Function should be called only once from Service where Broadcasts will be send from.
-     * @param context service to register BroadcastReceivers
-     * @return
-     */
-    public synchronized NotificationServiceConnection init(@NonNull Context context)
-    {
-
-        if(mContext == null)
-        {
-            mContext = context;
-            mNotificationServiceConnection.registerReceivers();
-        }
-
-        return mNotificationServiceConnection;
-    }
 
     public static NotificationServiceConnection getInstance()
     {
@@ -67,7 +41,7 @@ public class NotificationServiceConnection implements ServiceConnection {
 
         return mNotificationServiceConnection;
     }
-    public void addReceiver(@NonNull BroadcastReceiver receiver, IntentFilter filter)
+    private void addReceiver(@NonNull BroadcastReceiver receiver, IntentFilter filter)
     {
         if(filter == null)
             filter = new IntentFilter();
@@ -76,24 +50,31 @@ public class NotificationServiceConnection implements ServiceConnection {
     }
     public int registerReceiver(@NonNull BroadcastReceiver receiver, IntentFilter filter)
     {
+        Log.d(TAG, "registeringReceiver");
+
         if(!isRegisteredReceiver(receiver)) {
             mReceivers.add(new ReceiverIntent(receiver,filter));
         }
-        if(mContext != null)
+        if(mNotificationService != null && isServiceBound())
         {
-            mContext.registerReceiver(receiver,filter);
+            Log.d(TAG, "registering: " + receiver.toString());
+            mNotificationService.registerReceiver(receiver,filter);
             return 1;
         }
-        else
+        else {
+            Log.d(TAG, "mNotificationService: " + String.valueOf(mNotificationService == null));
             return -1;
+        }
     }
 
-    private void registerReceivers()
+    private void registerAllReceivers()
     {
-        if(mContext != null)
+        Log.d(TAG, "registeringAllReceivers");
+        if(mNotificationService != null && isServiceBound())
             for(ReceiverIntent receiver:mReceivers)
             {
-                mContext.registerReceiver(receiver.mReciver,receiver.mIntentFilter);
+                Log.d(TAG, "registering: " + receiver.toString());
+                mNotificationService.registerReceiver(receiver.mReciver,receiver.mIntentFilter);
             }
     }
 
@@ -114,14 +95,27 @@ public class NotificationServiceConnection implements ServiceConnection {
         if(mContext != null)
             for(ReceiverIntent receiver:mReceivers)
             {
-                mContext.unregisterReceiver(receiver.mReciver);
+                try {
+                    mNotificationService.unregisterReceiver(receiver.mReciver);
+                }
+                catch (IllegalArgumentException arg)
+                {
+                    Log.d(TAG, receiver.toString() + "is not registered");
+                }
             }
     }
 
     public void unregisterReceiver(BroadcastReceiver receiver)
     {
-        if(mContext !=null)
-            mContext.unregisterReceiver(receiver);
+        if(mNotificationService !=null) {
+            try{
+                mNotificationService.unregisterReceiver(receiver);
+            }
+            catch(IllegalArgumentException arg)
+            {
+                Log.d(TAG, receiver.toString()+ " is not registered");
+            }
+        }
     }
 
     @Override
@@ -129,12 +123,13 @@ public class NotificationServiceConnection implements ServiceConnection {
         NotificationCatcherService.NotificationCatcherBinder binder = (NotificationCatcherService.NotificationCatcherBinder) service;
         mNotificationService = binder.getService();
         mServiceBound = true;
-        //RegisterReceivers();
+        registerAllReceivers();
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
         mServiceBound = false;
+        mNotificationService = null;
     }
 }
 

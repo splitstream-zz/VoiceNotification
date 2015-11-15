@@ -20,9 +20,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Switch;
 
 
 //TODO add "Back" functionality using back arrow(in place of dongle on appbar) or hardware back key
@@ -30,6 +32,7 @@ import android.view.View;
 public class VoiceNotificationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener  {
 
+    private final String TAG = "VoiceNotificationActivity";
     public NotificationCatcherService NotificationService;
     private boolean mServiceBound = false;
     NotificationManager mNotificationManager;
@@ -38,9 +41,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Intent intent = new Intent(this,NotificationCatcherService.class);
-        startService(intent);
 
         setContentView(R.layout.activity_voice_notification);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -65,29 +65,39 @@ public class VoiceNotificationActivity extends AppCompatActivity
         createPersistantAppNotification(mNotificationManager, R.integer.persistentNotificationID);
         setUpFab();
 
-
-
-
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        // Bind to LocalService
-        Intent intent = new Intent(this, NotificationCatcherService.class);
-        intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
-        bindService(intent, NotificationServiceConnection.getInstance(), Context.BIND_AUTO_CREATE);
+        bindNotificationService();
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        bindNotificationService();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
         // Unbind from the service
+        Log.d(TAG, "onStop()");
         if (NotificationServiceConnection.getInstance().isServiceBound()) {
             unbindService(NotificationServiceConnection.getInstance());
-            mServiceBound = false;
         }
     }
+
+
+
+    //TODO znaleźć sposób aby wyłączyć całkowicie aplikację (usunąć także powiadomienia) podobnie jak przy "wymuś zatrzymanie"
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy()");
+    }
+
     /***
      * setting up Floating Action button to issue notification for testing purposes
      */
@@ -129,8 +139,17 @@ public class VoiceNotificationActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
+        switch(id) {
+            case R.id.action_turn_off:
+                this.onDestroy();
+                break;
+            default:
+                Snackbar.make(findViewById(R.id.coordinator_layout), "Item not implemented", Snackbar.LENGTH_SHORT).show();
+                break;
+        }
+
         if (id == R.id.action_settings) {
-            Snackbar.make(findViewById(R.id.coordinator_layout),"main activity", Snackbar.LENGTH_SHORT).show();
+
             return true;
         }
 
@@ -180,6 +199,13 @@ public class VoiceNotificationActivity extends AppCompatActivity
         return true;
     }
 
+    private void bindNotificationService()
+    {
+        // Bind to LocalService
+        Intent intent = new Intent(this, NotificationCatcherService.class);
+        intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
+        bindService(intent, NotificationServiceConnection.getInstance(), Context.BIND_AUTO_CREATE);
+    }
     /**
      *
      * @param notificationManager for adding new notification
