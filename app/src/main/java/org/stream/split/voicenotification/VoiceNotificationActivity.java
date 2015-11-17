@@ -6,13 +6,10 @@ import android.app.FragmentTransaction;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
@@ -24,17 +21,14 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Switch;
 
 
 //TODO add "Back" functionality using back arrow(in place of dongle on appbar) or hardware back key
-
+//TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
 public class VoiceNotificationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener  {
 
     private final String TAG = "VoiceNotificationActivity";
-    public NotificationCatcherService NotificationService;
-    private boolean mServiceBound = false;
     NotificationManager mNotificationManager;
     FragmentManager mFragmentManager;
 
@@ -70,7 +64,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        bindNotificationService();
     }
 
     @Override
@@ -84,9 +77,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
         super.onStop();
         // Unbind from the service
         Log.d(TAG, "onStop()");
-        if (NotificationServiceConnection.getInstance().isServiceBound()) {
-            unbindService(NotificationServiceConnection.getInstance());
-        }
+//        NotificationServiceConnection.getInstance().unregisterAllRecivers();
+//        if (NotificationServiceConnection.getInstance().isServiceBound()) {
+//            unbindService(NotificationServiceConnection.getInstance());
+//        }
     }
 
 
@@ -95,6 +89,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        NotificationServiceConnection.getInstance().unregisterAllRecivers();
+        if (NotificationServiceConnection.getInstance().isServiceBound()) {
+            unbindService(NotificationServiceConnection.getInstance());
+        }
         Log.d(TAG, "onDestroy()");
     }
 
@@ -139,6 +137,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
+        //TODO zaimplementować funkcję, która będzie wyłanczać aplikację całkowicie ( service, activity i persistent notification)
         switch(id) {
             case R.id.action_turn_off:
                 this.onDestroy();
@@ -171,13 +170,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
             fragment = AppFragment.newInstance(AppFragment.APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
 
-//            for screening purposes
-//            LayoutInflater li = getLayoutInflater();
-//            RelativeLayout container = (RelativeLayout) findViewById(R.id.frame_content);
-//            li.inflate(R.layout.fragment_app_item,container);
-            // not sure if there is need for custom toolbar
-            //Toolbar toolbar = findViewById()
-            //setSupportActionBar(toolbar);
         } else if (id == R.id.history) {
             fragment = new NotificationsHistoryFragment();
 
@@ -205,6 +197,13 @@ public class VoiceNotificationActivity extends AppCompatActivity
         Intent intent = new Intent(this, NotificationCatcherService.class);
         intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
         bindService(intent, NotificationServiceConnection.getInstance(), Context.BIND_AUTO_CREATE);
+    }
+    private void unbindNotificationService()
+    {
+        // unBind to LocalService
+        if(NotificationServiceConnection.getInstance().isServiceBound()) {
+            unbindService(NotificationServiceConnection.getInstance());
+        }
     }
     /**
      *
@@ -252,21 +251,4 @@ public class VoiceNotificationActivity extends AppCompatActivity
         Snackbar.make(this.findViewById(R.id.frame_content),"sdasd",Snackbar.LENGTH_SHORT).show();
     }
 
-    /**
-     *  Defines callbacks for service binding, passed to bindService()
-     */
-//    protected ServiceConnection mConnection = new ServiceConnection() {
-//        public NotificationCatcherService NotificationService;
-//        @Override
-//        public void onServiceConnected(ComponentName name, IBinder service) {
-//            NotificationCatcherService.NotificationCatcherBinder binder = (NotificationCatcherService.NotificationCatcherBinder) service;
-//            NotificationService = binder.getService();
-//            mServiceBound = true;
-//        }
-//
-//        @Override
-//        public void onServiceDisconnected(ComponentName name) {
-//            mServiceBound = false;
-//        }
-//    };
 }

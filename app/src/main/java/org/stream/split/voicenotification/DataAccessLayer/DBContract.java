@@ -22,7 +22,7 @@ public final class DBContract {
         public static final String SQL_DELETE_APPFEED = "DROP TABLE IF EXIST " + TABLE_NAME;
 
     }
-
+    //TODO need to write proper class for storing history data, aftger creating notificationEntity
     public static abstract class NotificationHistoryFeed implements BaseColumns
     {
         public static final String TABLE_NAME = "NotificationHistory";

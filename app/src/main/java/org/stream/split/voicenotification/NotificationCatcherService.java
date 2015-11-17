@@ -1,23 +1,28 @@
 package org.stream.split.voicenotification;
 
+import android.app.Notification;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
+
 
 /**
  * Created by split on 2015-10-18.
  */
 public class NotificationCatcherService extends NotificationListenerService {
 
-    public static final String TAG = "NotificationCatcherServicen";
+    public static final String TAG = "NotificationService";
     public static final String NOTIFICATION_OBJECT = "notification_object";
     public static final String NOTIFICATION_POST_TIME = "notification_Post_Time";
-    public static final String NOTIFICAITON_PACKAGE_NAME = "notification_pakageName";
+    public static final String NOTIFICATION_PACKAGE_NAME = "notification_pakageName";
     public static final String NOTIFICATION_APPLICATION_LABEL = "notification_application_name";
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
 
@@ -30,28 +35,40 @@ public class NotificationCatcherService extends NotificationListenerService {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
-        initializeVoiceReceivers();
+        registerVoiceReceivers();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand");
+        return super.onStartCommand(intent, flags, startId);
+
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(mVoiceGenerator);
+        disposeVoiceReceiver();
         Log.d(TAG, "notification Listener onDestroy()");
     }
 
-    public void initializeVoiceReceivers()
+    private void disposeVoiceReceiver()
+    {
+        mVoiceGenerator.Shutdown();
+        try {
+            unregisterReceiver(mVoiceGenerator);
+        }
+        catch (IllegalArgumentException arg)
+        {
+            Log.e(TAG, "mVoiceGenerator is not registered!!!!!");
+        }
+    }
+
+    private void registerVoiceReceivers()
     {
         mVoiceGenerator = new NotificationBroadcastReceiver(this);
         IntentFilter intentFilter = new IntentFilter(TAG);
-        NotificationServiceConnection.getInstance().registerReceiver(mVoiceGenerator, intentFilter);
-
-    }
-
-
-    public void addBroadcastFilter(IntentFilter intentFilter)
-    {
-        addBroadcastFilter(intentFilter);
+        registerReceiver(mVoiceGenerator, intentFilter);
     }
 
     public void dummyFunction()
@@ -66,8 +83,8 @@ public class NotificationCatcherService extends NotificationListenerService {
 
         Log.d(TAG, "**********  onNotificationPosted");
         Log.d(TAG, "ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
-        Intent intent = createNotificationIntent(sbn);
-        sendBroadcast(intent);
+        createNotificationIntent(sbn);
+        //sendBroadcast(intent);
     }
 
     @Override
@@ -79,6 +96,7 @@ public class NotificationCatcherService extends NotificationListenerService {
     @Override
     public void onListenerConnected() {
         super.onListenerConnected();
+        Log.d(TAG, "onListenerConnected()");
 
     }
 
@@ -99,22 +117,75 @@ public class NotificationCatcherService extends NotificationListenerService {
 
     }
 
-    private Intent createNotificationIntent(StatusBarNotification sbn)
+    @Override
+    public boolean onUnbind(Intent intent) {
+        if(intent.getAction().equals(CUSTOM_BINDING)) {
+            NotificationServiceConnection.getInstance().onServiceDisconnected(new ComponentName(this, this.getClass()));
+        }
+        return super.onUnbind(intent);
+
+    }
+
+    //TODO when finish with testing change return type to Intent
+    private void createNotificationIntent(StatusBarNotification sbn)
     {
-        Intent intent = new Intent(TAG);
-        intent.putExtra(NOTIFICAITON_PACKAGE_NAME,sbn.getPackageName());
-        intent.putExtra(NOTIFICATION_OBJECT,sbn.getNotification());
-        intent.putExtra(NOTIFICATION_POST_TIME,sbn.getPostTime());
+        Log.d(TAG, "creating Notification, ");
+        Notification notification = sbn.getNotification();
+        String packageName = sbn.getPackageName();
+        Bundle bundle = notification.extras;
+        for(String key:bundle.keySet())
+        {
+
+            Object value = bundle.get(key);
+            if(value != null) {
+                StringBuilder builder = new StringBuilder();
+                builder.append("key: ");
+                builder.append(key);
+                builder.append("\t\t\t\t");
+
+                if(value.getClass() == CharSequence.class)
+                {
+                    CharSequence seq = bundle.getCharSequence(key);
+
+                    builder.append("value(charseq): ");
+                    builder.append(seq);
+                    builder.append("\t");
+                }
+                else {
+                    builder.append("value: ");
+                    builder.append(value);
+                    builder.append("\t");
+                }
+                builder.append("value class: ");
+                builder.append(value.getClass().getName());
+
+
+                Log.d(TAG, builder.toString());
+            }
+
+        }
+
+        //NotificationEntity notificationEntity = new NotificationEntity();
+        //notificationEntity.setApplicationName(getApplicationLabel(packageName));
+        //notificationEntity.setPackageName(packageName);
+        //notification.extras.
+        //notificationEntity.setText();
+
+        //return intent;
+    }
+
+    private String getApplicationLabel(String packageName)
+    {
         PackageManager packageManager = getPackageManager();
         String label;
         try {
-            label = packageManager.getApplicationLabel(packageManager.getApplicationInfo(sbn.getPackageName(), 0)).toString();
+            ApplicationInfo appInfo = packageManager.getApplicationInfo(packageName,0);
+            label = String.valueOf(packageManager.getApplicationLabel(appInfo));
         }catch (PackageManager.NameNotFoundException arg){
             Log.d(TAG,"!!!!!!!!!!!! getting label not possible - NameNotFound");
             label = "";
         }
-        intent.putExtra(NOTIFICATION_APPLICATION_LABEL, label);
-        return intent;
+        return label;
     }
     /**
      * custom binder class to get access to instance of service and its classes from VoiceNotificationActivity in particular.

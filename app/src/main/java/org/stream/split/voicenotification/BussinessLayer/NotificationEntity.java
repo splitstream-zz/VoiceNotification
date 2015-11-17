@@ -34,6 +34,22 @@ public class NotificationEntity
         this.mApplicationName = mApplicationName;
     }
 
+    public String getText() {
+        return mText;
+    }
+
+    public void setText(String mText) {
+        this.mText = mText;
+    }
+
+    public String getTitle() {
+        return mTitle;
+    }
+
+    public void setTitle(String mTitle) {
+        this.mTitle = mTitle;
+    }
+
     public Timestamp getOcuranceTime() {
         return mOcuranceTime;
     }
@@ -50,11 +66,6 @@ public class NotificationEntity
         this.mUtteranceId = mUtteranceId;
     }
 
-    public NotificationEntity(Notification notification)
-    {
-StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append(notification.)
-    }
     public NotificationEntity(String packageName, String aplicationName, Timestamp occuranceTime, int utteranceId)
     {
         mPackageName = packageName;

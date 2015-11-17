@@ -22,7 +22,6 @@ public class NotificationServiceConnection implements ServiceConnection {
     private NotificationCatcherService mNotificationService;
     private boolean mServiceBound;
     private List<ReceiverIntent> mReceivers = new ArrayList<>();
-    private Context mContext;
     private static NotificationServiceConnection mNotificationServiceConnection;
 
 
@@ -55,7 +54,7 @@ public class NotificationServiceConnection implements ServiceConnection {
         if(!isRegisteredReceiver(receiver)) {
             mReceivers.add(new ReceiverIntent(receiver,filter));
         }
-        if(mNotificationService != null && isServiceBound())
+        if(isServiceBound())
         {
             Log.d(TAG, "registering: " + receiver.toString());
             mNotificationService.registerReceiver(receiver,filter);
@@ -70,11 +69,10 @@ public class NotificationServiceConnection implements ServiceConnection {
     private void registerAllReceivers()
     {
         Log.d(TAG, "registeringAllReceivers");
-        if(mNotificationService != null && isServiceBound())
+        if(isServiceBound())
             for(ReceiverIntent receiver:mReceivers)
             {
-                Log.d(TAG, "registering: " + receiver.toString());
-                mNotificationService.registerReceiver(receiver.mReciver,receiver.mIntentFilter);
+                this.registerReceiver(receiver.mReciver, receiver.mIntentFilter);
             }
     }
 
@@ -90,26 +88,23 @@ public class NotificationServiceConnection implements ServiceConnection {
         return isRegistered;
     }
 
-    public void unregisterRecivers()
+    public void unregisterAllRecivers()
     {
-        if(mContext != null)
+        if(isServiceBound())
             for(ReceiverIntent receiver:mReceivers)
             {
-                try {
-                    mNotificationService.unregisterReceiver(receiver.mReciver);
-                }
-                catch (IllegalArgumentException arg)
-                {
-                    Log.d(TAG, receiver.toString() + "is not registered");
-                }
+                    this.unregisterReceiver(receiver.mReciver);
+
             }
     }
 
     public void unregisterReceiver(BroadcastReceiver receiver)
     {
-        if(mNotificationService !=null) {
+        if(isServiceBound()) {
             try{
+                Log.d(TAG, receiver.toString()+ " was unregistered");
                 mNotificationService.unregisterReceiver(receiver);
+                mReceivers.remove(receiver);
             }
             catch(IllegalArgumentException arg)
             {
@@ -117,13 +112,14 @@ public class NotificationServiceConnection implements ServiceConnection {
             }
         }
     }
-
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        NotificationCatcherService.NotificationCatcherBinder binder = (NotificationCatcherService.NotificationCatcherBinder) service;
-        mNotificationService = binder.getService();
-        mServiceBound = true;
-        registerAllReceivers();
+        if(!isServiceBound()) {
+            NotificationCatcherService.NotificationCatcherBinder binder = (NotificationCatcherService.NotificationCatcherBinder) service;
+            mNotificationService = binder.getService();
+            mServiceBound = true;
+            registerAllReceivers();
+        }
     }
 
     @Override

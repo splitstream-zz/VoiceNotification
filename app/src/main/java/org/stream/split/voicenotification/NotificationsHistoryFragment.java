@@ -52,9 +52,6 @@ public class NotificationsHistoryFragment extends Fragment {
         mAdapter = new NotificationsHistoryAdapter(apps);
     }
 
-    private void registerNotificationReceiver(){
-
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -128,6 +125,7 @@ public class NotificationsHistoryFragment extends Fragment {
     //TODO wymazywać historię w momencie wyłanczania aplikacji
     public class NotifyBroadcastReceiver extends BroadcastReceiver
     {
+
         @Override
         public void onReceive(Context context, Intent intent) {
             String packageName = intent.getExtras().getString("notification_pakageName");

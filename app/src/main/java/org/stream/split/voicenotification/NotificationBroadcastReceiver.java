@@ -4,19 +4,15 @@ import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
 
 import org.stream.split.voicenotification.BussinessLayer.NotificationEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 
-import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Created by split on 2015-10-19.
@@ -35,14 +31,14 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     {
         mUterrances = new ArrayList<>();
         db = new DBHelper(context);
-        tsp = new TextToSpeech(context, new OnInitTsp());
+        //tsp = new TextToSpeech(context, new OnInitTsp());
     }
 
     @Override
     public synchronized void onReceive(Context context, final Intent intent) {
 
         Log.d(TAG, "OnReceive()");
-        String PackageName = intent.getExtras().getString(NotificationCatcherService.NOTIFICAITON_PACKAGE_NAME);
+        String PackageName = intent.getExtras().getString(NotificationCatcherService.NOTIFICATION_PACKAGE_NAME);
         Boolean isFollowed = db.isAppFollowed(PackageName);
         Log.d(TAG,PackageName + " isFollowed: " + String.valueOf(isFollowed));
 
@@ -54,16 +50,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     }
 
-    private NotificationEntity createNotificationEntity(Notification notification, String packageName, Timestamp date, String label)
-    {
-        if(notification != null) {
-            NotificationEntity notificationEntity = new NotificationEntity(notification);
-            notificationEntity.setApplicationName(label);
-            notificationEntity.setPackageName(packageName);
-            notificationEntity.
 
-        }
-    }
     private void speak(Intent intent)
     {
         Log.d(TAG, "speak");
@@ -84,6 +71,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         if(tsp != null)
             tsp.shutdown();
     }
+    //TODO need to implement proper TSP.onInit!
     private class OnInitTsp implements TextToSpeech.OnInitListener
     {
 
@@ -91,7 +79,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         public void onInit(int status) {
             if(status == TextToSpeech.SUCCESS)
             {
-                speak()
+                //speak()
             }
 
         }
