@@ -1,4 +1,4 @@
-package org.stream.split.voicenotification;
+package org.stream.split.voicenotification.Fragments;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -25,8 +25,10 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import org.stream.split.voicenotification.BussinessLayer.AppInfoEntity;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
+import org.stream.split.voicenotification.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +111,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
             mApplictaionsToShow = APPLICATIONS_TO_SHOW.valueOf(getArguments().getString(ApplicationsToshow));
         }
 
-        mAdapter = new CustomListAdapter(getActivity(),R.layout.fragment_app_item,mAppsList);
+        mAdapter = new CustomListAdapter(getActivity(), R.layout.fragment_app_item,mAppsList);
         LoadApplicationsAsync loadingApps = new LoadApplicationsAsync();
         loadingApps.execute(mApplictaionsToShow);
 
@@ -202,6 +204,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                     }
 
                 }
+                db.close();
                 new LoadApplicationsAsync().execute(mApplictaionsToShow);
                 mDeleteMenuItem.setVisible(false);
 
@@ -252,6 +255,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                         Log.d(TAG, "dodano applikacje do bazy danych: " + app.getPackageName() +" row#: " + row);
                     }
                 }
+                db.close();
                 FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
                 AppFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
                 ft.replace(R.id.frame_content, fragment).commit();
@@ -313,7 +317,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
 
             AppInfoEntity appInfoEntity = this.getItem(position);
             holder.name.setText(appInfoEntity.getPackageName());
-            //holder.cbx.setChecked(appInfoEntity.IsSelected());
+            holder.cbx.setChecked(appInfoEntity.IsSelected());
             try {
                 holder.icon.setImageDrawable(manager.getApplicationIcon(appInfoEntity.getPackageName()));
             } catch (PackageManager.NameNotFoundException e) {
@@ -386,7 +390,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                     appsInfo.addAll(db.getAllApps());
                     break;
             }
-
+            db.close();
             return appsInfo;
         }
 

@@ -1,4 +1,4 @@
-package org.stream.split.voicenotification;
+package org.stream.split.voicenotification.Adapters;
 
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -8,8 +8,9 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
-import org.stream.split.voicenotification.BussinessLayer.AppInfoEntity;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.R;
 
 import java.util.ArrayList;
 

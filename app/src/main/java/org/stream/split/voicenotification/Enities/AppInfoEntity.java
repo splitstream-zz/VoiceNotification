@@ -1,4 +1,4 @@
-package org.stream.split.voicenotification.BussinessLayer;
+package org.stream.split.voicenotification.Enities;
 
 /**
  * Created by split on 2015-11-01.

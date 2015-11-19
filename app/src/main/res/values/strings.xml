@@ -22,4 +22,10 @@
     <string name="CustomIntent_NotificationCatcher">org.stream.split.voicenotification.CustomIntent_NotificationCatcher</string>
     <string name="delete_app">Usuń</string>
 
+    <string name="pref_config_setting_accept_notifications_title">Powiadomienia</string>
+    <string name="pref_config_setting_accept_notifications_summary">zezwól aplikacji na przechwytywanie powiadomień</string>
+    <string name="pref_config_setting_system">Ustawienia</string>
+
+
+
 </resources>

@@ -3,5 +3,5 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".VoiceNotification">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
-    <item android:id="@+id/action_turn_off" android:title="@string/action_turn_off" app:showAsAction="never" />
+    <item android:id="@+id/action_turn_off" android:title="@string/action_turn_off" android:icon="@drawable/ic_turn_off" app:showAsAction="ifRoom" />
 </menu>

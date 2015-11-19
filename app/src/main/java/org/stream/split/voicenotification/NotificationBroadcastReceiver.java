@@ -7,17 +7,15 @@ import android.content.Intent;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
-import org.stream.split.voicenotification.BussinessLayer.NotificationEntity;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by split on 2015-10-19.
  */
-//TODO trzeba się zastanowić czy nie przenieść zawartości tej klasy do VoiceNotificationActivity
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     private final String TAG = "NotBrodRec";
@@ -31,20 +29,20 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     {
         mUterrances = new ArrayList<>();
         db = new DBHelper(context);
-        //tsp = new TextToSpeech(context, new OnInitTsp());
+        tsp = new TextToSpeech(context, new OnInitTsp());
     }
 
     @Override
     public synchronized void onReceive(Context context, final Intent intent) {
 
         Log.d(TAG, "OnReceive()");
-        String PackageName = intent.getExtras().getString(NotificationCatcherService.NOTIFICATION_PACKAGE_NAME);
+        String PackageName = intent.getExtras().getString(NotificationService.NOTIFICATION_PACKAGE_NAME);
         Boolean isFollowed = db.isAppFollowed(PackageName);
         Log.d(TAG,PackageName + " isFollowed: " + String.valueOf(isFollowed));
 
         if(isFollowed) {
             NotificationEntity notificationEntity = new NotificationEntity();
-            notificationEntity.setApplicationName(intent.getExtras().getString(NotificationCatcherService.NOTIFICATION_APPLICATION_LABEL));
+            notificationEntity.setApplicationName(intent.getExtras().getString(NotificationService.NOTIFICATION_APPLICATION_LABEL));
 
         }
 
@@ -56,13 +54,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         Log.d(TAG, "speak");
         mTspConnected = true;
         mUtteranceId++;
-        Notification notification = intent.getParcelableExtra(NotificationCatcherService.NOTIFICATION_OBJECT);
-
+        Notification notification = intent.getParcelableExtra(NotificationService.NOTIFICATION_OBJECT);
         tsp.speak(intent.getExtras().getString("notification_event"), TextToSpeech.QUEUE_ADD, null);
         tsp.speak(intent.getExtras().getString(Notification.EXTRA_TITLE), TextToSpeech.QUEUE_ADD, null);
         tsp.speak(intent.getExtras().getString(Notification.EXTRA_TEXT), TextToSpeech.QUEUE_ADD, null);
-        tsp.shutdown();
-        tsp = null;
 
     }
 

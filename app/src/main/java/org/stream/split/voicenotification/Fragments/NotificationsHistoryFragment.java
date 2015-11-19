@@ -1,11 +1,15 @@
-package org.stream.split.voicenotification;
+package org.stream.split.voicenotification.Fragments;
 
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -13,12 +17,18 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.app.Fragment;
-import android.app.FragmentTransaction;
 
-import org.stream.split.voicenotification.BussinessLayer.AppInfoEntity;
-import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
+import org.stream.split.voicenotification.Helpers.Helper;
+import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
+import org.stream.split.voicenotification.NotificationService;
+import org.stream.split.voicenotification.Adapters.NotificationsHistoryAdapter;
+import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
+import org.stream.split.voicenotification.R;
+import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 import java.util.ArrayList;
+import java.util.zip.Inflater;
 
 /**
  * A fragment representing a list of Items.
@@ -32,6 +42,7 @@ import java.util.ArrayList;
 public class NotificationsHistoryFragment extends Fragment {
 
     private final static String TAG = "NotificationsHistoryFragment";
+    private final int mTestingNotificationID = 6879;
 
     private RecyclerView mRecyclerView;
     private NotificationsHistoryAdapter mAdapter;
@@ -39,17 +50,35 @@ public class NotificationsHistoryFragment extends Fragment {
     private NotifyBroadcastReceiver mReceiver;
     private OnFragmentInteractionListener mListener;
     private NotificationServiceConnection mConnection;
+    private NotificationManager mNotificationManager;
 
 
     public NotificationsHistoryFragment() {
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        try {
+            mListener = (OnFragmentInteractionListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.d(TAG, "onCreate()");
+        mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
         ArrayList<AppInfoEntity> apps = new ArrayList<>();
         mAdapter = new NotificationsHistoryAdapter(apps);
+        mReceiver = new NotifyBroadcastReceiver();
+        mConnection = NotificationServiceConnection.getInstance();
+
+
     }
 
 
@@ -69,36 +98,30 @@ public class NotificationsHistoryFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
 
         mRecyclerView.setAdapter(mAdapter);
+
+        setUpFab();
         return view;
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        IntentFilter filter = new IntentFilter(NotificationService.TAG);
+        mConnection.registerReceiver(mReceiver, filter);
+    }
 
     @Override
-    public void onAttach(Activity context) {
-        super.onAttach(context);
-
-//        Intent intent = new Intent(this.getActivity(),NotificationCatcherService.class);
-//        intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
-//        this.getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        IntentFilter filter = new IntentFilter(NotificationCatcherService.TAG);
-
-        mReceiver = new NotifyBroadcastReceiver();
-        mConnection = NotificationServiceConnection.getInstance();
-        mConnection.registerReceiver(mReceiver,filter);
-
-        try {
-            mListener = (OnFragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+    public void onStop() {
+        super.onStop();
+        mConnection.unregisterReceiver(mReceiver);
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-    }
+        mListener = null;
 
+    }
 
 //    @Override
 //    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -108,6 +131,26 @@ public class NotificationsHistoryFragment extends Fragment {
 //            mListener.onFragmentInteraction("sda");
 //        }
 //    }
+
+    /***
+     * setting up Floating Action button to issue notification for testing purposes
+     */
+    void setUpFab()
+    {
+
+        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);
+        fab.setImageResource(R.drawable.ic_test_notification);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), VoiceNotificationActivity.class);
+                PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(),01,intent,PendingIntent.FLAG_UPDATE_CURRENT);
+                Notification notification = Helper.createNotification(getActivity(),pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
+                mNotificationManager.notify(mTestingNotificationID, notification);
+                Snackbar.make(v, "test notification was send", Snackbar.LENGTH_SHORT).show();
+            }
+        });
+    }
 
     /**
      * The default content for this Fragment has a TextView that is shown when

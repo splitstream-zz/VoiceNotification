@@ -8,7 +8,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -20,21 +19,36 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
+
+import org.stream.split.voicenotification.Fragments.AppFragment;
+import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
+import org.stream.split.voicenotification.Fragments.SettingsFragment;
+import org.stream.split.voicenotification.Helpers.Helper;
+import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
+import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 
 
 //TODO add "Back" functionality using back arrow(in place of dongle on appbar) or hardware back key
 //TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
 public class VoiceNotificationActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener  {
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener {
 
     private final String TAG = "VoiceNotificationActivity";
     NotificationManager mNotificationManager;
+    private final int mPersistentNotificationID = 8976;
+    private final int mTestingNotificationID = 6879;
     FragmentManager mFragmentManager;
+    Intent mServiceIntent;
+    NotificationServiceConnection mServiceConnection;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mServiceIntent = new Intent(this, NotificationService.class);
+        mServiceConnection = NotificationServiceConnection.getInstance();
+        mServiceIntent.setAction(NotificationService.CUSTOM_BINDING);
 
         setContentView(R.layout.activity_voice_notification);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -56,8 +70,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         //creating persistent notification for purposes of informing user of running up
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        createPersistantAppNotification(mNotificationManager, R.integer.persistentNotificationID);
-        setUpFab();
+        createPersistantAppNotification();
 
     }
 
@@ -77,39 +90,18 @@ public class VoiceNotificationActivity extends AppCompatActivity
         super.onStop();
         // Unbind from the service
         Log.d(TAG, "onStop()");
-//        NotificationServiceConnection.getInstance().unregisterAllRecivers();
-//        if (NotificationServiceConnection.getInstance().isServiceBound()) {
-//            unbindService(NotificationServiceConnection.getInstance());
-//        }
+
+        unbindNotificationService();
     }
 
 
-
-    //TODO znaleźć sposób aby wyłączyć całkowicie aplikację (usunąć także powiadomienia) podobnie jak przy "wymuś zatrzymanie"
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        NotificationServiceConnection.getInstance().unregisterAllRecivers();
-        if (NotificationServiceConnection.getInstance().isServiceBound()) {
-            unbindService(NotificationServiceConnection.getInstance());
-        }
         Log.d(TAG, "onDestroy()");
     }
 
-    /***
-     * setting up Floating Action button to issue notification for testing purposes
-     */
-    void setUpFab()
-    {
-        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                createNotification(mNotificationManager, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false, 9);
-                Snackbar.make(v, "test notification was send", Snackbar.LENGTH_SHORT).show();
-            }
-        });
-    }
+
 
     @Override
     public void onBackPressed() {
@@ -131,31 +123,31 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        //TODO zaimplementować funkcję, która będzie wyłanczać aplikację całkowicie ( service, activity i persistent notification)
+        //TODO zaimplementować funkcję, która będzie wyłączać aplikację całkowicie ( service, activity i persistent notification)
         switch(id) {
             case R.id.action_turn_off:
-                this.onDestroy();
+                turnOffApp();
                 break;
+            case R.id.action_settings:
+                FragmentTransaction transaction = mFragmentManager.beginTransaction();
+                transaction.replace(R.id.frame_content, new SettingsFragment());
+                transaction.commit();
             default:
                 Snackbar.make(findViewById(R.id.coordinator_layout), "Item not implemented", Snackbar.LENGTH_SHORT).show();
                 break;
         }
 
-        if (id == R.id.action_settings) {
-
-            return true;
-        }
-
         return false;
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
+    private void turnOffApp()
+    {
+        mServiceConnection.unregisterAllRecivers();
+        finish();
+    }
+
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -176,7 +168,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
         } else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
-            createNotification(mNotificationManager, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false, 9);
+            createTestingNotification();
             snackBar = Snackbar.make(drawer, "test notification was send", Snackbar.LENGTH_SHORT);
         }
 
@@ -194,53 +186,33 @@ public class VoiceNotificationActivity extends AppCompatActivity
     private void bindNotificationService()
     {
         // Bind to LocalService
-        Intent intent = new Intent(this, NotificationCatcherService.class);
-        intent.setAction(NotificationCatcherService.CUSTOM_BINDING);
-        bindService(intent, NotificationServiceConnection.getInstance(), Context.BIND_AUTO_CREATE);
+        bindService(mServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
     private void unbindNotificationService()
     {
         // unBind to LocalService
-        if(NotificationServiceConnection.getInstance().isServiceBound()) {
-            unbindService(NotificationServiceConnection.getInstance());
+        mServiceConnection.unregisterAllRecivers();
+        if (mServiceConnection.isServiceBound()) {
+            unbindService(mServiceConnection);
         }
+        Intent intent = new Intent(this,NotificationService.class);
+        stopService(intent);
     }
-    /**
-     *
-     * @param notificationManager for adding new notification
-     * @param notificationId Id for retrieving and updating purposes
-     */
-    public void createNotification(NotificationManager notificationManager,String title,String text, String subText, Boolean persistance, int notificationId)
-    {
-        Intent intent = new Intent(this,VoiceNotificationActivity.class);
 
+    private void createTestingNotification()
+    {
+        Intent intent = new Intent(getApplicationContext(),VoiceNotificationActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        Resources res = getResources();
-        Notification.Builder builder = new Notification.Builder(getApplicationContext());
-        builder.setContentTitle(title)
-                .setContentText(text)
-                .setSubText(subText)
-                .setOngoing(persistance)
-                .setContentIntent(pendingIntent)
-                .setPriority(Notification.PRIORITY_MAX)
-                .setSmallIcon(R.drawable.ic_persistent_notification);
-
-        notificationManager.notify(notificationId, builder.build());
+        Notification notification = Helper.createNotification(getApplicationContext(),pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
+        mNotificationManager.notify(mTestingNotificationID, notification);
     }
-
-    public void createPersistantAppNotification(NotificationManager notificationManager, int notificationId)
+    private void createPersistantAppNotification()
     {
-        Resources res = getResources();
-        createNotification(notificationManager,
-                res.getString(R.string.Notification_title),
-                res.getString(R.string.Notification_text),
-                res.getString(R.string.Notification_subtext),
-                true,
-                notificationId);
-
+        Intent intent = new Intent(getApplicationContext(),VoiceNotificationActivity.class);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Notification notification = Helper.createPersistantAppNotification(getApplicationContext(),pendingIntent);
+        mNotificationManager.notify(mPersistentNotificationID, notification);
     }
-
 
     /**
      * Funkcja służaca do komunikacji pomiędzy Fragmentami

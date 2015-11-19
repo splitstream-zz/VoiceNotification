@@ -1,10 +1,7 @@
-package org.stream.split.voicenotification.BussinessLayer;
+package org.stream.split.voicenotification.Enities;
 
-
-import android.app.Notification;
 
 import java.sql.Timestamp;
-import java.util.Date;
 
 /**
  * Created by B on 2015-11-05.

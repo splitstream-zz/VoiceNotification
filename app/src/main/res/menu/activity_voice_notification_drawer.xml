@@ -7,7 +7,8 @@
                 <item android:id="@+id/history" android:icon="@android:drawable/ic_menu_camera"
                     android:title="@string/history_IT" />
                 <item android:id="@+id/choose_apps" android:icon="@android:drawable/ic_menu_camera"
-                    android:title="@string/apps_IT" />
+                    android:title="@string/apps_IT"
+                    />
                 <item android:id="@+id/conditions" android:icon="@android:drawable/ic_menu_gallery"
                     android:title="Warunki" />
             </menu>

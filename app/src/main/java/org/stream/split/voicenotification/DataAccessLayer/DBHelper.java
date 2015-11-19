@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import org.stream.split.voicenotification.BussinessLayer.AppInfoEntity;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,6 @@ public class DBHelper extends SQLiteOpenHelper {
             do {
                 AppInfoEntity app = new AppInfoEntity();
                 app.setPackageName(cursor.getString(cursor.getColumnIndex(DBContract.AppFeed.COLUMN_NAME_PACKAGENAME)));
-                app.setSelected(true);
                 apps.add(app);
             }while(cursor.moveToNext());
         }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/pref_config_setting_system" >
+        <Preference
+            android:summary="@string/pref_config_setting_accept_notifications_summary"
+            android:title="@string/pref_config_setting_accept_notifications_title" >
+            <intent android:action="android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS">
+            </intent>
+        </Preference>
+    </PreferenceCategory>
+</PreferenceScreen>

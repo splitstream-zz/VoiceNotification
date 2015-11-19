@@ -1,4 +1,4 @@
-package org.stream.split.voicenotification;
+package org.stream.split.voicenotification.Interfaces;
 
 /**
  * Created by split on 2015-11-13.
