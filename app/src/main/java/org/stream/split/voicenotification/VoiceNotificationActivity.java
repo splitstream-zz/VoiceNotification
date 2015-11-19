@@ -66,7 +66,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
         mFragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
         fragmentTransaction.replace(R.id.frame_content,new NotificationsHistoryFragment()).commit();
-        //NotificationService.dummyFunction();
 
         //creating persistent notification for purposes of informing user of running up
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -145,7 +144,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
     private void turnOffApp()
     {
         mServiceConnection.unregisterAllRecivers();
+        mNotificationManager.cancelAll();
+        mServiceConnection.finish();
         finish();
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     @Override

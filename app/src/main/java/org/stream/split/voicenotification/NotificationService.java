@@ -67,6 +67,8 @@ public class NotificationService extends NotificationListenerService {
             Log.e(TAG, "mVoiceGenerator is not registered!!!!!");
         }
 
+        stopSelf();
+
     }
 
     private void registerVoiceReceivers()
