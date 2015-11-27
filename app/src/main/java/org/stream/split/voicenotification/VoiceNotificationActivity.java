@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -19,6 +20,9 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 
 import org.stream.split.voicenotification.Fragments.AppFragment;
 import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
@@ -117,6 +121,16 @@ public class VoiceNotificationActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
 
         getMenuInflater().inflate(R.menu.voice_notification, menu);
+        MenuItem menuItem = menu.findItem(R.id.offSwitch);
+        View view = MenuItemCompat.getActionView(menuItem);
+        Switch switcha = (Switch)view.findViewById(R.id.switchForActionBar);
+        switcha.setChecked(mServiceConnection.IsVoiceActive());
+        switcha.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    mServiceConnection.setIsVoiceActive(isChecked);
+            }
+        });
         return true;
     }
 
@@ -126,9 +140,9 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         //TODO zaimplementować funkcję, która będzie wyłączać aplikację całkowicie ( service, activity i persistent notification)
         switch(id) {
-            case R.id.action_turn_off:
-                turnOffApp();
-                break;
+//            case R.id.action_turn_off:
+//                turnOffApp();
+//                break;
             case R.id.action_settings:
                 FragmentTransaction transaction = mFragmentManager.beginTransaction();
                 transaction.replace(R.id.frame_content, new SettingsFragment());
@@ -145,9 +159,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
     {
         mServiceConnection.unregisterAllRecivers();
         mNotificationManager.cancelAll();
-        mServiceConnection.finish();
         finish();
-        android.os.Process.killProcess(android.os.Process.myPid());
     }
 
     @Override
@@ -197,8 +209,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
         if (mServiceConnection.isServiceBound()) {
             unbindService(mServiceConnection);
         }
-        Intent intent = new Intent(this,NotificationService.class);
-        stopService(intent);
     }
 
     private void createTestingNotification()
@@ -212,7 +222,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
     {
         Intent intent = new Intent(getApplicationContext(),VoiceNotificationActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = Helper.createPersistantAppNotification(getApplicationContext(),pendingIntent);
+        Notification notification = Helper.createPersistentAppNotification(getApplicationContext(), pendingIntent);
         mNotificationManager.notify(mPersistentNotificationID, notification);
     }
 

@@ -7,7 +7,6 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.RelativeLayout;
 
 import org.stream.split.voicenotification.NotificationService;
 
@@ -19,11 +18,30 @@ import java.util.List;
  */
 public class NotificationServiceConnection implements ServiceConnection {
 
-    private final String TAG = "NotificationServiceConnection";
+    private final String TAG = "NotificServConn";
     private NotificationService mNotificationService;
     private boolean mServiceBound;
     private List<ReceiverIntent> mIntentReceivers = new ArrayList<>();
     private static NotificationServiceConnection mNotificationServiceConnection;
+
+    public void setIsVoiceActive(boolean isVoiceActive) {
+        this.mIsVoiceActive = isVoiceActive;
+        if(mServiceBound)
+            mNotificationService.setVoiceActive(isVoiceActive);
+    }
+
+    public boolean IsVoiceActive()
+    {
+        boolean isActive = false;
+        Log.d(TAG, "serviceBound = " + mServiceBound);
+        if(mServiceBound) {
+            isActive = mNotificationService.isVoiceActive();
+            Log.d(TAG, "isActive = " + isActive);
+        }
+        return isActive;
+    }
+
+    private boolean mIsVoiceActive = true;
 
 
     public boolean isServiceBound()
@@ -33,6 +51,8 @@ public class NotificationServiceConnection implements ServiceConnection {
 
     private NotificationServiceConnection()
     {}
+
+
 
     public static NotificationServiceConnection getInstance()
     {
@@ -120,10 +140,6 @@ public class NotificationServiceConnection implements ServiceConnection {
 
         Log.d(TAG, "mIntentReceivers.size(): " + mIntentReceivers.size() + "\tisDeleted: " + isDeleted);
     }
-    public void finish()
-    {
-        mNotificationService.disposeVoiceReceiver();
-    }
 
     private boolean removeReceiver(BroadcastReceiver receiver)
     {
@@ -151,6 +167,7 @@ public class NotificationServiceConnection implements ServiceConnection {
             NotificationService.NotificationCatcherBinder binder = (NotificationService.NotificationCatcherBinder) service;
             mNotificationService = binder.getService();
             mServiceBound = true;
+            mNotificationService.setVoiceActive(mIsVoiceActive);
             registerAllReceivers();
         }
     }

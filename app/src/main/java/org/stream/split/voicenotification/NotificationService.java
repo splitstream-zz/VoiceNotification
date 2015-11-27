@@ -1,19 +1,18 @@
 package org.stream.split.voicenotification;
 
-import android.app.Notification;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
+import com.google.gson.Gson;
+
+import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 
@@ -25,14 +24,29 @@ public class NotificationService extends NotificationListenerService {
 
     public static final String TAG = "NotificationService";
     public static final String NOTIFICATION_OBJECT = "notification_object";
-    public static final String NOTIFICATION_POST_TIME = "notification_Post_Time";
-    public static final String NOTIFICATION_PACKAGE_NAME = "notification_pakageName";
-    public static final String NOTIFICATION_APPLICATION_LABEL = "notification_application_name";
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
+    //TODO Czy tutaj potrzebujemy static?
+    private boolean mIsVoiceActive = false;
+
+    public boolean isVoiceActive() {
+        return mIsVoiceActive;
+    }
+
+    public void setVoiceActive(boolean isVoiceActive) {
+
+        if(isVoiceActive =! mIsVoiceActive) {
+            if (isVoiceActive)
+                this.registerVoiceReceivers();
+            else
+                this.unregisterVoiceReceiver();
+        }
+        mIsVoiceActive = isVoiceActive;
+    }
+
+
 
     private final IBinder mBinder = new NotificationCatcherBinder();
 
-    private NotificationServiceConnection mConnection;
     private NotificationBroadcastReceiver mVoiceGenerator;
 
     @Override
@@ -52,46 +66,60 @@ public class NotificationService extends NotificationListenerService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        disposeVoiceReceiver();
+        unregisterVoiceReceiver();
         Log.d(TAG, "notification Listener onDestroy()");
     }
 
-    public void disposeVoiceReceiver()
+    private void unregisterVoiceReceiver()
     {
-        mVoiceGenerator.Shutdown();
-        try {
-            unregisterReceiver(mVoiceGenerator);
-        }
-        catch (IllegalArgumentException arg)
-        {
-            Log.e(TAG, "mVoiceGenerator is not registered!!!!!");
-        }
+        Log.d(TAG, "unregisterVoiceReciver Before");
+        if(mVoiceGenerator != null) {
+            Log.d(TAG, "unregisterVoiceReciver Inside");
+            this.mVoiceGenerator.Shutdown();
 
-        stopSelf();
+            try {
+                unregisterReceiver(mVoiceGenerator);
+            } catch (IllegalArgumentException arg) {
+                Log.e(TAG, "mVoiceGenerator is not registered!!!!!");
+            }
+            mVoiceGenerator = null;
+            setVoiceActive(false);
 
+        }
     }
 
     private void registerVoiceReceivers()
     {
-        mVoiceGenerator = new NotificationBroadcastReceiver(this);
-        IntentFilter intentFilter = new IntentFilter(TAG);
-        registerReceiver(mVoiceGenerator, intentFilter);
+        Log.d(TAG, "registerVoiceReciver Before");
+        if(mVoiceGenerator == null) {
+            Log.d(TAG, "registerVoiceReciver Inside");
+            mVoiceGenerator = new NotificationBroadcastReceiver(this);
+            IntentFilter intentFilter = new IntentFilter(TAG);
+            registerReceiver(mVoiceGenerator, intentFilter);
+            setVoiceActive(true);
+        }
+
+
     }
 
-    public void dummyFunction()
-    {
-        Log.d(TAG, "DummyFunction");
-    }
-
-    // TODO sprawdzać czy nie jest null
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
 
         Log.d(TAG, "**********  onNotificationPosted");
-        Log.d(TAG, "ID : " + sbn.getId() + ",\t" + sbn.getNotification().tickerText + ",\t" + sbn.getPackageName());
-        Helper.IterateBundleExtras(sbn.getNotification().extras);
-        //Intent intent = createNotificationIntent(sbn);
-        //sendBroadcast(intent);
+        Log.d(TAG, "ID : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
+        Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
+
+        NotificationEntity notificationEntity = Helper.createNotificationEntity(sbn, this);
+        DBHelper db = new DBHelper(this);
+        notificationEntity = db.addNotification(notificationEntity);
+        db.close();
+        Log.d(TAG, "Newly inserted notification Id: " + notificationEntity.getID());
+
+        if(isVoiceActive()) {
+            Intent intent = new Intent(TAG);
+            intent.putExtra(NOTIFICATION_OBJECT, new Gson().toJson(notificationEntity));
+            sendBroadcast(intent);
+        }
     }
 
     @Override
@@ -132,25 +160,6 @@ public class NotificationService extends NotificationListenerService {
         return super.onUnbind(intent);
 
     }
-
-    //TODO when finish with testing change return type to Intent
-    //TODO make Bundle ready with addition of package name, label,
-    private Intent createNotificationIntent(StatusBarNotification sbn)
-    {
-        Intent intent = new Intent();
-
-        Log.d(TAG, "creating Notification, ");
-        Notification notification = sbn.getNotification();
-        String packageName = sbn.getPackageName();
-        Bundle bundle = notification.extras;
-        bundle.putString(NOTIFICATION_PACKAGE_NAME,packageName);
-        bundle.putString(NOTIFICATION_APPLICATION_LABEL, Helper.getApplicationLabel(packageName, this));
-        intent.putExtras(bundle);
-        return intent;
-    }
-
-
-
 
     /**
      * custom binder class to get access to instance of service and its classes from VoiceNotificationActivity in particular.

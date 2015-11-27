@@ -10,9 +10,11 @@ import android.widget.TextView;
 
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by split on 2015-10-20.
@@ -21,7 +23,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
 
     static final public String TAG = "NotificationsHistoryAdapter";
     public DBHelper mDb;
-    private ArrayList<AppInfoEntity> mDataset;
+    private List<NotificationEntity> mDataset;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -30,7 +32,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
 
         public TextView mTextView;
         public ImageButton mAddAppImgBtn;
-        public AppInfoEntity mAppinfo;
+        public NotificationEntity mNotificationEntity;
 
 
         public ViewHolder(View v) {
@@ -38,14 +40,12 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
             mTextView = (TextView) v.findViewById(R.id.history_app_name);
             mAddAppImgBtn = (ImageButton) v.findViewById(R.id.history_app_add);
 
-
-
         }
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public NotificationsHistoryAdapter(ArrayList<AppInfoEntity> historyApps) {
-            mDataset = historyApps;
+    public NotificationsHistoryAdapter(List<NotificationEntity> notificationHistory) {
+            mDataset = notificationHistory;
 
     }
 
@@ -66,20 +66,32 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     public void onBindViewHolder(final ViewHolder holder, int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-
-        String packageName = mDataset.get(position).getPackageName();
-        holder.mAppinfo = mDataset.get(position);
-        holder.mTextView.setText(packageName);
+        final NotificationEntity entity = mDataset.get(position);
+        String packageName = entity.getPackageName();
+        holder.mNotificationEntity = entity;
+        holder.mTextView.setText(entity.getApplicationLabel());
+        //TODO dodać usuwanie aplikacji
         if(mDb.isAppFollowed(packageName))
         {
-            holder.mAddAppImgBtn.setImageResource(R.drawable.ic_apply_applications);
-        }
-        else {
+            holder.mAddAppImgBtn.setImageResource(R.drawable.ic_delete_app);
             holder.mAddAppImgBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    mDb.addApp(holder.mAppinfo);
-                    Log.d(TAG, "mAppinfo == null");
+                    mDb.deleteApp(new AppInfoEntity(holder.mNotificationEntity.getPackageName()));
+                    holder.mAddAppImgBtn.setImageResource(R.drawable.ic_add_applications);
+                    v.refreshDrawableState();
+                }
+            });
+        }
+        else
+        {
+            holder.mAddAppImgBtn.setImageResource(R.drawable.ic_add_applications);
+            holder.mAddAppImgBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mDb.addApp(new AppInfoEntity(holder.mNotificationEntity.getPackageName()));
+                    holder.mAddAppImgBtn.setImageResource(R.drawable.ic_delete_app);
+                    v.refreshDrawableState();
                 }
             });
         }
@@ -91,9 +103,9 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
         return mDataset.size();
     }
 
-    public void addItem(AppInfoEntity app)
+    public void addItem(NotificationEntity entity)
     {
-        mDataset.add(app);
+        mDataset.add(entity);
     }
 
 

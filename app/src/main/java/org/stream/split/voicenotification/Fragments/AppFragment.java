@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.R;
 
@@ -316,7 +317,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
             PackageManager manager = getActivity().getPackageManager();
 
             AppInfoEntity appInfoEntity = this.getItem(position);
-            holder.name.setText(appInfoEntity.getPackageName());
+            holder.name.setText(Helper.getApplicationLabel(appInfoEntity.getPackageName(),getContext()));
             holder.cbx.setChecked(appInfoEntity.IsSelected());
             try {
                 holder.icon.setImageDrawable(manager.getApplicationIcon(appInfoEntity.getPackageName()));

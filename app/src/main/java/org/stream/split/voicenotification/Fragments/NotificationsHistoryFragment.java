@@ -18,7 +18,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.app.Fragment;
 
+import com.google.gson.Gson;
+
+import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.NotificationService;
@@ -28,6 +32,7 @@ import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.Inflater;
 
 /**
@@ -73,8 +78,8 @@ public class NotificationsHistoryFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
         mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
-        ArrayList<AppInfoEntity> apps = new ArrayList<>();
-        mAdapter = new NotificationsHistoryAdapter(apps);
+        List<NotificationEntity> entities = new DBHelper(getActivity()).getAllNotification();
+        mAdapter = new NotificationsHistoryAdapter(entities);
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
 
@@ -171,10 +176,15 @@ public class NotificationsHistoryFragment extends Fragment {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            String packageName = intent.getExtras().getString("notification_pakageName");
-            Log.d(TAG, "message received: " + packageName);
-            mAdapter.addItem(new AppInfoEntity(packageName));
-            mAdapter.notifyDataSetChanged();
+            Bundle extras = intent.getExtras();
+            String gsonToJson;
+            if(extras != null) {
+                gsonToJson = extras.getString(NotificationService.NOTIFICATION_OBJECT);
+                NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
+
+                mAdapter.addItem(notificationEntity);
+                mAdapter.notifyDataSetChanged();
+            }
         }
     }
 

@@ -1,81 +1,104 @@
 package org.stream.split.voicenotification.Enities;
 
 
-import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by B on 2015-11-05.
  */
 public class NotificationEntity
 {
+    public long getID() {
+        return mID;
+    }
+
+    public void setID(long ID) {
+        this.mID = ID;
+    }
+
+    long mID;
     String mPackageName;
-    String mApplicationName;
-    String mText;
-    String mTitle;
-    Timestamp mOcuranceTime;
-    int mUtteranceId;
+    String mApplicationLabel;
+
+    public String getTinkerText() {
+        return mTinkerText;
+    }
+
+    public void setTinkerText(String TinkerText) {
+        this.mTinkerText = TinkerText;
+    }
+
+    String mTinkerText;
+    long mOccurrenceTime;
+    String mUtteranceId;
+
+    public Map<String, String> getMessages() {
+        return mMessages;
+    }
+
+    public void setMessages(Map<String, String> Messages) {
+        this.mMessages = Messages;
+    }
+    public String getMessage(String key)
+    {
+        return mMessages.get(key);
+    }
+
+    Map<String,String> mMessages = new HashMap<>();
 
     public String getPackageName() {
         return mPackageName;
     }
 
-    public void setPackageName(String mPackageName) {
-        this.mPackageName = mPackageName;
+    public void setPackageName(String PackageName) {
+        this.mPackageName = PackageName;
     }
 
-    public String getApplicationName() {
-        return mApplicationName;
+    public String getApplicationLabel() {
+        return mApplicationLabel;
     }
 
-    public void setApplicationName(String mApplicationName) {
-        this.mApplicationName = mApplicationName;
+    public void setApplicationLabel(String ApplicationName) {
+        this.mApplicationLabel = ApplicationName;
     }
 
-    public String getText() {
-        return mText;
+    public long getOccurrenceTime() {
+        return mOccurrenceTime;
     }
 
-    public void setText(String mText) {
-        this.mText = mText;
+    public void setOccurenceTime(long OccurrenceTime) {
+        this.mOccurrenceTime = OccurrenceTime;
     }
 
-    public String getTitle() {
-        return mTitle;
+    public void addMessage(String key, String Value)
+    {
+        mMessages.put(key, Value);
     }
 
-    public void setTitle(String mTitle) {
-        this.mTitle = mTitle;
-    }
-
-    public Timestamp getOcuranceTime() {
-        return mOcuranceTime;
-    }
-
-    public void setOcuranceTime(Timestamp mOcuranceTime) {
-        this.mOcuranceTime = mOcuranceTime;
-    }
-
-    public int getUtteranceId() {
+    public String getUtteranceId() {
         return mUtteranceId;
     }
 
-    public void setUtteranceId(int mUtteranceId) {
-        this.mUtteranceId = mUtteranceId;
+    public void setUtteranceId(String UtteranceId) {
+        this.mUtteranceId = UtteranceId;
     }
 
-    public NotificationEntity(String packageName, String aplicationName, Timestamp occuranceTime, int utteranceId)
+    public NotificationEntity( String packageName, String applicationName, long occurrenceTime, String utteranceId)
     {
         mPackageName = packageName;
-        mApplicationName = aplicationName;
-        mOcuranceTime = occuranceTime;
+        mApplicationLabel = applicationName;
+        mOccurrenceTime = occurrenceTime;
         mUtteranceId = utteranceId;
     }
-    public NotificationEntity(String packageName, String aplicationName, Timestamp occuranceTime)
+    public NotificationEntity( String packageName, String applicationName, long occurrenceTime)
     {
-        this(packageName,aplicationName,occuranceTime,0);
+        this(packageName,applicationName,occurrenceTime,"");
     }
-    public NotificationEntity()
-    {}
+    public NotificationEntity(long ID)
+    {
+        mID = ID;
+    }
 
 
 }
