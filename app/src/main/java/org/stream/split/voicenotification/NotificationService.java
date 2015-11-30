@@ -27,6 +27,8 @@ public class NotificationService extends NotificationListenerService {
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
     //TODO Czy tutaj potrzebujemy static?
     private boolean mIsVoiceActive = false;
+    private final IBinder mBinder = new NotificationCatcherBinder();
+    private NotificationBroadcastReceiver mVoiceGenerator;
 
     public boolean isVoiceActive() {
         return mIsVoiceActive;
@@ -34,26 +36,24 @@ public class NotificationService extends NotificationListenerService {
 
     public void setVoiceActive(boolean isVoiceActive) {
 
-        if(isVoiceActive =! mIsVoiceActive) {
-            if (isVoiceActive)
+            if (isVoiceActive && !mIsVoiceActive) {
                 this.registerVoiceReceivers();
+            }
             else
                 this.unregisterVoiceReceiver();
-        }
         mIsVoiceActive = isVoiceActive;
     }
 
 
 
-    private final IBinder mBinder = new NotificationCatcherBinder();
 
-    private NotificationBroadcastReceiver mVoiceGenerator;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
-        registerVoiceReceivers();
+        //TODO registerVoiceReceivers should be invoked only by setVoiceActive?
+        //registerVoiceReceivers();
     }
 
     @Override
@@ -83,8 +83,6 @@ public class NotificationService extends NotificationListenerService {
                 Log.e(TAG, "mVoiceGenerator is not registered!!!!!");
             }
             mVoiceGenerator = null;
-            setVoiceActive(false);
-
         }
     }
 
@@ -96,7 +94,6 @@ public class NotificationService extends NotificationListenerService {
             mVoiceGenerator = new NotificationBroadcastReceiver(this);
             IntentFilter intentFilter = new IntentFilter(TAG);
             registerReceiver(mVoiceGenerator, intentFilter);
-            setVoiceActive(true);
         }
 
 
@@ -109,7 +106,8 @@ public class NotificationService extends NotificationListenerService {
         Log.d(TAG, "ID : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
         Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
 
-        NotificationEntity notificationEntity = Helper.createNotificationEntity(sbn, this);
+        String label = Helper.getApplicationLabel(sbn.getPackageName(),this);
+        NotificationEntity notificationEntity = Helper.createNotificationEntity(sbn, label);
         DBHelper db = new DBHelper(this);
         notificationEntity = db.addNotification(notificationEntity);
         db.close();

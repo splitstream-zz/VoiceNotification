@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".VoiceNotification">
     <item android:id="@+id/action_settings" android:title="@string/action_settings"
         android:orderInCategory="100" app:showAsAction="never" />
+    <!--TODO jak zrobić żeby to było ładniejsze-->
    <item android:id="@+id/offSwitch"
        android:title=""
        app:showAsAction="always"

@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.service.notification.StatusBarNotification;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -41,7 +42,7 @@ public class NotificationServiceConnection implements ServiceConnection {
         return isActive;
     }
 
-    private boolean mIsVoiceActive = true;
+    private boolean mIsVoiceActive = false;
 
 
     public boolean isServiceBound()
@@ -49,10 +50,14 @@ public class NotificationServiceConnection implements ServiceConnection {
         return mServiceBound;
     }
 
+    public void sentTestNotification(StatusBarNotification sbn)
+    {
+        if(mServiceBound)
+           mNotificationService.onNotificationPosted(sbn);
+    }
+
     private NotificationServiceConnection()
     {}
-
-
 
     public static NotificationServiceConnection getInstance()
     {

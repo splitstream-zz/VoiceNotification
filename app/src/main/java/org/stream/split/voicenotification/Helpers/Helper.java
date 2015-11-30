@@ -122,10 +122,10 @@ public class Helper {
 
         return map;
     }
-    public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, Context context)
+    public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, String label)
     {
         NotificationEntity notificationEntity = new NotificationEntity(sbn.getPackageName(),
-                getApplicationLabel(sbn.getPackageName(), context),
+                label,
                 sbn.getPostTime());
         if(sbn.getNotification().tickerText != null)
             notificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
@@ -173,6 +173,7 @@ public class Helper {
                 true);
         return notification;
     }
+
     public static boolean tryParseInt(String value) {
         try {
             Integer.parseInt(value);
