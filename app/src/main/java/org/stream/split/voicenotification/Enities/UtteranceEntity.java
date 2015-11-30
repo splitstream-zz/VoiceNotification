@@ -10,7 +10,7 @@ public class UtteranceEntity {
     }
 
     public void setMessage(String message) {
-        this.mMessage = mMessage;
+        this.mMessage = message;
     }
 
     String mUtteranceId;
@@ -20,7 +20,7 @@ public class UtteranceEntity {
     }
 
     public void setUtteranceId(String utteranceId) {
-        this.mUtteranceId = mUtteranceId;
+        this.mUtteranceId = utteranceId;
     }
 
     String mMessage;

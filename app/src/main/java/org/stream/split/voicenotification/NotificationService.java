@@ -24,11 +24,14 @@ public class NotificationService extends NotificationListenerService {
 
     public static final String TAG = "NotificationService";
     public static final String NOTIFICATION_OBJECT = "notification_object";
+    public static final String ACTION_NOTIFICATION_POSTED = TAG + ".notificationPosted";
+    public static final String ACTION_NOTIFICATION_REMOVED = TAG + ".notificationRemoved";
+
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
-    //TODO Czy tutaj potrzebujemy static?
-    private boolean mIsVoiceActive = false;
     private final IBinder mBinder = new NotificationCatcherBinder();
     private NotificationBroadcastReceiver mVoiceGenerator;
+
+    private boolean mIsVoiceActive = false;
 
     public boolean isVoiceActive() {
         return mIsVoiceActive;
@@ -43,10 +46,6 @@ public class NotificationService extends NotificationListenerService {
                 this.unregisterVoiceReceiver();
         mIsVoiceActive = isVoiceActive;
     }
-
-
-
-
 
     @Override
     public void onCreate() {
@@ -92,10 +91,11 @@ public class NotificationService extends NotificationListenerService {
         if(mVoiceGenerator == null) {
             Log.d(TAG, "registerVoiceReciver Inside");
             mVoiceGenerator = new NotificationBroadcastReceiver(this);
-            IntentFilter intentFilter = new IntentFilter(TAG);
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(ACTION_NOTIFICATION_POSTED);
+            intentFilter.addAction(ACTION_NOTIFICATION_REMOVED);
             registerReceiver(mVoiceGenerator, intentFilter);
         }
-
 
     }
 
@@ -106,15 +106,16 @@ public class NotificationService extends NotificationListenerService {
         Log.d(TAG, "ID : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
         Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
 
-        String label = Helper.getApplicationLabel(sbn.getPackageName(),this);
+        String label = Helper.getApplicationLabel(sbn.getPackageName(), this);
         NotificationEntity notificationEntity = Helper.createNotificationEntity(sbn, label);
         DBHelper db = new DBHelper(this);
         notificationEntity = db.addNotification(notificationEntity);
         db.close();
         Log.d(TAG, "Newly inserted notification Id: " + notificationEntity.getID());
 
-        if(isVoiceActive()) {
-            Intent intent = new Intent(TAG);
+        if (isVoiceActive()) {
+            Intent intent = new Intent();
+            intent.setAction(ACTION_NOTIFICATION_POSTED);
             intent.putExtra(NOTIFICATION_OBJECT, new Gson().toJson(notificationEntity));
             sendBroadcast(intent);
         }
@@ -124,6 +125,8 @@ public class NotificationService extends NotificationListenerService {
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.d(TAG, "********** onNOtificationRemoved");
         Log.d(TAG, "ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
+        Intent intent = new Intent(ACTION_NOTIFICATION_REMOVED);
+        sendBroadcast(intent);
     }
 
     @Override

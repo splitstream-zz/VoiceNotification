@@ -122,14 +122,25 @@ public class Helper {
 
         return map;
     }
-    public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, String label)
-    {
+
+    public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, String label) {
+
+        StringBuilder utteranceId = new StringBuilder();
+        utteranceId.append(sbn.getId())
+                .append("_")
+                .append(sbn.getPackageName());
+
         NotificationEntity notificationEntity = new NotificationEntity(sbn.getPackageName(),
                 label,
-                sbn.getPostTime());
-        if(sbn.getNotification().tickerText != null)
-            notificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
+                sbn.getPostTime(),
+                utteranceId.toString());
+
         notificationEntity.setMessages(IterateBundleExtras(sbn.getNotification().extras));
+        if (sbn.getNotification().tickerText != null) {
+            notificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
+            notificationEntity.addMessage("custom.tickerText", sbn.getNotification().tickerText.toString());
+        }
+
         return notificationEntity;
     }
     public static String getApplicationLabel(String packageName, Context context)

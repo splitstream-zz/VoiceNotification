@@ -21,7 +21,6 @@ import android.app.Fragment;
 import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
@@ -31,9 +30,7 @@ import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListen
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.Inflater;
 
 /**
  * A fragment representing a list of Items.
@@ -111,7 +108,7 @@ public class NotificationsHistoryFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        IntentFilter filter = new IntentFilter(NotificationService.TAG);
+        IntentFilter filter = new IntentFilter(NotificationService.ACTION_NOTIFICATION_POSTED);
         mConnection.registerReceiver(mReceiver, filter);
     }
 
