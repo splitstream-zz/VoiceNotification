@@ -20,6 +20,9 @@ public class NotificationEntity
     long mID;
     String mPackageName;
     String mApplicationLabel;
+    String mTinkerText;
+    long mOccurrenceTime;
+    String mUtteranceId;
 
     public String getTinkerText() {
         return mTinkerText;
@@ -29,9 +32,7 @@ public class NotificationEntity
         this.mTinkerText = TinkerText;
     }
 
-    String mTinkerText;
-    long mOccurrenceTime;
-    String mUtteranceId;
+
 
     public Map<String, String> getMessages() {
         return mMessages;

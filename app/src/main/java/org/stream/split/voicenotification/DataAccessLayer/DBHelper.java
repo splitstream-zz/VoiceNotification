@@ -52,7 +52,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.setForeignKeyConstraintsEnabled(true);
     }
 
-    public List<AppInfoEntity> getAllApps()
+    public List<AppInfoEntity> getAllApps(boolean getBundleKeys)
     {
         List<AppInfoEntity> apps = new ArrayList<>();
         String sqlQuery = "Select * from " + DBContract.AppFeed.TABLE_NAME;
@@ -63,8 +63,11 @@ public class DBHelper extends SQLiteOpenHelper {
         if(cursor.moveToFirst())
         {
             do {
-                AppInfoEntity app = new AppInfoEntity();
-                app.setPackageName(cursor.getString(cursor.getColumnIndex(DBContract.AppFeed.COLUMN_NAME_PACKAGE_NAME)));
+                String packageName = cursor.getString(cursor.getColumnIndex(DBContract.AppFeed.COLUMN_NAME_PACKAGE_NAME));
+                AppInfoEntity app = new AppInfoEntity(packageName);
+                app.setIsFollowed(true);
+                if(getBundleKeys)
+                    app.setBundleKeys(getSortedBundleKeys(packageName));
                 apps.add(app);
             }while(cursor.moveToNext());
         }
@@ -195,7 +198,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public List<NotificationEntity> getAllNotification()
     {
         List <NotificationEntity> notifications = new ArrayList<>();
-        String sql_select_all = "SELECT * FROM " + DBContract.NotificationHistoryFeed.TABLE_NAME;
+        String sql_select_all = "SELECT *.X FROM " + DBContract.NotificationHistoryFeed.TABLE_NAME +
+                " LEFT JOIN " + DBContract.AppFeed.TABLE_NAME + " ON " + DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME;
         Cursor cursor = getReadableDatabase().rawQuery(sql_select_all,null);
         if(cursor.moveToFirst())
         {

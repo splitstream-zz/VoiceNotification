@@ -24,6 +24,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     static final public String TAG = "NotificationsHistoryAdapter";
     public DBHelper mDb;
     private List<NotificationEntity> mDataset;
+    private List<AppInfoEntity> mFollowedApps;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and

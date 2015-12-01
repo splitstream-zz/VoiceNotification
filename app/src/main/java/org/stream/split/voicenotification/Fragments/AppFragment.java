@@ -199,7 +199,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                 for(int i = 0;i< mAdapter.getCount();i++)
                 {
                     AppInfoEntity app = mAdapter.getItem(i);
-                    if(app.IsSelected())
+                    if(app.isSelected())
                     {
                         db.deleteApp(app);
                     }
@@ -251,7 +251,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                 for(int i = 0;i< mAdapter.getCount();i++)
                 {
                     AppInfoEntity app = mAdapter.getItem(i);
-                    if(app.IsSelected()) {
+                    if(app.isSelected()) {
                         long row  = db.addApp(app);
                         Log.d(TAG, "dodano applikacje do bazy danych: " + app.getPackageName() +" row#: " + row);
                     }
@@ -318,7 +318,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
 
             AppInfoEntity appInfoEntity = this.getItem(position);
             holder.name.setText(Helper.getApplicationLabel(appInfoEntity.getPackageName(),getContext()));
-            holder.cbx.setChecked(appInfoEntity.IsSelected());
+            holder.cbx.setChecked(appInfoEntity.isSelected());
             try {
                 holder.icon.setImageDrawable(manager.getApplicationIcon(appInfoEntity.getPackageName()));
             } catch (PackageManager.NameNotFoundException e) {
@@ -337,7 +337,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                     if(mApplictaionsToShow == APPLICATIONS_TO_SHOW.SHOW_FOLLOWED ) {
                         for(int i = 0;i< mAdapter.getCount();i++) {
                             AppInfoEntity app = mAdapter.getItem(i);
-                            if (app.IsSelected()) {
+                            if (app.isSelected()) {
                                 setDeleteVisibility = true;
                                 break;
                             }
@@ -351,7 +351,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                 @Override
                 public void onClick(View v) {
                     AppInfoEntity appInfoEntity = (AppInfoEntity) v.getTag();
-                    Snackbar.make(parent, "Clicked on Checkbox: " + appInfoEntity.getPackageName() + " is " + appInfoEntity.IsSelected(),
+                    Snackbar.make(parent, "Clicked on Checkbox: " + appInfoEntity.getPackageName() + " is " + appInfoEntity.isSelected(),
                             Snackbar.LENGTH_SHORT).show();
                 }
             });
@@ -380,8 +380,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
 
                     for (ApplicationInfo info : instaledApplications) {
                         if(!db.isAppFollowed(info.packageName)) {
-                            AppInfoEntity appInfoEntity = new AppInfoEntity();
-                            appInfoEntity.setPackageName(info.packageName);
+                            AppInfoEntity appInfoEntity = new AppInfoEntity(info.packageName);
                             appsInfo.add(appInfoEntity);
                         }
                     }
