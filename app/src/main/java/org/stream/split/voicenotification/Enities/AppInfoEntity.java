@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class AppInfoEntity {
 
+    //TODO is selected should be eliminated and data should be stored in viewholder?
     private boolean mIsSelected = false;
     private boolean mIsFollowed = false;
     private String mPackageName;

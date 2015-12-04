@@ -27,20 +27,20 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
-import org.stream.split.voicenotification.Fragments.AppFragment;
+import org.stream.split.voicenotification.Fragments.AppListFragment;
 import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 
-import java.security.Timestamp;
-
-
-//TODO add "Back" functionality using back arrow(in place of dongle on appbar) or hardware back key
+//TODO dodać do poszczególnych fragmentów tytuły
+//TODO extend fragment menager and make things more comprehensible
 //TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
 public class VoiceNotificationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener {
+
+    public static Fragment CURRENT_FRAGMENT;
 
     private final String TAG = "VoiceNotificationActivity";
     private NotificationManager mNotificationManager;
@@ -49,8 +49,16 @@ public class VoiceNotificationActivity extends AppCompatActivity
     private FragmentManager mFragmentManager;
     private Intent mServiceIntent;
     private NotificationServiceConnection mServiceConnection;
-    private Fragment mHistoryFragment;
-    private int mBackKeyCount = 2;
+
+    /**
+     * zmienna w której zapisywany jest timestamp naciśniecia klawisza back
+     */
+    private long mExitBackKeyTimestamp;
+    /**
+     * zmienna która podaje czas w ciągu którego podwójnie należy nacisnąć back klawisz
+     * aby wyjść z aplikacji. podano
+     */
+    private long mExitBackKeyInterval = 3000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,15 +82,12 @@ public class VoiceNotificationActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mFragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-        mHistoryFragment = new NotificationsHistoryFragment();
-        fragmentTransaction.add(R.id.frame_content, mHistoryFragment)
+
+        CURRENT_FRAGMENT = new NotificationsHistoryFragment();
+        mFragmentManager.beginTransaction()
+                .add(R.id.frame_content, CURRENT_FRAGMENT)
                 .addToBackStack("initial")
                 .commit();
-
-//        mFragmentManager.beginTransaction().add(R.id.frame_content, fragment)
-//                .addToBackStack("initial")
-//                .commit();
 
         //creating persistent notification for purposes of informing user of running up
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -98,7 +103,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        mBackKeyCount = 2;
         bindNotificationService();
     }
 
@@ -126,17 +130,15 @@ public class VoiceNotificationActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         }
-        else if(mFragmentManager.getBackStackEntryCount() > 1) {
+        if (mFragmentManager.getBackStackEntryCount() > 1 && !CURRENT_FRAGMENT.getClass().equals(NotificationsHistoryFragment.class)) {
             mFragmentManager.popBackStack();
-        }
-        else {
-            if(mBackKeyCount > 0)
-            {
-
-            }
-            else {
-
-                super.onBackPressed();
+        } else {
+            if (System.currentTimeMillis() - mExitBackKeyTimestamp < mExitBackKeyInterval) {
+                Log.d(TAG, String.valueOf(System.currentTimeMillis() - mExitBackKeyTimestamp));
+                finish();
+            } else {
+                mExitBackKeyTimestamp = System.currentTimeMillis();
+                Snackbar.make(findViewById(R.id.coordinator_layout), "Naciśnij kliwisz back aby wyjśc z aplikajci", Snackbar.LENGTH_SHORT).show();
             }
         }
     }
@@ -165,15 +167,13 @@ public class VoiceNotificationActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //TODO zaimplementować funkcję, która będzie wyłączać aplikację całkowicie ( service, activity i persistent notification)
         switch(id) {
-//            case R.id.action_turn_off:
-//                turnOffApp();
-//                break;
             case R.id.action_settings:
                 FragmentTransaction transaction = mFragmentManager.beginTransaction();
-                transaction.replace(R.id.frame_content, new SettingsFragment());
-                transaction.commit();
+                transaction.replace(R.id.frame_content, new SettingsFragment())
+                        .addToBackStack(item.getTitle().toString())
+                        .commit();
+                break;
             default:
                 Snackbar.make(findViewById(R.id.coordinator_layout), "Item not implemented", Snackbar.LENGTH_SHORT).show();
                 break;
@@ -200,7 +200,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         switch (id) {
             case R.id.choose_apps:
-                fragment = AppFragment.newInstance(AppFragment.APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
+                fragment = AppListFragment.newInstance(AppListFragment.APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
                 break;
             case R.id.history:
                 fragment = new NotificationsHistoryFragment();
@@ -213,12 +213,12 @@ public class VoiceNotificationActivity extends AppCompatActivity
                 break;
         }
 
-        if(fragment != null) {
-            mFragmentManager.beginTransaction().remove(mHistoryFragment).commit();
-            FragmentTransaction fragmentTransaction = mFragmentManager.beginTransaction();
-            fragmentTransaction.add(R.id.frame_content, fragment)
+        if(fragment != null && fragment.getClass() != CURRENT_FRAGMENT.getClass()) {
+            mFragmentManager.beginTransaction().replace(R.id.frame_content, fragment)
                     .addToBackStack(item.getTitle().toString())
                     .commit();
+
+            CURRENT_FRAGMENT = fragment;
         }
 
         if(snackBar != null)

@@ -108,6 +108,7 @@ public class NotificationsHistoryFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
         IntentFilter filter = new IntentFilter(NotificationService.ACTION_NOTIFICATION_POSTED);
         mConnection.registerReceiver(mReceiver, filter);
     }
@@ -166,8 +167,6 @@ public class NotificationsHistoryFragment extends Fragment {
 //            ((TextView) emptyView).setText(emptyText);
 //        }
     }
-    //TODO zapisywać historię w bazie danych
-    //TODO wymazywać historię w momencie wyłanczania aplikacji
     public class NotifyBroadcastReceiver extends BroadcastReceiver
     {
 

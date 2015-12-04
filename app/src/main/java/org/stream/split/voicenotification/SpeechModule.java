@@ -204,7 +204,6 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     public void onInit(int status) {
         Log.d(TAG, "onInit status = " + status);
         Locale locale = new Locale("pl","PL");
-        Log.d(TAG, "locale.default(): " + Locale.getDefault().toLanguageTag() + " locale: " + locale.toLanguageTag());
 
         if(status == TextToSpeech.SUCCESS)
         {

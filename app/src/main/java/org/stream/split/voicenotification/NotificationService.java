@@ -51,8 +51,6 @@ public class NotificationService extends NotificationListenerService {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
-        //TODO registerVoiceReceivers should be invoked only by setVoiceActive?
-        //registerVoiceReceivers();
     }
 
     @Override
@@ -110,15 +108,14 @@ public class NotificationService extends NotificationListenerService {
         NotificationEntity notificationEntity = Helper.createNotificationEntity(sbn, label);
         DBHelper db = new DBHelper(this);
         notificationEntity = db.addNotification(notificationEntity);
+        notificationEntity.set
         db.close();
         Log.d(TAG, "Newly inserted notification Id: " + notificationEntity.getID());
 
-        if (isVoiceActive()) {
-            Intent intent = new Intent();
-            intent.setAction(ACTION_NOTIFICATION_POSTED);
-            intent.putExtra(NOTIFICATION_OBJECT, new Gson().toJson(notificationEntity));
-            sendBroadcast(intent);
-        }
+        Intent intent = new Intent();
+        intent.setAction(ACTION_NOTIFICATION_POSTED);
+        intent.putExtra(NOTIFICATION_OBJECT, new Gson().toJson(notificationEntity));
+        sendBroadcast(intent);
     }
 
     @Override
