@@ -84,11 +84,9 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
      * progressBar indicating application loading
      */
     private ProgressBar mProgressBar;
-    private int mPrograsBarVisibility;
+    private int mProgressBarVisibility;
 
     private MenuItem mDeleteMenuItem;
-
-    Runnable mRefreshListView;
 
     public static AppListFragment newInstance(APPLICATIONS_TO_SHOW x) {
         AppListFragment fragment = new AppListFragment();
@@ -118,7 +116,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
         mAdapter = new CustomListAdapter(getActivity(), R.layout.fragment_app_item,mAppsList);
         LoadApplicationsAsync loadingApps = new LoadApplicationsAsync();
         loadingApps.execute(mApplictaionsToShow);
-        mPrograsBarVisibility = View.VISIBLE;
+        mProgressBarVisibility = View.VISIBLE;
     }
 
     @Override
@@ -126,7 +124,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_app, container, false);
         mProgressBar = (ProgressBar) view.findViewById(R.id.loading_apps);
-        mProgressBar.setVisibility(mPrograsBarVisibility);
+        mProgressBar.setVisibility(mProgressBarVisibility);
         // Set the adapter
         mListView = (ListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mAdapter);
@@ -306,7 +304,6 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
 
                 convertView.setTag(holder);
 
-
             }
             else
                 holder = (ViewHolder) convertView.getTag();
@@ -393,17 +390,17 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            mPrograsBarVisibility = View.VISIBLE;
+            mProgressBarVisibility = View.VISIBLE;
             if(mProgressBar != null)
-                mProgressBar.setVisibility(mPrograsBarVisibility);
+                mProgressBar.setVisibility(mProgressBarVisibility);
 
         }
 
         @Override
         protected void onPostExecute(ArrayList<AppInfoEntity> apps)
         {
-            mPrograsBarVisibility = View.GONE;
-            mProgressBar.setVisibility(mPrograsBarVisibility);
+            mProgressBarVisibility = View.GONE;
+            mProgressBar.setVisibility(mProgressBarVisibility);
 
             mAdapter.clear();
             mAdapter.addAll(apps);

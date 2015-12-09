@@ -27,11 +27,18 @@ public class NotificationService extends NotificationListenerService {
     public static final String ACTION_NOTIFICATION_POSTED = TAG + ".notificationPosted";
     public static final String ACTION_NOTIFICATION_REMOVED = TAG + ".notificationRemoved";
 
+
+
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
     private final IBinder mBinder = new NotificationCatcherBinder();
     private NotificationBroadcastReceiver mVoiceGenerator;
-
+    private boolean mIsSystemNotificationServiceConnected = false;
     private boolean mIsVoiceActive = false;
+
+    public boolean isNotificationRelayActive()
+    {
+        return mIsSystemNotificationServiceConnected;
+    }
 
     public boolean isVoiceActive() {
         return mIsVoiceActive;
@@ -101,14 +108,15 @@ public class NotificationService extends NotificationListenerService {
     public void onNotificationPosted(StatusBarNotification sbn) {
 
         Log.d(TAG, "**********  onNotificationPosted");
-        Log.d(TAG, "ID : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
+        Log.d(TAG, "COLUMN_NAME_ID : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
         Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
 
         String label = Helper.getApplicationLabel(sbn.getPackageName(), this);
         NotificationEntity notificationEntity = Helper.createNotificationEntity(sbn, label);
         DBHelper db = new DBHelper(this);
-        notificationEntity = db.addNotification(notificationEntity);
-        notificationEntity.set
+        long rowId = db.addNotification(notificationEntity);
+        notificationEntity.setID(rowId);
+        notificationEntity.setIsFollowed(db.isAppFollowed(notificationEntity.getPackageName()));
         db.close();
         Log.d(TAG, "Newly inserted notification Id: " + notificationEntity.getID());
 
@@ -121,7 +129,7 @@ public class NotificationService extends NotificationListenerService {
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Log.d(TAG, "********** onNOtificationRemoved");
-        Log.d(TAG, "ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
+        Log.d(TAG, "COLUMN_NAME_ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
         Intent intent = new Intent(ACTION_NOTIFICATION_REMOVED);
         sendBroadcast(intent);
     }
@@ -143,18 +151,28 @@ public class NotificationService extends NotificationListenerService {
     @Override
     public IBinder onBind(Intent intent)
     {
+        Log.d(TAG, "onBind() intent.getAction(): " + intent.getAction());
         if(intent.getAction().equals(CUSTOM_BINDING))
             return mBinder;
-        else
+        else {
+            Log.d(TAG, "onBind else intent.getAction(): " + intent.getAction());
+            if(intent.getExtras() != null)
+                Helper.IterateBundleExtras(intent.getExtras());
+            mIsSystemNotificationServiceConnected = true;
             return super.onBind(intent);
+        }
 
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
+        //TODO not sure if it's needed either way
+        Log.d(TAG, "onUnbind() intent.getAction(): " + intent.getAction());
         if(intent.getAction().equals(CUSTOM_BINDING)) {
             NotificationServiceConnection.getInstance().onServiceDisconnected(new ComponentName(this, this.getClass()));
         }
+        else
+            mIsSystemNotificationServiceConnected = false;
         return super.onUnbind(intent);
 
     }

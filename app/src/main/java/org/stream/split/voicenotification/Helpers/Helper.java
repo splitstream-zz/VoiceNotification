@@ -77,6 +77,7 @@ public class Helper {
     public static Map<String,String> IterateBundleExtras(Bundle bundle)
     {
         Map<String,String> map = new HashMap<>();
+
         for(String key:bundle.keySet())
         {
             Object value = bundle.get(key);

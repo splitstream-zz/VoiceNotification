@@ -42,13 +42,12 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
             String PackageName = notificationEntity.getPackageName();
 
             DBHelper db = new DBHelper(context);
-            Boolean isFollowed = db.isAppFollowed(PackageName);
             List<BundleKeyEntity> bundleKeyEntities = db.getSortedBundleKeys(PackageName);
             db.close();
 
-            Log.d(TAG, PackageName + " isFollowed: " + String.valueOf(isFollowed));
+            Log.d(TAG, PackageName + " isFollowed: " + String.valueOf(notificationEntity.isFollowed()));
 
-            if (isFollowed) {
+            if (notificationEntity.isFollowed()) {
                 switch(intent.getAction())
                 {
                     case NotificationService.ACTION_NOTIFICATION_POSTED:
