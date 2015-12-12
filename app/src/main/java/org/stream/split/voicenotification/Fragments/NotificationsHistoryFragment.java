@@ -76,7 +76,7 @@ public class NotificationsHistoryFragment extends Fragment {
         Log.d(TAG, "onCreate()");
         mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
         List<NotificationEntity> entities = new DBHelper(getActivity()).getAllNotification();
-        mAdapter = new NotificationsHistoryAdapter(entities);
+        mAdapter = new NotificationsHistoryAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
 
@@ -108,13 +108,29 @@ public class NotificationsHistoryFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        Log.d(TAG,"onStart()");
+        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
         IntentFilter filter = new IntentFilter(NotificationService.ACTION_NOTIFICATION_POSTED);
+        mAdapter.refresh();
         mConnection.registerReceiver(mReceiver, filter);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume()");
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG,"onPause()");
     }
 
     @Override
     public void onStop() {
         super.onStop();
+        Log.d(TAG, "onStop()");
         mConnection.unregisterReceiver(mReceiver);
     }
 
@@ -166,8 +182,6 @@ public class NotificationsHistoryFragment extends Fragment {
 //            ((TextView) emptyView).setText(emptyText);
 //        }
     }
-    //TODO zapisywać historię w bazie danych
-    //TODO wymazywać historię w momencie wyłanczania aplikacji
     public class NotifyBroadcastReceiver extends BroadcastReceiver
     {
 

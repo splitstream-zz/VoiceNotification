@@ -30,6 +30,7 @@ import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.R;
+import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +44,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class AppFragment extends Fragment implements AbsListView.OnItemClickListener {
+public class AppListFragment extends Fragment implements AbsListView.OnItemClickListener {
 
     private final String TAG = this.getClass().getSimpleName();
 
@@ -52,6 +53,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
     private APPLICATIONS_TO_SHOW mApplictaionsToShow;
 
     private OnFragmentInteractionListener mListener;
+
 
     public enum APPLICATIONS_TO_SHOW
     {
@@ -82,13 +84,12 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
      * progressBar indicating application loading
      */
     private ProgressBar mProgressBar;
+    private int mProgressBarVisibility;
 
     private MenuItem mDeleteMenuItem;
 
-    Runnable mRefreshListView;
-
-    public static AppFragment newInstance(APPLICATIONS_TO_SHOW x) {
-        AppFragment fragment = new AppFragment();
+    public static AppListFragment newInstance(APPLICATIONS_TO_SHOW x) {
+        AppListFragment fragment = new AppListFragment();
         Bundle args = new Bundle();
         args.putString(ApplicationsToshow, x.name());
         fragment.setArguments(args);
@@ -100,7 +101,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public AppFragment() {
+    public AppListFragment() {
     }
 
     @Override
@@ -115,17 +116,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
         mAdapter = new CustomListAdapter(getActivity(), R.layout.fragment_app_item,mAppsList);
         LoadApplicationsAsync loadingApps = new LoadApplicationsAsync();
         loadingApps.execute(mApplictaionsToShow);
-
-        mRefreshListView = new Runnable() {
-            @Override
-            public void run() {
-                mAdapter.clear();
-                mAdapter.notifyDataSetChanged();
-                mListView.invalidateViews();
-                mListView.refreshDrawableState();
-            }
-        };
-
+        mProgressBarVisibility = View.VISIBLE;
     }
 
     @Override
@@ -133,7 +124,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_app, container, false);
         mProgressBar = (ProgressBar) view.findViewById(R.id.loading_apps);
-
+        mProgressBar.setVisibility(mProgressBarVisibility);
         // Set the adapter
         mListView = (ListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mAdapter);
@@ -149,6 +140,12 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
         }
 
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
     }
 
     @Override
@@ -190,9 +187,6 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId())
         {
-            case R.id.action_settings:
-                Snackbar.make(getView().getRootView(),"AppFragment settings pressed",Snackbar.LENGTH_SHORT).show();
-                return true;
             case R.id.delete_app:
 
                 DBHelper db = new DBHelper(getActivity());
@@ -234,8 +228,8 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
             @Override
             public void onClick(View v) {
                 FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
-                AppFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_INSTALLED);
-                ft.replace(R.id.frame_content, fragment).commit();
+                AppListFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_INSTALLED);
+                ft.replace(R.id.frame_content, fragment).addToBackStack("kleks").commit();
             }
         });
     }
@@ -258,7 +252,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                 }
                 db.close();
                 FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
-                AppFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
+                AppListFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
                 ft.replace(R.id.frame_content, fragment).commit();
             }
         });
@@ -309,7 +303,6 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                 holder.cbx = (CheckBox) convertView.findViewById(R.id.app_cbx);
 
                 convertView.setTag(holder);
-
 
             }
             else
@@ -387,7 +380,7 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
                     break;
 
                 case SHOW_FOLLOWED:
-                    appsInfo.addAll(db.getAllApps());
+                    appsInfo.addAll(db.getAllApps(true));
                     break;
             }
             db.close();
@@ -395,9 +388,20 @@ public class AppFragment extends Fragment implements AbsListView.OnItemClickList
         }
 
         @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mProgressBarVisibility = View.VISIBLE;
+            if(mProgressBar != null)
+                mProgressBar.setVisibility(mProgressBarVisibility);
+
+        }
+
+        @Override
         protected void onPostExecute(ArrayList<AppInfoEntity> apps)
         {
-            mProgressBar.setVisibility(View.GONE);
+            mProgressBarVisibility = View.GONE;
+            mProgressBar.setVisibility(mProgressBarVisibility);
+
             mAdapter.clear();
             mAdapter.addAll(apps);
             mAdapter.notifyDataSetInvalidated();

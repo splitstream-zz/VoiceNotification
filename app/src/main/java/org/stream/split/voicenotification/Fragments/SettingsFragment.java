@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.R;
+import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 
 /**
@@ -65,6 +66,11 @@ public class SettingsFragment extends PreferenceFragment {
         addPreferencesFromResource(R.xml.preferences);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
+    }
 
 
     @Override

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
@@ -204,7 +205,6 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     public void onInit(int status) {
         Log.d(TAG, "onInit status = " + status);
         Locale locale = new Locale("pl","PL");
-        Log.d(TAG, "locale.default(): " + Locale.getDefault().toLanguageTag() + " locale: " + locale.toLanguageTag());
 
         if(status == TextToSpeech.SUCCESS)
         {
@@ -223,7 +223,8 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
                 installIntent.setAction(
                         TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
                 installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                this.mContext.startActivity(installIntent);
+                if(mContext.getPackageManager().resolveActivity(installIntent,PackageManager.GET_META_DATA) != null)
+                    this.mContext.startActivity(installIntent);
 
             }
         }

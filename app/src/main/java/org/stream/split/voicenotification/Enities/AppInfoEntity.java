@@ -8,6 +8,7 @@ import java.util.List;
  */
 public class AppInfoEntity {
 
+    //TODO is selected should be eliminated and data should be stored in viewholder?
     private boolean mIsSelected = false;
     private boolean mIsFollowed = false;
     private String mPackageName;
@@ -16,20 +17,20 @@ public class AppInfoEntity {
     public List<BundleKeyEntity> getBundleKeys() {
         return mBundleKeys;
     }
-
     public void setBundleKeys(List<BundleKeyEntity> bundleKeys) {
         this.mBundleKeys = bundleKeys;
     }
     public void addBundleKey(BundleKeyEntity bundleKeys) {
         mBundleKeys.add(bundleKeys);
     }
+
     public boolean isFollowed() {
         return mIsFollowed;
     }
-
     public void setIsFollowed(boolean isFollowed) {
         this.mIsFollowed = isFollowed;
     }
+
     public AppInfoEntity setPackageName(String mPackageName) {
         this.mPackageName = mPackageName;
         return this;
@@ -37,6 +38,7 @@ public class AppInfoEntity {
     public String getPackageName() {
         return mPackageName;
     }
+
     public boolean isSelected() {
         return mIsSelected;
     }
