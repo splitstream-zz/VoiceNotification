@@ -31,14 +31,15 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
 
         db.execSQL(DBContract.AppFeed.SQL_CREATE_TABLE);
-        db.execSQL(DBContract.BundleKeysFeed.SQL_CREATE_TABLE);
         db.execSQL(DBContract.NotificationHistoryFeed.SQL_CREATE_TABLE);
+        db.execSQL(DBContract.NotificationHistoryFeed.SQL_INSERTION_TRIGGER);
+        db.execSQL(DBContract.BundleKeysFeed.SQL_CREATE_TABLE);
         db.execSQL(DBContract.BundlesHistoryFeed.SQL_CREATE_TABLE);
-        db.execSQL(DBContract.NotificationHistoryFeed.SQL_INSERTION_TRRIGER);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+
         db.execSQL(DBContract.BundlesHistoryFeed.SQL_DELETE_TABLE);
         db.execSQL(DBContract.NotificationHistoryFeed.SQL_DELETE_TABLE);
         db.execSQL(DBContract.BundleKeysFeed.SQL_DELETE_TABLE);
@@ -137,13 +138,17 @@ public class DBHelper extends SQLiteOpenHelper {
     public long addNotification(NotificationEntity notificationEntity)
     {
         long rowId = addNotificationHistoryEntry(notificationEntity);
-        addNotificationBundleHistoryEntries(notificationEntity, rowId);
+        notificationEntity.setID(rowId);
+        Log.d(TAG, "addNotification() rowId: " + rowId);
+        if(rowId != -1)
+            addNotificationBundleHistoryEntries(notificationEntity, rowId);
         return rowId;
 
     }
     private long addNotificationHistoryEntry( NotificationEntity notificationEntity)
     {
         ContentValues values = new ContentValues();
+        values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_SBN_ID, notificationEntity.getSbnId());
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME, notificationEntity.getPackageName());
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP, notificationEntity.getOccurrenceTime());
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_UTTERANCE_ID, notificationEntity.getUtteranceId());
@@ -225,11 +230,16 @@ public class DBHelper extends SQLiteOpenHelper {
     }
     public NotificationEntity getNotificaiton(long sbnId, String packageName)
     {
+        NotificationEntity notification = null;
         String sql_select = "SELECT * FROM " + DBContract.NotificationHistoryFeed.TABLE_NAME +" WHERE " +
                 DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME + " = " + packageName + " AND " +
                 DBContract.NotificationHistoryFeed.COLUMN_NAME_SBN_ID + " = " + sbnId+ ";";
         Cursor cursor = getReadableDatabase().rawQuery(sql_select,null);
-        return getNotification(cursor);
+        if(cursor.moveToFirst())
+        {
+            notification = getNotification(cursor);
+        }
+        return notification;
     }
 
     private NotificationEntity getNotification(Cursor cursor)

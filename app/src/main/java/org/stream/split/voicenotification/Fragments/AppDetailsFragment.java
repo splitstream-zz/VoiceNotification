@@ -12,6 +12,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.dummy.DummyContent;
 
@@ -28,7 +31,7 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_NOTIFICATION_GSON_OBJECT = "param1";
     private static final String ARG_PARAM2 = "param2";
 
     // TODO: Rename and change types of parameters
@@ -37,6 +40,8 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
 
     private OnFragmentInteractionListener mListener;
 
+    NotificationEntity mNotificationEntity;
+    
     /**
      * The fragment's ListView/GridView.
      */
@@ -52,7 +57,7 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
     public static AppDetailsFragment newInstance(String param1, String param2) {
         AppDetailsFragment fragment = new AppDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_NOTIFICATION_GSON_OBJECT, param1);
         args.putString(ARG_PARAM2, param2);
         fragment.setArguments(args);
         return fragment;
@@ -70,8 +75,8 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
+            mNotificationEntity = new Gson().fromJson(gsonToJson,NotificationEntity.class);
         }
 
         // TODO: Change Adapter to display your content

@@ -89,10 +89,6 @@ public class Helper {
             //TODO może spróbować czy nie lepiej sprawdzać czy to jest typ któy nas interesuje (string,charsequence itd)
             if(value != null )  {
 
-                logBuilder.append("key: ");
-                logBuilder.append(key);
-                logBuilder.append("\t\t\t\t");
-
                 if(value instanceof CharSequence[])
                 {
                     logBuilder.append("\n====== Charsequense[]======\n");
@@ -131,7 +127,8 @@ public class Helper {
                 .append("_")
                 .append(sbn.getPackageName());
 
-        NotificationEntity notificationEntity = new NotificationEntity(sbn.getPackageName(),
+        NotificationEntity notificationEntity = new NotificationEntity(sbn.getId(),
+                sbn.getPackageName(),
                 label,
                 sbn.getPostTime(),
                 utteranceId.toString());

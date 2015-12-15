@@ -10,7 +10,9 @@ import java.util.Map;
 public class NotificationEntity
 {
 
-    long mID;
+    long mId;
+
+    long mSbnId;
     long mOccurrenceTime;
 
     String mPackageName;
@@ -18,17 +20,22 @@ public class NotificationEntity
     String mTinkerText;
     String mUtteranceId;
 
-
-
     boolean mIsFollowed;
 
     Map<String,String> mMessages = new HashMap<>();
 
     public long getID() {
-        return mID;
+        return mId;
     }
     public void setID(long ID) {
-        this.mID = ID;
+        this.mId = ID;
+    }
+
+    public long getSbnId() {
+        return mSbnId;
+    }
+    public void setSbnId(long sbnId) {
+        this.mSbnId = sbnId;
     }
 
     public String getTinkerText() {
@@ -89,20 +96,21 @@ public class NotificationEntity
         this.mUtteranceId = UtteranceId;
     }
 
-    public NotificationEntity( String packageName, String applicationName, long occurrenceTime, String utteranceId)
+    public NotificationEntity( long sbnId, String packageName, String applicationName, long occurrenceTime, String utteranceId)
     {
+        mSbnId = sbnId;
         mPackageName = packageName;
         mApplicationLabel = applicationName;
         mOccurrenceTime = occurrenceTime;
         mUtteranceId = utteranceId;
     }
-    public NotificationEntity( String packageName, String applicationName, long occurrenceTime)
+    public NotificationEntity( long sbnId, String packageName, String applicationName, long occurrenceTime)
     {
-        this(packageName,applicationName,occurrenceTime,"");
+        this(sbnId,packageName,applicationName,occurrenceTime,"");
     }
     public NotificationEntity(long ID)
     {
-        mID = ID;
+        mId = ID;
     }
 
 

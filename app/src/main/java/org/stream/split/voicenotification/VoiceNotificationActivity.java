@@ -82,13 +82,13 @@ public class VoiceNotificationActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mFragmentManager = getFragmentManager();
-
-        CURRENT_FRAGMENT = new NotificationsHistoryFragment();
-        mFragmentManager.beginTransaction()
-                .add(R.id.frame_content, CURRENT_FRAGMENT)
-                .addToBackStack("initial")
-                .commit();
-
+        if(savedInstanceState == null) {
+            CURRENT_FRAGMENT = new NotificationsHistoryFragment();
+            mFragmentManager.beginTransaction()
+                    .add(R.id.frame_content, CURRENT_FRAGMENT)
+                    .addToBackStack("initial")
+                    .commit();
+        }
         //creating persistent notification for purposes of informing user of running up
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         createPersistentAppNotification();

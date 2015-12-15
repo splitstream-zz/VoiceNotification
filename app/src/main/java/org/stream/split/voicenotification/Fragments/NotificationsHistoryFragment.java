@@ -74,6 +74,7 @@ public class NotificationsHistoryFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
+
         mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
         List<NotificationEntity> entities = new DBHelper(getActivity()).getAllNotification();
         mAdapter = new NotificationsHistoryAdapter(entities,getActivity());
