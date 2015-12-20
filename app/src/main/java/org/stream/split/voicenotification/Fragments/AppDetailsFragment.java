@@ -1,6 +1,7 @@
 package org.stream.split.voicenotification.Fragments;
 
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -12,6 +13,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
+import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
+import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.dummy.DummyContent;
 
@@ -26,14 +30,9 @@ import org.stream.split.voicenotification.dummy.DummyContent;
  */
 public class AppDetailsFragment extends Fragment implements AbsListView.OnItemClickListener {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private static final String ARG_PACKAGE_NAME = "packageName";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private AppInfoEntity mAppInfoEntity;
 
     private OnFragmentInteractionListener mListener;
 
@@ -49,11 +48,10 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
     private ListAdapter mAdapter;
 
     // TODO: Rename and change types of parameters
-    public static AppDetailsFragment newInstance(String param1, String param2) {
+    public static AppDetailsFragment newInstance(String packageName) {
         AppDetailsFragment fragment = new AppDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_PACKAGE_NAME, packageName);
         fragment.setArguments(args);
         return fragment;
     }
@@ -69,14 +67,15 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            DBHelper db = new DBHelper(getActivity());
+            String packageName = savedInstanceState.getString(ARG_PACKAGE_NAME);
+            mAppInfoEntity = db.getApp(packageName,true);
         }
 
-        // TODO: Change Adapter to display your content
-        mAdapter = new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, DummyContent.ITEMS);
+        mAdapter = new ArrayAdapter<BundleKeyEntity>(getActivity(),
+                android.R.layout., android.R.id.text1, DummyContent.ITEMS);
     }
 
     @Override
