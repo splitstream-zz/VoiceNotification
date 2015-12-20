@@ -12,11 +12,14 @@ import android.os.Bundle;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
+import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -74,9 +77,9 @@ public class Helper {
             Log.d(TAG, builder.toString());
         }
     }
-    public static Map<String,String> IterateBundleExtras(Bundle bundle)
+    public static List<BundleKeyEntity>  IterateBundleExtras(Bundle bundle, String packageName)
     {
-        Map<String,String> map = new HashMap<>();
+        List<BundleKeyEntity> bundlekeys = new ArrayList<>();
 
         for(String key:bundle.keySet())
         {
@@ -97,7 +100,7 @@ public class Helper {
                         logBuilder.append("value(charseq): ");
                         logBuilder.append(seq);
                         logBuilder.append("\n");
-                        map.put(key, new StringBuilder(seq).toString());
+                        bundlekeys.add(new BundleKeyEntity(packageName, key, new StringBuilder(seq).toString()));
                     }
                     logBuilder.append("====== \"Charsequense[]======\n");
                 }
@@ -105,7 +108,7 @@ public class Helper {
                     logBuilder.append("value: ");
                     logBuilder.append(value);
                     logBuilder.append("\t");
-                    map.put(key, new StringBuilder().append(value).toString());
+                    bundlekeys.add(new BundleKeyEntity(packageName, key, new StringBuilder().append(value).toString()));
                 }
 
                 logBuilder.append("value class: ");
@@ -117,29 +120,34 @@ public class Helper {
             Log.d(TAG, logBuilder.toString());
         }
 
-        return map;
+        return bundlekeys;
     }
 
     public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, String label) {
 
-        StringBuilder utteranceId = new StringBuilder();
-        utteranceId.append(sbn.getId())
-                .append("_")
-                .append(sbn.getPackageName());
+        String utteranceId = getUtteranceId(sbn.getPackageName(), sbn.getId());
 
         NotificationEntity notificationEntity = new NotificationEntity(sbn.getId(),
                 sbn.getPackageName(),
                 label,
                 sbn.getPostTime(),
-                utteranceId.toString());
+                utteranceId);
 
-        notificationEntity.setMessages(IterateBundleExtras(sbn.getNotification().extras));
+        notificationEntity.setMessages(IterateBundleExtras(sbn.getNotification().extras, ));
         if (sbn.getNotification().tickerText != null) {
             notificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
             notificationEntity.addMessage("custom.tickerText", sbn.getNotification().tickerText.toString());
         }
 
         return notificationEntity;
+    }
+    public static String getUtteranceId(String packageName, long sbnId)
+    {
+        StringBuilder utteranceId = new StringBuilder();
+        utteranceId.append(sbnId)
+                .append("_")
+                .append(packageName);
+        return utteranceId.toString();
     }
     public static String getApplicationLabel(String packageName, Context context)
     {
@@ -198,5 +206,22 @@ public class Helper {
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    public static String[] classStaticFields(Class<Object> c)
+    {
+        Field[] fields = c.getDeclaredFields();
+        List<String> list = new ArrayList<>();
+        for(Field field:fields)
+        {try {
+            if (field.getType().equals(String.class) && field.getName().contains("EXTRAS_") && Modifier.isStatic(field.getModifiers()))
+                list.add(String.valueOf(field.get(null)));
+        }
+        catch(IllegalAccessException iae)
+        {
+            Log.d(TAG,"!!!!!!!!!!!! class Static field, illegal access exception message: " + iae.getMessage());
+        }
+        }
+        return list.toArray(new String[list.size()]);
     }
 }

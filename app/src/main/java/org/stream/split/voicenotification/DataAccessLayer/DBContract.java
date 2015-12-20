@@ -30,17 +30,16 @@ public final class DBContract {
     public static abstract class BundleKeysFeed implements BaseColumns
     {
         public static final String TABLE_NAME = "BundleKeys";
-        public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
-        public static final String COLUMN_NAME_KEY = "BundleKey";
+        public static final String COLUMN_NAME_BUNDLE_KEY = "BundleKey";
         public static final String COLUMN_NAME_PRIORITY = "BundleKeyPriority";
 
         public static final String SQL_CREATE_TABLE =
                 "CREATE TABLE " + TABLE_NAME + "( "+
-                        COLUMN_NAME_ID + " INTEGER PRIMARY KEY, " +
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
-                        COLUMN_NAME_KEY + " TEXT NOT NULL, " +
+                        COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_PRIORITY + " INTEGER NOT NULL, " +
+                        "PRIMARY KEY("+COLUMN_NAME_PACKAGE_NAME+","+ COLUMN_NAME_BUNDLE_KEY +")," +
                         "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " + AppFeed.TABLE_NAME + "(" + AppFeed.COLUMN_NAME_PACKAGE_NAME +
                         ") ON DELETE CASCADE);";
 
@@ -83,14 +82,22 @@ public final class DBContract {
         public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_NOTIFICATION_ID = "NotificationId";
         public static final String COLUMN_NAME_BUNDLE_KEY = "BundleKey";
+        public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
         public static final String COLUMN_NAME_BUNDLE_VALUE = "BundleValue";
 
         public static final String SQL_CREATE_TABLE =
                 "CREATE TABLE " + TABLE_NAME + "( "+
                         COLUMN_NAME_ID + " INTEGER PRIMARY KEY, "+
                         COLUMN_NAME_NOTIFICATION_ID + " INTEGER NOT NULL, " +
+                        COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_VALUE + " TEXT NOT NULL, " +
+
+                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ","+COLUMN_NAME_BUNDLE_KEY+")" +
+                        " REFERENCES " + BundleKeysFeed.TABLE_NAME +
+                        "(" + BundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + ","+BundleKeysFeed.COLUMN_NAME_BUNDLE_KEY +") " +
+                        "ON DELETE NO ACTION," +
+
                         "FOREIGN KEY(" + COLUMN_NAME_NOTIFICATION_ID + ") REFERENCES " +
                         NotificationHistoryFeed.TABLE_NAME + "(" + NotificationHistoryFeed.COLUMN_NAME_ID +
                         ") ON DELETE CASCADE);";

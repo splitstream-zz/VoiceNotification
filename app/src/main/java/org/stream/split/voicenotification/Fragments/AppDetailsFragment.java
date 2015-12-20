@@ -14,6 +14,7 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
+import org.stream.split.voicenotification.Adapters.AppDetailsAdapter;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.dummy.DummyContent;
@@ -29,14 +30,7 @@ import org.stream.split.voicenotification.dummy.DummyContent;
  */
 public class AppDetailsFragment extends Fragment implements AbsListView.OnItemClickListener {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
 
@@ -51,14 +45,12 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private ListAdapter mAdapter;
+    private AppDetailsAdapter mAdapter;
 
-    // TODO: Rename and change types of parameters
-    public static AppDetailsFragment newInstance(String param1, String param2) {
+    public static AppDetailsFragment newInstance(String gsonNotificationEntity) {
         AppDetailsFragment fragment = new AppDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_NOTIFICATION_GSON_OBJECT, param1);
-        args.putString(ARG_PARAM2, param2);
+        args.putString(ARG_NOTIFICATION_GSON_OBJECT, gsonNotificationEntity);
         fragment.setArguments(args);
         return fragment;
     }
@@ -76,12 +68,10 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
 
         if (getArguments() != null) {
             String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
-            mNotificationEntity = new Gson().fromJson(gsonToJson,NotificationEntity.class);
+            mNotificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
         }
 
-        // TODO: Change Adapter to display your content
-        mAdapter = new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-                android.R.layout.simple_list_item_1, android.R.id.text1, DummyContent.ITEMS);
+        mAdapter = new AppDetailsAdapter(mNotificationEntity.get)
     }
 
     @Override
