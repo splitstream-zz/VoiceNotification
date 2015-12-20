@@ -74,8 +74,11 @@ public class NotificationsHistoryFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
+
         mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
-        List<NotificationEntity> entities = new DBHelper(getActivity()).getAllNotification();
+        DBHelper db = new DBHelper(getActivity());
+        List<NotificationEntity> entities = db.getAllNotification();
+        db.close();
         mAdapter = new NotificationsHistoryAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
@@ -89,7 +92,7 @@ public class NotificationsHistoryFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_history_list, container, false);
 
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.my_recycler_view);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_notification_history);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView

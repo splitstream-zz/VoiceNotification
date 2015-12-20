@@ -27,7 +27,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
-import org.stream.split.voicenotification.Fragments.AppListFragment;
+import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
 import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
@@ -82,13 +82,13 @@ public class VoiceNotificationActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mFragmentManager = getFragmentManager();
-
-        CURRENT_FRAGMENT = new NotificationsHistoryFragment();
-        mFragmentManager.beginTransaction()
-                .add(R.id.frame_content, CURRENT_FRAGMENT)
-                .addToBackStack("initial")
-                .commit();
-
+        if(savedInstanceState == null) {
+            CURRENT_FRAGMENT = new NotificationsHistoryFragment();
+            mFragmentManager.beginTransaction()
+                    .add(R.id.frame_content, CURRENT_FRAGMENT)
+                    .addToBackStack("initial")
+                    .commit();
+        }
         //creating persistent notification for purposes of informing user of running up
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         createPersistentAppNotification();
@@ -200,7 +200,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         switch (id) {
             case R.id.choose_apps:
-                fragment = AppListFragment.newInstance(AppListFragment.APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
+                fragment = FollowedAppFragment.newInstance(FollowedAppFragment.APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
                 break;
             case R.id.history:
                 fragment = new NotificationsHistoryFragment();

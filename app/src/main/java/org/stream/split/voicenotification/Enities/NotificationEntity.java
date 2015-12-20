@@ -1,7 +1,9 @@
 package org.stream.split.voicenotification.Enities;
 
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -10,7 +12,9 @@ import java.util.Map;
 public class NotificationEntity
 {
 
-    long mID;
+    long mId;
+
+    long mSbnId;
     long mOccurrenceTime;
 
     String mPackageName;
@@ -18,17 +22,22 @@ public class NotificationEntity
     String mTinkerText;
     String mUtteranceId;
 
-
-
     boolean mIsFollowed;
 
-    Map<String,String> mMessages = new HashMap<>();
+    List<BundleKeyEntity> mMessages;
 
     public long getID() {
-        return mID;
+        return mId;
     }
     public void setID(long ID) {
-        this.mID = ID;
+        this.mId = ID;
+    }
+
+    public long getSbnId() {
+        return mSbnId;
+    }
+    public void setSbnId(long sbnId) {
+        this.mSbnId = sbnId;
     }
 
     public String getTinkerText() {
@@ -38,19 +47,27 @@ public class NotificationEntity
         this.mTinkerText = TinkerText;
     }
 
-    public Map<String, String> getMessages() {
+    public List<BundleKeyEntity> getMessages() {
         return mMessages;
     }
-    public void setMessages(Map<String, String> Messages) {
+    public void setMessages(List<BundleKeyEntity> Messages) {
         this.mMessages = Messages;
     }
-    public String getMessage(String key)
+    public String getMessage(String key) throws IllegalArgumentException
     {
-        return mMessages.get(key);
+        String value = null;
+        for(BundleKeyEntity entity:mMessages)
+        {
+            if(entity.getKey() == key)
+                value = entity.getValue();
+        }
+        if(value == null)
+            throw new IllegalArgumentException("podanego klucza nie znaleziono");
+        return value;
     }
-    public void addMessage(String key, String Value)
+    public void addMessage(String key, String value)
     {
-        mMessages.put(key, Value);
+        mMessages.add(new BundleKeyEntity(mPackageName,key,value));
     }
 
     public String getPackageName() {
@@ -89,20 +106,22 @@ public class NotificationEntity
         this.mUtteranceId = UtteranceId;
     }
 
-    public NotificationEntity( String packageName, String applicationName, long occurrenceTime, String utteranceId)
+    public NotificationEntity( long sbnId, String packageName, String applicationName, long occurrenceTime, String utteranceId)
     {
+        mSbnId = sbnId;
         mPackageName = packageName;
         mApplicationLabel = applicationName;
         mOccurrenceTime = occurrenceTime;
         mUtteranceId = utteranceId;
+        mMessages = new ArrayList<>();
     }
-    public NotificationEntity( String packageName, String applicationName, long occurrenceTime)
+    public NotificationEntity( long sbnId, String packageName, String applicationName, long occurrenceTime)
     {
-        this(packageName,applicationName,occurrenceTime,"");
+        this(sbnId,packageName,applicationName,occurrenceTime,"");
     }
     public NotificationEntity(long ID)
     {
-        mID = ID;
+        mId = ID;
     }
 
 

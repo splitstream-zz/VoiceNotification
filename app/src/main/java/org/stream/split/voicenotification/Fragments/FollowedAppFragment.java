@@ -44,13 +44,13 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class AppListFragment extends Fragment implements AbsListView.OnItemClickListener {
+public class FollowedAppFragment extends Fragment implements AbsListView.OnItemClickListener {
 
     private final String TAG = this.getClass().getSimpleName();
 
     private static final String ApplicationsToshow = "ApplicationsToshow";
 
-    private APPLICATIONS_TO_SHOW mApplictaionsToShow;
+    private APPLICATIONS_TO_SHOW mApplicationsToShow;
 
     private OnFragmentInteractionListener mListener;
 
@@ -88,8 +88,8 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
 
     private MenuItem mDeleteMenuItem;
 
-    public static AppListFragment newInstance(APPLICATIONS_TO_SHOW x) {
-        AppListFragment fragment = new AppListFragment();
+    public static FollowedAppFragment newInstance(APPLICATIONS_TO_SHOW x) {
+        FollowedAppFragment fragment = new FollowedAppFragment();
         Bundle args = new Bundle();
         args.putString(ApplicationsToshow, x.name());
         fragment.setArguments(args);
@@ -101,7 +101,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public AppListFragment() {
+    public FollowedAppFragment() {
     }
 
     @Override
@@ -110,12 +110,12 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
         setHasOptionsMenu(true);
 
         if (getArguments() != null) {
-            mApplictaionsToShow = APPLICATIONS_TO_SHOW.valueOf(getArguments().getString(ApplicationsToshow));
+            mApplicationsToShow = APPLICATIONS_TO_SHOW.valueOf(getArguments().getString(ApplicationsToshow));
         }
 
-        mAdapter = new CustomListAdapter(getActivity(), R.layout.fragment_app_item,mAppsList);
+        mAdapter = new CustomListAdapter(getActivity(), R.layout.fragment_followed_app_item,mAppsList);
         LoadApplicationsAsync loadingApps = new LoadApplicationsAsync();
-        loadingApps.execute(mApplictaionsToShow);
+        loadingApps.execute(mApplicationsToShow);
         mProgressBarVisibility = View.VISIBLE;
     }
 
@@ -129,7 +129,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
         mListView = (ListView) view.findViewById(android.R.id.list);
         mListView.setAdapter(mAdapter);
 
-        switch (mApplictaionsToShow) {
+        switch (mApplicationsToShow) {
             case SHOW_FOLLOWED:
                 SetUpFabFollowed();
                 break;
@@ -168,7 +168,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         //super.onCreateOptionsMenu(menu, inflater);
-        switch (mApplictaionsToShow) {
+        switch (mApplicationsToShow) {
             case SHOW_FOLLOWED:
                 inflater.inflate(R.menu.followed_apps_menu, menu);
                 break;
@@ -200,7 +200,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
 
                 }
                 db.close();
-                new LoadApplicationsAsync().execute(mApplictaionsToShow);
+                new LoadApplicationsAsync().execute(mApplicationsToShow);
                 mDeleteMenuItem.setVisible(false);
 
                 return true;
@@ -228,7 +228,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
             @Override
             public void onClick(View v) {
                 FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
-                AppListFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_INSTALLED);
+                FollowedAppFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_INSTALLED);
                 ft.replace(R.id.frame_content, fragment).addToBackStack("kleks").commit();
             }
         });
@@ -252,7 +252,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
                 }
                 db.close();
                 FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
-                AppListFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
+                FollowedAppFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
                 ft.replace(R.id.frame_content, fragment).commit();
             }
         });
@@ -295,7 +295,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
             if(convertView == null)
             {
                 LayoutInflater vi =  (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = vi.inflate(R.layout.fragment_app_item,null);
+                convertView = vi.inflate(R.layout.fragment_followed_app_item,null);
 
                 holder = new ViewHolder();
                 holder.name = (TextView) convertView.findViewById(R.id.app_name);
@@ -327,7 +327,7 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
                     AppInfoEntity appInfoEntity = (AppInfoEntity) v.getTag();
                     appInfoEntity.setSelected(((CheckBox)v).isChecked());
                     Boolean setDeleteVisibility = false;
-                    if(mApplictaionsToShow == APPLICATIONS_TO_SHOW.SHOW_FOLLOWED ) {
+                    if(mApplicationsToShow == APPLICATIONS_TO_SHOW.SHOW_FOLLOWED ) {
                         for(int i = 0;i< mAdapter.getCount();i++) {
                             AppInfoEntity app = mAdapter.getItem(i);
                             if (app.isSelected()) {
@@ -367,11 +367,11 @@ public class AppListFragment extends Fragment implements AbsListView.OnItemClick
                 case SHOW_INSTALLED:
                     PackageManager packageManager = getActivity().getPackageManager();
 
-                    List<ApplicationInfo> instaledApplications =
+                    List<ApplicationInfo> installedApplications =
                             packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
 
 
-                    for (ApplicationInfo info : instaledApplications) {
+                    for (ApplicationInfo info : installedApplications) {
                         if(!db.isAppFollowed(info.packageName)) {
                             AppInfoEntity appInfoEntity = new AppInfoEntity(info.packageName);
                             appsInfo.add(appInfoEntity);

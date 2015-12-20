@@ -1,21 +1,21 @@
 package org.stream.split.voicenotification.Adapters;
 
 import android.app.Activity;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
-import android.content.Context;
 import android.app.Fragment;
+import android.app.FragmentManager;
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Fragments.AppDetailsFragment;
 import org.stream.split.voicenotification.R;
@@ -25,57 +25,50 @@ import java.util.List;
 /**
  * Created by split on 2015-10-20.
  */
-public class NotificationsHistoryAdapter extends RecyclerView.Adapter<NotificationsHistoryAdapter.ViewHolder> {
+public class AppDetailsAdapter extends RecyclerView.Adapter<AppDetailsAdapter.ViewHolder> {
 
-    static final public String TAG = "NotificationsHistoryAdapter";
+    static final public String TAG = "AppDetailsAdapter";
     private Context mContext;
-    private List<NotificationEntity> mDataset;
+    private List<BundleKeyEntity> mDataset;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-        public TextView mTextView;
-        public ImageButton mImgBtn;
-        public NotificationEntity mNotificationEntity;
+        public TextView mKeyTextView;
+        public TextView mValueTextView;
+        public CheckBox mCheckBox;
+        public BundleKeyEntity mBundleKeyEntity;
 
 
         public ViewHolder(View v) {
             super(v);
-            mTextView = (TextView) v.findViewById(R.id.history_app_name);
-            mImgBtn = (ImageButton) v.findViewById(R.id.history_app_add);
-            mImgBtn.setOnClickListener(this);
-            mTextView.setOnClickListener(this);
-
+            mKeyTextView = (TextView) v.findViewById(R.id.bundlekey_name);
+            mValueTextView = (TextView) v.findViewById(R.id.bundlekey_value);
+            mCheckBox = (CheckBox) v.findViewById(R.id.bundlekey_cbx);
+            mCheckBox.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
-            if(mContext instanceof Activity)
-            {
-                Fragment fragment = AppDetailsFragment.newInstance(new Gson().toJson(mNotificationEntity));
-                FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
-                fragmentManager.beginTransaction()
-                        .replace(R.id.frame_content, fragment)
-                        .addToBackStack("notificationdetails_"+ mNotificationEntity.getID())
-                .commit();
-            }
+           mBundleKeyEntity.setIsFollowed(((CheckBox)v).isChecked());
         }
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public NotificationsHistoryAdapter(List<NotificationEntity> notificationHistory, Context context) {
-        mDataset = notificationHistory;
+    public AppDetailsAdapter(List<BundleKeyEntity> bundleKeys, Context context) {
+        mDataset = bundleKeys;
         mContext = context;
+
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public NotificationsHistoryAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public AppDetailsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_history_list_item, parent, false);
+                .inflate(R.layout.fragment_history_item, parent, false);
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }
@@ -84,11 +77,10 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        NotificationEntity entity = mDataset.get(position);
-        holder.mNotificationEntity = entity;
+        BundleKeyEntity entity = mDataset.get(position);
+        holder.mBundleKeyEntity = entity;
 
-        holder.mTextView.setText(entity.getApplicationLabel());
-        holder.mTextView.setTag(entity);
+        holder.mKeyTextView.setText(entity.getKey());
 
         holder.mImgBtn.setTag(entity);
         if(entity.isFollowed())

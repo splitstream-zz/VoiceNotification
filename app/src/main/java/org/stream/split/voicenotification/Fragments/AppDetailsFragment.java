@@ -1,7 +1,6 @@
 package org.stream.split.voicenotification.Fragments;
 
 import android.app.Activity;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -13,9 +12,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
-import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import com.google.gson.Gson;
+
+import org.stream.split.voicenotification.Adapters.AppDetailsAdapter;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.dummy.DummyContent;
 
@@ -30,12 +30,12 @@ import org.stream.split.voicenotification.dummy.DummyContent;
  */
 public class AppDetailsFragment extends Fragment implements AbsListView.OnItemClickListener {
 
-    private static final String ARG_PACKAGE_NAME = "packageName";
-
-    private AppInfoEntity mAppInfoEntity;
+    private static final String ARG_NOTIFICATION_GSON_OBJECT = "param1";
 
     private OnFragmentInteractionListener mListener;
 
+    NotificationEntity mNotificationEntity;
+    
     /**
      * The fragment's ListView/GridView.
      */
@@ -45,13 +45,12 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private ListAdapter mAdapter;
+    private AppDetailsAdapter mAdapter;
 
-    // TODO: Rename and change types of parameters
-    public static AppDetailsFragment newInstance(String packageName) {
+    public static AppDetailsFragment newInstance(String gsonNotificationEntity) {
         AppDetailsFragment fragment = new AppDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_PACKAGE_NAME, packageName);
+        args.putString(ARG_NOTIFICATION_GSON_OBJECT, gsonNotificationEntity);
         fragment.setArguments(args);
         return fragment;
     }
@@ -67,15 +66,12 @@ public class AppDetailsFragment extends Fragment implements AbsListView.OnItemCl
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         if (getArguments() != null) {
-            DBHelper db = new DBHelper(getActivity());
-            String packageName = savedInstanceState.getString(ARG_PACKAGE_NAME);
-            mAppInfoEntity = db.getApp(packageName,true);
+            String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
+            mNotificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
         }
 
-        mAdapter = new ArrayAdapter<BundleKeyEntity>(getActivity(),
-                android.R.layout., android.R.id.text1, DummyContent.ITEMS);
+        mAdapter = new AppDetailsAdapter(mNotificationEntity.get)
     }
 
     @Override

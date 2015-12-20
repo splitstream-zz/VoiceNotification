@@ -108,7 +108,7 @@ public class NotificationService extends NotificationListenerService {
     public void onNotificationPosted(StatusBarNotification sbn) {
 
         Log.d(TAG, "**********  onNotificationPosted");
-        Log.d(TAG, "COLUMN_NAME_ID : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
+        Log.d(TAG, "Id : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
         Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
 
         String label = Helper.getApplicationLabel(sbn.getPackageName(), this);
