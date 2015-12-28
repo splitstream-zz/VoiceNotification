@@ -6,22 +6,17 @@
     android:orientation="vertical"
     tools:context=".Fragments.FollowedAppFragment">
 
-    <TextView android:id="@+id/empty"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center" />
-
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:choiceMode="multipleChoiceModal"  />
-
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:visibility="gone"
         android:id="@+id/loading_apps"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:choiceMode="multipleChoiceModal"  />
 
 </LinearLayout>

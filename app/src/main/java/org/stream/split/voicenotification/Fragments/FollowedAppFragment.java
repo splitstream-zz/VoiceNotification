@@ -8,7 +8,8 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,18 +17,12 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
+import org.stream.split.voicenotification.Adapters.FollowedAppAdapter;
+import org.stream.split.voicenotification.Adapters.InstalledAppAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Helpers.Helper;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
@@ -44,58 +39,19 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class FollowedAppFragment extends Fragment implements AbsListView.OnItemClickListener {
+public class FollowedAppFragment extends Fragment {
 
     private final String TAG = this.getClass().getSimpleName();
+    private RecyclerView mRecyclerView;
+    private FollowedAppAdapter mAdapter;
+    private RecyclerView.LayoutManager mLayoutManager;
 
-    private static final String ApplicationsToshow = "ApplicationsToshow";
-
-    private APPLICATIONS_TO_SHOW mApplicationsToShow;
-
-    private OnFragmentInteractionListener mListener;
-
-
-    public enum APPLICATIONS_TO_SHOW
-    {
-        /**
-         * show installed applications on device
-         */
-        SHOW_INSTALLED,
-        /**
-         * show applications added to notification reading
-         */
-        SHOW_FOLLOWED
-    }
-
-    /**
-     * The fragment's ListView/GridView.
-     */
-    private ListView mListView;
-
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
-    private CustomListAdapter mAdapter;
-
-    private ArrayList<AppInfoEntity> mAppsList = new ArrayList<>();
 
     /**
      * progressBar indicating application loading
      */
     private ProgressBar mProgressBar;
     private int mProgressBarVisibility;
-
-    private MenuItem mDeleteMenuItem;
-
-    public static FollowedAppFragment newInstance(APPLICATIONS_TO_SHOW x) {
-        FollowedAppFragment fragment = new FollowedAppFragment();
-        Bundle args = new Bundle();
-        args.putString(ApplicationsToshow, x.name());
-        fragment.setArguments(args);
-        return fragment;
-
-    }
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -108,36 +64,31 @@ public class FollowedAppFragment extends Fragment implements AbsListView.OnItemC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-
-        if (getArguments() != null) {
-            mApplicationsToShow = APPLICATIONS_TO_SHOW.valueOf(getArguments().getString(ApplicationsToshow));
-        }
-
-        mAdapter = new CustomListAdapter(getActivity(), R.layout.fragment_followed_app_item,mAppsList);
-        LoadApplicationsAsync loadingApps = new LoadApplicationsAsync();
-        loadingApps.execute(mApplicationsToShow);
-        mProgressBarVisibility = View.VISIBLE;
+        DBHelper db = new DBHelper(getActivity());
+        List<AppInfoEntity> apps = db.getAllApps(false);
+        db.close();
+        mAdapter = new FollowedAppAdapter(getActivity(), apps );
+        mProgressBarVisibility = View.GONE;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_app, container, false);
+        View view = inflater.inflate(R.layout.fragment_followed_app_list, container, false);
         mProgressBar = (ProgressBar) view.findViewById(R.id.loading_apps);
         mProgressBar.setVisibility(mProgressBarVisibility);
         // Set the adapter
-        mListView = (ListView) view.findViewById(android.R.id.list);
-        mListView.setAdapter(mAdapter);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
+        // use this setting to improve performance if you know that changes
+        // in content do not change the layout size of the RecyclerView
+        mRecyclerView.setHasFixedSize(true);
 
-        switch (mApplicationsToShow) {
-            case SHOW_FOLLOWED:
-                SetUpFabFollowed();
-                break;
-            case SHOW_INSTALLED:
-                SetUpFabInstalled();
-                break;
+        // use a linear layout manager
+        mLayoutManager = new LinearLayoutManager(view.getContext());
+        mRecyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setAdapter(mAdapter);
 
-        }
+        SetUpFabInstalled();
 
         return view;
     }
@@ -151,262 +102,61 @@ public class FollowedAppFragment extends Fragment implements AbsListView.OnItemC
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            mListener = (OnFragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
+
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         //super.onCreateOptionsMenu(menu, inflater);
-        switch (mApplicationsToShow) {
-            case SHOW_FOLLOWED:
-                inflater.inflate(R.menu.followed_apps_menu, menu);
-                break;
-        }
+        inflater.inflate(R.menu.followed_apps_menu, menu);
+        mAdapter.onCreateMenu(menu);
     }
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        mDeleteMenuItem = menu.findItem(R.id.delete_app);
-        if(mDeleteMenuItem != null)
-            mDeleteMenuItem.setVisible(false);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId())
-        {
-            case R.id.delete_app:
-
-                DBHelper db = new DBHelper(getActivity());
-                for(int i = 0;i< mAdapter.getCount();i++)
-                {
-                    AppInfoEntity app = mAdapter.getItem(i);
-                    if(app.isSelected())
-                    {
-                        db.deleteApp(app);
-                    }
-
-                }
-                db.close();
-                new LoadApplicationsAsync().execute(mApplicationsToShow);
-                mDeleteMenuItem.setVisible(false);
-
+        switch (item.getItemId()) {
+            case R.id.delete_app_menu_item:
+                deleteSelectedApps();
+                mAdapter.refresh();
                 return true;
             default:
-                return false;
-        }
+                return true;
+    }
 
     }
 
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            //Snackbar.make(view,mListView.getCheckedItemCount(),Snackbar.LENGTH_SHORT).show();
-            mListener.onFragmentInteraction(new long[]{1,2,3} );
-        }
-    }
-
-    private void SetUpFabFollowed()
+    private void deleteSelectedApps()
     {
+        List<AppInfoEntity> apps = mAdapter.getSelectedItems();
+        if (!apps.isEmpty()) {
+            DBHelper db = new DBHelper(getActivity());
+            db.deleteApps(apps,true);
+            db.close();
+        }
+    }
+
+    private void SetUpFabInstalled() {
         FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
         fab.setImageResource(R.drawable.ic_add_applications);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
-                FollowedAppFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_INSTALLED);
-                ft.replace(R.id.frame_content, fragment).addToBackStack("kleks").commit();
+                InstalledAppFragment fragment = new InstalledAppFragment();
+                ft.replace(R.id.frame_content, fragment)
+                        .addToBackStack("add App to followed")
+                        .commit();
             }
         });
     }
-
-    private void SetUpFabInstalled()
-    {
-        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
-        fab.setImageResource(R.drawable.ic_apply_applications);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                DBHelper db = new DBHelper(getActivity());
-                for(int i = 0;i< mAdapter.getCount();i++)
-                {
-                    AppInfoEntity app = mAdapter.getItem(i);
-                    if(app.isSelected()) {
-                        long row  = db.addApp(app);
-                        Log.d(TAG, "dodano applikacje do bazy danych: " + app.getPackageName() +" row#: " + row);
-                    }
-                }
-                db.close();
-                FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
-                FollowedAppFragment fragment = newInstance(APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
-                ft.replace(R.id.frame_content, fragment).commit();
-            }
-        });
-    }
-
-    /**
-     * The default content for this Fragment has a TextView that is shown when
-     * the list is empty. If you would like to change the text, call this method
-     * to supply the text it should use.
-     */
-    public void setEmptyText(CharSequence emptyText) {
-        View emptyView = mListView.getEmptyView();
-
-        if (emptyView instanceof TextView) {
-            ((TextView) emptyView).setText(emptyText);
-        }
-    }
-
-    private class CustomListAdapter extends ArrayAdapter<AppInfoEntity>
-    {
-
-        public CustomListAdapter(Context context, int resource, ArrayList<AppInfoEntity> objects) {
-            super(context, resource, objects);
-            this.addAll(objects);
-
-        }
-
-        private class ViewHolder
-        {
-            ImageView icon;
-            TextView name;
-            CheckBox cbx;
-
-        }
-        @Override
-        public View getView(int position, View convertView, final ViewGroup parent)
-        {
-            ViewHolder holder;
-
-            if(convertView == null)
-            {
-                LayoutInflater vi =  (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = vi.inflate(R.layout.fragment_followed_app_item,null);
-
-                holder = new ViewHolder();
-                holder.name = (TextView) convertView.findViewById(R.id.app_name);
-                holder.icon = (ImageView) convertView.findViewById(R.id.app_icon);
-                holder.cbx = (CheckBox) convertView.findViewById(R.id.app_cbx);
-
-                convertView.setTag(holder);
-
-            }
-            else
-                holder = (ViewHolder) convertView.getTag();
-            PackageManager manager = getActivity().getPackageManager();
-
-            AppInfoEntity appInfoEntity = this.getItem(position);
-            holder.name.setText(Helper.getApplicationLabel(appInfoEntity.getPackageName(),getContext()));
-            holder.cbx.setChecked(appInfoEntity.isSelected());
-            try {
-                holder.icon.setImageDrawable(manager.getApplicationIcon(appInfoEntity.getPackageName()));
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-            }
-            holder.name.setTag(appInfoEntity);
-            holder.cbx.setTag(appInfoEntity);
-
-
-            holder.cbx.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AppInfoEntity appInfoEntity = (AppInfoEntity) v.getTag();
-                    appInfoEntity.setSelected(((CheckBox)v).isChecked());
-                    Boolean setDeleteVisibility = false;
-                    if(mApplicationsToShow == APPLICATIONS_TO_SHOW.SHOW_FOLLOWED ) {
-                        for(int i = 0;i< mAdapter.getCount();i++) {
-                            AppInfoEntity app = mAdapter.getItem(i);
-                            if (app.isSelected()) {
-                                setDeleteVisibility = true;
-                                break;
-                            }
-                        }
-                        mDeleteMenuItem.setVisible(setDeleteVisibility);
-                    }
-                }
-            });
-
-            holder.name.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    AppInfoEntity appInfoEntity = (AppInfoEntity) v.getTag();
-                    Snackbar.make(parent, "Clicked on Checkbox: " + appInfoEntity.getPackageName() + " is " + appInfoEntity.isSelected(),
-                            Snackbar.LENGTH_SHORT).show();
-                }
-            });
-
-            return convertView;
-
-        }
-    }
-
-    private class LoadApplicationsAsync extends AsyncTask<APPLICATIONS_TO_SHOW,Void,ArrayList<AppInfoEntity>>
-    {
-
-        @Override
-        protected ArrayList<AppInfoEntity> doInBackground(APPLICATIONS_TO_SHOW... params) {
-
-            ArrayList<AppInfoEntity> appsInfo = new ArrayList<>();
-            DBHelper db = new DBHelper(getActivity());
-
-            switch (params[0]) {
-                case SHOW_INSTALLED:
-                    PackageManager packageManager = getActivity().getPackageManager();
-
-                    List<ApplicationInfo> installedApplications =
-                            packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
-
-
-                    for (ApplicationInfo info : installedApplications) {
-                        if(!db.isAppFollowed(info.packageName)) {
-                            AppInfoEntity appInfoEntity = new AppInfoEntity(info.packageName);
-                            appsInfo.add(appInfoEntity);
-                        }
-                    }
-                    break;
-
-                case SHOW_FOLLOWED:
-                    appsInfo.addAll(db.getAllApps(true));
-                    break;
-            }
-            db.close();
-            return appsInfo;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mProgressBarVisibility = View.VISIBLE;
-            if(mProgressBar != null)
-                mProgressBar.setVisibility(mProgressBarVisibility);
-
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<AppInfoEntity> apps)
-        {
-            mProgressBarVisibility = View.GONE;
-            mProgressBar.setVisibility(mProgressBarVisibility);
-
-            mAdapter.clear();
-            mAdapter.addAll(apps);
-            mAdapter.notifyDataSetInvalidated();
-
-        }
-    }
-
 }

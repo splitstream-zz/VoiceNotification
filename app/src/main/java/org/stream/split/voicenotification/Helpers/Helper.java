@@ -1,10 +1,8 @@
 package org.stream.split.voicenotification.Helpers;
 
 import android.app.Notification;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -16,16 +14,14 @@ import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.R;
-import org.stream.split.voicenotification.VoiceNotificationActivity;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.sql.Timestamp;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -124,6 +120,89 @@ public class Helper {
         return bundlekeys;
     }
 
+    private static final Set<Class<?>> WRAPPER_TYPES = getWrapperTypes();
+
+    public static boolean isWrapperType(Class<?> clazz)
+    {
+        return WRAPPER_TYPES.contains(clazz);
+    }
+
+    private static Set<Class<?>> getWrapperTypes()
+    {
+        Set<Class<?>> ret = new HashSet<Class<?>>();
+        ret.add(Boolean.class);
+        ret.add(Character.class);
+        ret.add(Byte.class);
+        ret.add(Short.class);
+        ret.add(Integer.class);
+        ret.add(Long.class);
+        ret.add(Float.class);
+        ret.add(Double.class);
+        ret.add(Void.class);
+        ret.add(String.class);
+        return ret;
+    }
+
+    public static StringBuilder LogNotificationEntity(Object notificationEntity, StringBuilder builder)
+    {
+        Field[] fields = notificationEntity.getClass().getDeclaredFields();
+        builder.append(notificationEntity.getClass().getSimpleName());
+        for(Field field:fields)
+        {
+
+            builder.append(field.getName());
+            builder.append(field.getType());
+            try {
+                Object value = field.get(notificationEntity);
+                if(value != null) {
+                    if (!isWrapperType(field.getType())) {
+                        builder.append("lets go deeper is not primitive!!!!!");
+                        LogNotificationEntity(value, builder);
+                        continue;
+                    } else if (value instanceof Collection<?>) {
+                        for (Object o : (Collection) value) {
+                            builder.append("Collection Object");
+                            builder.append(LogNotificationEntity(o, builder));
+                        }
+                    } else {
+                        builder.append(value);
+                    }
+                }
+                else
+                    builder.append("value is null");
+
+            }
+            catch (IllegalAccessException iae)
+            {
+                //builder.append(iae.getMessage());
+            }
+        }
+        return builder;
+    }
+
+    public static StringBuilder LogNotificationEntity(NotificationEntity entity)
+    {
+        StringBuilder builder = new StringBuilder();
+        builder.append(entity.getApplicationLabel());
+        builder.append("\n");
+        List<BundleKeyEntity> list = entity.getBundleKeys();
+        builder.append("bundlekeys: \n");
+        if(list != null || list.isEmpty())
+        {
+
+            for(BundleKeyEntity e:list)
+            {
+                builder.append("key: ");
+                builder.append(e.getKey());
+                builder.append("\n");
+                builder.append("value: ");
+                builder.append(e.getValue());
+                builder.append("\n");
+            }
+        }
+        return builder;
+    }
+
     public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, String label) {
 
         String utteranceId = getUtteranceId(sbn.getPackageName(), sbn.getId());
@@ -134,10 +213,10 @@ public class Helper {
                 sbn.getPostTime(),
                 utteranceId);
 
-        notificationEntity.setMessages(IterateBundleExtras(sbn.getNotification().extras,sbn.getPackageName()));
+        notificationEntity.setBundleKeys(IterateBundleExtras(sbn.getNotification().extras, sbn.getPackageName()));
         if (sbn.getNotification().tickerText != null) {
             notificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
-            notificationEntity.addMessage("custom.tickerText", sbn.getNotification().tickerText.toString());
+            notificationEntity.addBundleKey("custom.tickerText", sbn.getNotification().tickerText.toString());
         }
 
         return notificationEntity;

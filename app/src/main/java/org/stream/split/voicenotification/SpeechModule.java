@@ -1,6 +1,5 @@
 package org.stream.split.voicenotification;
 
-import android.app.Activity;
 import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 
-import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Enities.UtteranceEntity;
@@ -53,15 +51,18 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         }
         Log.d(TAG,"mDefualtKeys.size(): "+String.valueOf(mDefualtKeys.size()));
 
+
         StringBuilder builder = new StringBuilder();
         for(BundleKeyEntity entity:bundleKeysEntities)
         {
-            String value = notificationEntity.getMessage(entity.getKey());
+            String value = notificationEntity.getBundleKeyValue(entity.getKey());
             if(value != null && !value.isEmpty()) {
                 Log.d(TAG, value);
                 builder.append(value);
                 builder.append(". ");
             }
+            else
+                Log.d(TAG, "!!!!! Followed key: " + entity.getKey()+"\tvalue: null");
         }
         String utteranceMessage = builder.toString();
         UtteranceEntity utteranceEntity = new UtteranceEntity(notificationEntity.getUtteranceId(), utteranceMessage);

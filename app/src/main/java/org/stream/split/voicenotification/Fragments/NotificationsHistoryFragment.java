@@ -20,6 +20,7 @@ import android.app.Fragment;
 
 import com.google.gson.Gson;
 
+import org.stream.split.voicenotification.DataAccessLayer.DBContract;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
@@ -77,7 +78,7 @@ public class NotificationsHistoryFragment extends Fragment {
 
         mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
         DBHelper db = new DBHelper(getActivity());
-        List<NotificationEntity> entities = db.getAllNotification();
+        List<NotificationEntity> entities = db.getAllNotification(false);
         db.close();
         mAdapter = new NotificationsHistoryAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
@@ -165,8 +166,8 @@ public class NotificationsHistoryFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), VoiceNotificationActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(),01,intent,PendingIntent.FLAG_UPDATE_CURRENT);
-                Notification notification = Helper.createNotification(getActivity(),pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
+                PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                Notification notification = Helper.createNotification(getActivity(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
                 mNotificationManager.notify(mTestingNotificationID, notification);
                 Snackbar.make(v, "test notification was send", Snackbar.LENGTH_SHORT).show();
             }

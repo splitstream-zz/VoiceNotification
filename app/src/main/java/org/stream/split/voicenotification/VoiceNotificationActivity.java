@@ -145,11 +145,12 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
 
+        menu.clear();
         getMenuInflater().inflate(R.menu.voice_notification, menu);
         MenuItem menuItem = menu.findItem(R.id.offSwitch);
         View view = MenuItemCompat.getActionView(menuItem);
+
         Switch switcha = (Switch)view.findViewById(R.id.switchForActionBar);
         boolean checked = mServiceConnection.IsVoiceActive();
         switcha.setChecked(checked);
@@ -157,9 +158,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
         switcha.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mServiceConnection.setIsVoiceActive(isChecked);
+                mServiceConnection.setActiveSpeechService(isChecked);
             }
         });
+
         return true;
     }
 
@@ -175,8 +177,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
                         .commit();
                 break;
             default:
-                Snackbar.make(findViewById(R.id.coordinator_layout), "Item not implemented", Snackbar.LENGTH_SHORT).show();
-                break;
+                return super.onOptionsItemSelected(item);
         }
 
         return false;
@@ -200,7 +201,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         switch (id) {
             case R.id.choose_apps:
-                fragment = FollowedAppFragment.newInstance(FollowedAppFragment.APPLICATIONS_TO_SHOW.SHOW_FOLLOWED);
+                fragment = new FollowedAppFragment();
                 break;
             case R.id.history:
                 fragment = new NotificationsHistoryFragment();

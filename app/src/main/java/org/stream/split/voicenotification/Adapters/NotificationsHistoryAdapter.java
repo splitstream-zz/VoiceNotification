@@ -2,22 +2,22 @@ package org.stream.split.voicenotification.Adapters;
 
 import android.app.Activity;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.app.Fragment;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
-import org.stream.split.voicenotification.Fragments.AppDetailsFragment;
+import org.stream.split.voicenotification.Fragments.NotificationDetailsFragment;
 import org.stream.split.voicenotification.R;
 
 import java.util.List;
@@ -34,32 +34,57 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CheckBox.OnCheckedChangeListener {
 
         public TextView mTextView;
-        public ImageButton mImgBtn;
+        public CheckBox mCbx;
         public NotificationEntity mNotificationEntity;
 
 
         public ViewHolder(View v) {
             super(v);
             mTextView = (TextView) v.findViewById(R.id.history_app_name);
-            mImgBtn = (ImageButton) v.findViewById(R.id.history_app_add);
-            mImgBtn.setOnClickListener(this);
-            mTextView.setOnClickListener(this);
+            mCbx = (CheckBox) v.findViewById(R.id.history_app_add);
 
+
+        }
+        public void Initialize(NotificationEntity entity)
+        {
+            mNotificationEntity = entity;
+            mTextView.setText(entity.getApplicationLabel());
+            mCbx.setChecked(entity.isFollowed());
+            mCbx.setOnCheckedChangeListener(this);
+            mTextView.setOnClickListener(this);
         }
 
         @Override
         public void onClick(View v) {
             if(mContext instanceof Activity)
             {
-                Fragment fragment = AppDetailsFragment.newInstance(new Gson().toJson(mNotificationEntity));
+                DBHelper db = new DBHelper(mContext);
+                mNotificationEntity.setBundleKeys(db.getMessages(mNotificationEntity.getID()));
+                db.close();
+                Fragment fragment = NotificationDetailsFragment.newInstance(new Gson().toJson(mNotificationEntity));
                 FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
                 fragmentManager.beginTransaction()
                         .replace(R.id.frame_content, fragment)
                         .addToBackStack("notificationdetails_"+ mNotificationEntity.getID())
                 .commit();
+            }
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            DBHelper db = new DBHelper(buttonView.getContext());
+
+            if(isChecked !=mNotificationEntity.isFollowed()) {
+                AppInfoEntity entity = new AppInfoEntity(mNotificationEntity.getPackageName());
+                if (isChecked)
+                    db.addApp(entity);
+                else
+                    db.deleteApp(entity,true);
+                mNotificationEntity.setIsFollowed(isChecked);
+                refresh();
             }
         }
     }
@@ -85,18 +110,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     public void onBindViewHolder(ViewHolder holder, int position) {
 
         NotificationEntity entity = mDataset.get(position);
-        holder.mNotificationEntity = entity;
-
-        holder.mTextView.setText(entity.getApplicationLabel());
-        holder.mTextView.setTag(entity);
-
-        holder.mImgBtn.setTag(entity);
-        if(entity.isFollowed())
-            holder.mImgBtn.setImageResource(R.drawable.ic_delete_app);
-        else
-            holder.mImgBtn.setImageResource(R.drawable.ic_add_applications);
-
-
+        holder.Initialize(entity);
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -114,7 +128,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     {
         mDataset.clear();
         DBHelper db = new DBHelper(mContext);
-        mDataset.addAll(db.getAllNotification());
+        mDataset.addAll(db.getAllNotification(false));
         db.close();
         this.notifyDataSetChanged();
     }

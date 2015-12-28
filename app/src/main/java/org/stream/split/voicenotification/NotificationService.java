@@ -12,6 +12,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
@@ -116,7 +117,16 @@ public class NotificationService extends NotificationListenerService {
         DBHelper db = new DBHelper(this);
         long rowId = db.addNotification(notificationEntity);
         notificationEntity.setID(rowId);
-        notificationEntity.setIsFollowed(db.isAppFollowed(notificationEntity.getPackageName()));
+
+        StringBuilder builder = Helper.LogNotificationEntity(notificationEntity);
+        Log.d(TAG, builder.toString());
+
+        boolean isFollowed = db.isAppFollowed(sbn.getPackageName());
+        if(isFollowed) {
+            notificationEntity.setIsFollowed(isFollowed);
+            for(BundleKeyEntity entity:notificationEntity.getBundleKeys())
+                entity.setIsFollowed(db.isBundleKeyFollowed(entity));
+        }
         db.close();
         Log.d(TAG, "Newly inserted notification Id: " + notificationEntity.getID());
 
@@ -157,7 +167,7 @@ public class NotificationService extends NotificationListenerService {
         else {
             Log.d(TAG, "onBind else intent.getAction(): " + intent.getAction());
             if(intent.getExtras() != null)
-                Helper.IterateBundleExtras(intent.getExtras());
+                Helper.IterateBundleExtras(intent.getExtras(),intent.getPackage());
             mIsSystemNotificationServiceConnected = true;
             return super.onBind(intent);
         }

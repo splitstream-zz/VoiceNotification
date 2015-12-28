@@ -13,6 +13,7 @@ import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListen
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
+//TODO add default key bundles settings
 
 /**
  * A simple {@link Fragment} subclass.

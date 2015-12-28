@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 public final class DBContract {
 
     public final static String DB_Name = "VoiceNotification.db";
-    public final static int DB_Version = 37;
+    public final static int DB_Version = 42;
     public final static int HistoryQuantityLimit = 50;
 
     DBContract(){}
@@ -39,7 +39,7 @@ public final class DBContract {
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_PRIORITY + " INTEGER NOT NULL, " +
-                        "PRIMARY KEY("+COLUMN_NAME_PACKAGE_NAME+","+ COLUMN_NAME_BUNDLE_KEY +")," +
+                        "PRIMARY KEY("+COLUMN_NAME_PACKAGE_NAME+", "+ COLUMN_NAME_BUNDLE_KEY +"), " +
                         "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " + AppFeed.TABLE_NAME + "(" + AppFeed.COLUMN_NAME_PACKAGE_NAME +
                         ") ON DELETE CASCADE);";
 
@@ -92,11 +92,6 @@ public final class DBContract {
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_VALUE + " TEXT NOT NULL, " +
-
-                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ","+COLUMN_NAME_BUNDLE_KEY+")" +
-                        " REFERENCES " + BundleKeysFeed.TABLE_NAME +
-                        "(" + BundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + ","+BundleKeysFeed.COLUMN_NAME_BUNDLE_KEY +") " +
-                        "ON DELETE NO ACTION," +
 
                         "FOREIGN KEY(" + COLUMN_NAME_NOTIFICATION_ID + ") REFERENCES " +
                         NotificationHistoryFeed.TABLE_NAME + "(" + NotificationHistoryFeed.COLUMN_NAME_ID +

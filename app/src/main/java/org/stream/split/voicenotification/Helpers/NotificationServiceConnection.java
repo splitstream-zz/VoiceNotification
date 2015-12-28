@@ -25,7 +25,7 @@ public class NotificationServiceConnection implements ServiceConnection {
     private List<ReceiverIntent> mIntentReceivers = new ArrayList<>();
     private static NotificationServiceConnection mNotificationServiceConnection;
 
-    public void setIsVoiceActive(boolean isVoiceActive) {
+    public void setActiveSpeechService(boolean isVoiceActive) {
         this.mIsVoiceActive = isVoiceActive;
         if(mServiceBound)
             mNotificationService.setVoiceActive(isVoiceActive);

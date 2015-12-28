@@ -9,6 +9,7 @@ public class BundleKeyEntity {
     String mValue;
     int mPriority;
     boolean mIsFollowed;
+    boolean mIsModified;
 
     public BundleKeyEntity(String packageName, String key, int priority) {
         this.mPackageName = packageName;
@@ -19,9 +20,22 @@ public class BundleKeyEntity {
 
     public BundleKeyEntity(String packageName, String key, String value)
     {
+        this(packageName,key,value,false,false);
+    }
+    public BundleKeyEntity(String packageName, String key, String value, boolean isFollowed, boolean isSelected)
+    {
         mPackageName  = packageName;
         mKey = key;
         mValue = value;
+        mIsFollowed = isFollowed;
+        mIsModified = isSelected;
+    }
+
+    public boolean isModified() {
+        return mIsModified;
+    }
+    public void setIsModified(boolean isModified) {
+        this.mIsModified = isModified;
     }
 
     public boolean isFollowed() {

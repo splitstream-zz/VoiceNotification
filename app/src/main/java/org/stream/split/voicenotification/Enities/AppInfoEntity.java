@@ -12,21 +12,43 @@ public class AppInfoEntity {
     private boolean mIsSelected = false;
     private boolean mIsFollowed = false;
     private String mPackageName;
-    private List<BundleKeyEntity> mBundleKeys;
+    private String mApplicationLabel;
+    private List<BundleKeyEntity> mBundleKeys = new ArrayList<>();
+
+    public String getApplicationLabel() {
+        return mApplicationLabel;
+    }
+
+    public void setApplicationLabel(String ApplicationName) {
+        this.mApplicationLabel = ApplicationName;
+    }
 
     public List<BundleKeyEntity> getBundleKeys() {
         return mBundleKeys;
     }
+
     public void setBundleKeys(List<BundleKeyEntity> bundleKeys) {
         this.mBundleKeys = bundleKeys;
     }
-    public void addBundleKey(BundleKeyEntity bundleKeys) {
-        mBundleKeys.add(bundleKeys);
+
+    public String getBundleKeyValue(String key) throws IllegalArgumentException {
+        String value = null;
+        for (BundleKeyEntity entity : mBundleKeys) {
+            if (entity.getKey().equals(key))
+                value = entity.getValue();
+        }
+        return value;
     }
+
+    public void addBundleKey(String key, String value) {
+        mBundleKeys.add(new BundleKeyEntity(mPackageName, key, value));
+    }
+
 
     public boolean isFollowed() {
         return mIsFollowed;
     }
+
     public void setIsFollowed(boolean isFollowed) {
         this.mIsFollowed = isFollowed;
     }
@@ -35,6 +57,7 @@ public class AppInfoEntity {
         this.mPackageName = mPackageName;
         return this;
     }
+
     public String getPackageName() {
         return mPackageName;
     }
@@ -42,21 +65,26 @@ public class AppInfoEntity {
     public boolean isSelected() {
         return mIsSelected;
     }
-    public void setSelected(Boolean bool)
-    {
+
+    public void setSelected(Boolean bool) {
         mIsSelected = bool;
     }
 
-    public AppInfoEntity(String packageName, boolean selected)
-    {
-        mBundleKeys = new ArrayList<>();
-        mPackageName= packageName;
-        mIsSelected = selected;
-
+    public AppInfoEntity(String packageName, String applicationLabel) {
+        this(packageName);
+        mApplicationLabel = applicationLabel;
     }
-    public AppInfoEntity(String packageName)
-    {
-        this(packageName,false);
+
+//    public AppInfoEntity(String packageName, boolean selected) {
+//        this(packageName);
+//        mIsModified = selected;
+//    }
+
+    public AppInfoEntity(String packageName) {
+        mPackageName = packageName;
+    }
+
+    protected AppInfoEntity() {
     }
 
 }

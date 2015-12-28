@@ -5,9 +5,13 @@ import android.content.pm.PackageManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,13 +25,14 @@ import java.util.List;
 /**
  * Created by B on 2015-12-13.
  */
-public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapter.ViewHolder> implements View.OnCreateContextMenuListener
+public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapter.ViewHolder>
 {
-    static final public String TAG = "InstalledAppAdapter";
+    final public String TAG = this.getClass().getSimpleName();
     private Context mContext;
     private List<AppInfoEntity> mDataset;
+    private MenuItem mAddAppBtn;
 
-    public InstalledAppAdapter(Context context, ArrayList<AppInfoEntity> objects) {
+    public InstalledAppAdapter(Context context, List<AppInfoEntity> objects) {
         mDataset = objects;
         mContext = context;
     }
@@ -35,7 +40,7 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_installed_app_list,parent,false);
+                .inflate(R.layout.fragment_installed_app_item,parent,false);
         ViewHolder viewHolder = new ViewHolder(v);
         return viewHolder;
     }
@@ -50,8 +55,36 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
         return mDataset.size();
     }
 
+    public AppInfoEntity getItem(int position)
+    {
+        return mDataset.get(position);
+    }
+    public void clear()
+    {
+        mDataset.clear();
+    }
+    public void addAll(List<AppInfoEntity> apps)
+    {
+        mDataset.addAll(apps);
+    }
+    public List<AppInfoEntity> getSelectedItems()
+    {
+        List<AppInfoEntity> selectedApps = new ArrayList<>();
+        for(AppInfoEntity entity:mDataset)
+        {
+            if(entity.isSelected())
+                selectedApps.add(entity);
+        }
+        return selectedApps;
+    }
 
-    private class ViewHolder extends RecyclerView.ViewHolder
+    public void onCreateMenu(Menu menu) {
+
+        mAddAppBtn = menu.findItem(R.id.add_app_menu_item);
+        mAddAppBtn.setVisible(Helper.isAnyItemSelected(mDataset));
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener
     {
         ImageView icon;
         TextView name;
@@ -62,32 +95,26 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
         {
             super(v);
             name = (TextView) v.findViewById(R.id.app_name);
-
             icon = (ImageView) v.findViewById(R.id.app_icon);
             cbx = (CheckBox) v.findViewById(R.id.app_cbx);
-            cbx.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    entity.setSelected(((CheckBox)v).isChecked());
-                }
-            });
         }
         public void Initialize(AppInfoEntity entity)
         {
             this.entity = entity;
-            name.setText(Helper.getApplicationLabel(entity.getPackageName(), mContext));
+            name.setText(entity.getApplicationLabel());
             try {
                 icon.setImageDrawable(mContext.getPackageManager().getApplicationIcon(entity.getPackageName()));
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
-            cbx.setChecked(entity.isSelected());
+            cbx.setChecked(entity.isFollowed());
+            cbx.setOnCheckedChangeListener(this);
         }
 
-    }
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            entity.setSelected(isChecked);
+            mAddAppBtn.setVisible(Helper.isAnyItemSelected(mDataset));
+        }
     }
 }
