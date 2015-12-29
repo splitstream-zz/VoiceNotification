@@ -31,13 +31,23 @@ public class AppInfoEntity {
         this.mBundleKeys = bundleKeys;
     }
 
-    public String getBundleKeyValue(String key) throws IllegalArgumentException {
+    public String getBundleKeyValue(String key) {
         String value = null;
         for (BundleKeyEntity entity : mBundleKeys) {
             if (entity.getKey().equals(key))
                 value = entity.getValue();
         }
         return value;
+    }
+    public BundleKeyEntity getBundleKey(String key) {
+        BundleKeyEntity result = null;
+        for (BundleKeyEntity entity : mBundleKeys) {
+            if (entity.getKey().equals(key)) {
+                result = entity;
+                break;
+            }
+        }
+        return result;
     }
 
     public void addBundleKey(String key, String value) {
@@ -53,9 +63,8 @@ public class AppInfoEntity {
         this.mIsFollowed = isFollowed;
     }
 
-    public AppInfoEntity setPackageName(String mPackageName) {
+    public void setPackageName(String mPackageName) {
         this.mPackageName = mPackageName;
-        return this;
     }
 
     public String getPackageName() {
@@ -71,16 +80,7 @@ public class AppInfoEntity {
     }
 
     public AppInfoEntity(String packageName, String applicationLabel) {
-        this(packageName);
         mApplicationLabel = applicationLabel;
-    }
-
-//    public AppInfoEntity(String packageName, boolean selected) {
-//        this(packageName);
-//        mIsModified = selected;
-//    }
-
-    public AppInfoEntity(String packageName) {
         mPackageName = packageName;
     }
 

@@ -36,7 +36,7 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
 public class NotificationDetailsFragment extends Fragment implements OnStartDragListener {
 
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
-    private NotificationEntity mNotificationEntity;
+    private AppInfoEntity mEntity;
     private ItemTouchHelper mItemTouchHelper;
 
     private TextView mLabelTextView;
@@ -77,10 +77,10 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
 
         if (getArguments() != null) {
             String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
-            mNotificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
+            mEntity = new Gson().fromJson(gsonToJson, AppInfoEntity.class);
         }
 
-        mAdapter = new NotificationDetailsAdapter(mNotificationEntity.getBundleKeys(),this,getActivity());
+        mAdapter = new NotificationDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
     }
     @Override
     public void onStart() {
@@ -105,18 +105,18 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
         mRecyclerView.setAdapter(mAdapter);
 
         mLabelTextView = (TextView) view.findViewById(R.id.label_text);
-        mLabelTextView.setText(mNotificationEntity.getApplicationLabel());
+        mLabelTextView.setText(mEntity.getApplicationLabel());
 
         mPackageNameTextView = (TextView) view.findViewById(R.id.packagename_text);
-        mPackageNameTextView.setText(mNotificationEntity.getPackageName());
+        mPackageNameTextView.setText(mEntity.getPackageName());
 
         mAddDeleteCbx = (CheckBox) view.findViewById(R.id.add_delete_ImgBtn);
-        mAddDeleteCbx.setChecked(mNotificationEntity.isFollowed());
+        mAddDeleteCbx.setChecked(mEntity.isFollowed());
         mAddDeleteCbx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mNotificationEntity.setIsFollowed(isChecked);
-                if(isChecked)
+                mEntity.setIsFollowed(isChecked);
+                if (isChecked)
                     mRecyclerView.setVisibility(View.VISIBLE);
                 else
                     mRecyclerView.setVisibility(View.INVISIBLE);
@@ -126,7 +126,7 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
         mItemTouchHelper = new ItemTouchHelper(callback);
         mItemTouchHelper.attachToRecyclerView(mRecyclerView);
-        if(mNotificationEntity.isFollowed())
+        if(mEntity.isFollowed())
             mRecyclerView.setVisibility(View.VISIBLE);
         else
             mRecyclerView.setVisibility(View.INVISIBLE);
@@ -169,9 +169,7 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
                 updateDatabase();
                 Snackbar.make(v, "Application has been added", Snackbar.LENGTH_SHORT).show();
 
-                getFragmentManager().beginTransaction()
-                        .replace(R.id.frame_content, new NotificationsHistoryFragment())
-                        .commit();
+                getFragmentManager().popBackStack();
             }
         });
     }
@@ -179,12 +177,12 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
     private void updateDatabase()
     {
         DBHelper db = new DBHelper(getActivity());
-        boolean isFallowed = db.isAppFollowed(mNotificationEntity.getPackageName());
+        boolean isFallowed = db.isAppFollowed(mEntity.getPackageName());
 
-        if(mNotificationEntity.isFollowed())
+        if(mEntity.isFollowed())
         {
             if(!isFallowed)
-                db.addApp(new AppInfoEntity(mNotificationEntity.getPackageName()));
+                db.addApp(mEntity);
 
             for(BundleKeyEntity entity:mAdapter.getModifiedItems()) {
 
@@ -197,7 +195,7 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
         else
         {
             if (isFallowed)
-                db.deleteApp(new AppInfoEntity(mNotificationEntity.getPackageName()), true);
+                db.deleteApp(mEntity, true);
         }
         db.close();
     }

@@ -60,7 +60,8 @@ public class NotificationDetailsAdapter extends RecyclerView.Adapter<Notificatio
         public void Initialize(BundleKeyEntity bundleKeyEntity)
         {
             mBundleKeyEntity = bundleKeyEntity;
-            mKeyTextView.setText(bundleKeyEntity.getKey() +" ["+ mBundleKeyEntity.getPriority() + "]");
+            StringBuilder builder = new StringBuilder(bundleKeyEntity.getKey() +" ["+ mBundleKeyEntity.getPriority() + "]");
+            mKeyTextView.setText(builder.toString());
             mValueTextView.setText(bundleKeyEntity.getValue());
             DBHelper db = new DBHelper(mContext);
             mCheckBox.setChecked(bundleKeyEntity.isFollowed());
@@ -94,7 +95,7 @@ public class NotificationDetailsAdapter extends RecyclerView.Adapter<Notificatio
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public NotificationDetailsAdapter(List<BundleKeyEntity> bundleKeys, OnStartDragListener onStartDragListener, Context context) {
-        Collections.sort(bundleKeys, new Comparator<BundleKeyEntity>() {
+        Collections.sort(bundleKeys, Collections.reverseOrder(new Comparator<BundleKeyEntity>() {
             @Override
             public int compare(BundleKeyEntity lhs, BundleKeyEntity rhs) {
                 int result = 0;
@@ -110,7 +111,7 @@ public class NotificationDetailsAdapter extends RecyclerView.Adapter<Notificatio
 
                 return result;
             }
-        });
+        }));
         mDataset = bundleKeys;
         mContext = context;
         mDragStartListener = onStartDragListener;

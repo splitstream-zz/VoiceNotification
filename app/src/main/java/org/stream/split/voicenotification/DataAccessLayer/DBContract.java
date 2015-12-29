@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 public final class DBContract {
 
     public final static String DB_Name = "VoiceNotification.db";
-    public final static int DB_Version = 42;
+    public final static int DB_Version = 43;
     public final static int HistoryQuantityLimit = 50;
 
     DBContract(){}
@@ -16,9 +16,11 @@ public final class DBContract {
     public static abstract class AppFeed implements BaseColumns {
         public static final String TABLE_NAME = "App";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
+        public static final String COLUMN_NAME_APPLICATION_LABEL = "Label";
 
         public static final String SQL_CREATE_TABLE = "CREATE TABLE "+ TABLE_NAME +" ("+
-                COLUMN_NAME_PACKAGE_NAME + " TEXT PRIMARY KEY)";
+                COLUMN_NAME_PACKAGE_NAME + " TEXT PRIMARY KEY," +
+                COLUMN_NAME_APPLICATION_LABEL + " TEXT)";
 
         public static final String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }

@@ -288,13 +288,28 @@ public class Helper {
         }
     }
 
-    public static String[] classStaticFields(Class<Object> c)
+    public static List<BundleKeyEntity> getAllNotificationBundleKeys(String packageName)
+    {
+        List<BundleKeyEntity> bundleKeyEntities = new ArrayList<>();
+        String [] keys = classStaticFields(Notification.class);
+        for(String key:keys)
+        {
+            BundleKeyEntity entity = new BundleKeyEntity(packageName,key);
+            bundleKeyEntities.add(entity);
+        }
+        return bundleKeyEntities;
+    }
+
+    public static String[] classStaticFields(Class c)
     {
         Field[] fields = c.getDeclaredFields();
         List<String> list = new ArrayList<>();
         for(Field field:fields)
         {try {
-            if (field.getType().equals(String.class) && field.getName().contains("EXTRAS_") && Modifier.isStatic(field.getModifiers()))
+            boolean isString = field.getType().equals(String.class);
+            boolean containsExtra = field.getName().contains("EXTRA_");
+            boolean isStatic = Modifier.isStatic(field.getModifiers());
+            if (field.getType().equals(String.class) && field.getName().contains("EXTRA_") && Modifier.isStatic(field.getModifiers()))
                 list.add(String.valueOf(field.get(null)));
         }
         catch(IllegalAccessException iae)

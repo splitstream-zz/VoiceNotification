@@ -177,16 +177,25 @@ public class InstalledAppFragment extends Fragment {
                     packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
 
             DBHelper db = new DBHelper(getActivity());
+            List<AppInfoEntity> followed = db.getAllApps(false);
+            db.close();
+
             for (ApplicationInfo info : installedApplications) {
-                boolean isFollowed = db.isAppFollowed(info.packageName);
+                boolean isFollowed = false;
+                for(AppInfoEntity f:followed)
+                {
+                    if(f.getPackageName().equals(info.packageName)) {
+                        isFollowed = true;
+                        break;
+                    }
+                }
                 if (!isFollowed) {
-                    AppInfoEntity appInfoEntity = new AppInfoEntity(info.packageName);
-                    appInfoEntity.setApplicationLabel(Helper.getApplicationLabel(info.packageName, getActivity()));
+                    AppInfoEntity appInfoEntity = new AppInfoEntity(info.packageName,
+                            Helper.getApplicationLabel(info.packageName, getActivity()));
                     appInfoEntity.setIsFollowed(isFollowed);
                     appsInfo.add(appInfoEntity);
                 }
             }
-            db.close();
             return appsInfo;
         }
 

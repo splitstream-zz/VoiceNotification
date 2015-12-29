@@ -28,12 +28,13 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
+import org.stream.split.voicenotification.Fragments.NotificationDetailsFragment;
 import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
-
+//TODO make some nice splash screen
 //TODO dodać do poszczególnych fragmentów tytuły
 //TODO extend fragment menager and make things more comprehensible
 //TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
@@ -83,10 +84,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         mFragmentManager = getFragmentManager();
         if(savedInstanceState == null) {
-            CURRENT_FRAGMENT = new NotificationsHistoryFragment();
+            NotificationsHistoryFragment fragment = new NotificationsHistoryFragment();
             mFragmentManager.beginTransaction()
-                    .add(R.id.frame_content, CURRENT_FRAGMENT)
-                    .addToBackStack("initial")
+                    .add(R.id.frame_content, fragment)
+                    .addToBackStack("history fragment")
                     .commit();
         }
         //creating persistent notification for purposes of informing user of running up

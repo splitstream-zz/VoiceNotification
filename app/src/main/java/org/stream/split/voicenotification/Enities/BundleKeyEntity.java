@@ -11,24 +11,22 @@ public class BundleKeyEntity {
     boolean mIsFollowed;
     boolean mIsModified;
 
+    public BundleKeyEntity(String packageName, String key, String value)
+    {
+        this(packageName,key);
+        mValue = value;
+    }
+
     public BundleKeyEntity(String packageName, String key, int priority) {
-        this.mPackageName = packageName;
-        this.mKey = key;
+        this(packageName,key);
         this.mPriority = priority;
         mIsFollowed = true;
     }
 
-    public BundleKeyEntity(String packageName, String key, String value)
+    public BundleKeyEntity(String packageName, String key)
     {
-        this(packageName,key,value,false,false);
-    }
-    public BundleKeyEntity(String packageName, String key, String value, boolean isFollowed, boolean isSelected)
-    {
-        mPackageName  = packageName;
+        mPackageName = packageName;
         mKey = key;
-        mValue = value;
-        mIsFollowed = isFollowed;
-        mIsModified = isSelected;
     }
 
     public boolean isModified() {

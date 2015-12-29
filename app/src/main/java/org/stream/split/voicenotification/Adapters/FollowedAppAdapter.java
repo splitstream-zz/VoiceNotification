@@ -1,5 +1,7 @@
 package org.stream.split.voicenotification.Adapters;
 
+import android.app.Activity;
+import android.app.Notification;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.v7.widget.RecyclerView;
@@ -15,8 +17,12 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
+import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Fragments.NotificationDetailsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
 
@@ -97,7 +103,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         notifyDataSetChanged();
     }
 
-    protected class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener
+    protected class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnClickListener
     {
         ImageView icon;
         TextView name;
@@ -114,7 +120,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         public void Initialize(AppInfoEntity entity)
         {
             this.entity = entity;
-            name.setText(Helper.getApplicationLabel(entity.getPackageName(), mContext));
+            name.setText(entity.getApplicationLabel());
             try {
                 icon.setImageDrawable(mContext.getPackageManager().getApplicationIcon(entity.getPackageName()));
             } catch (PackageManager.NameNotFoundException e) {
@@ -122,6 +128,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             }
             cbx.setChecked(entity.isSelected());
             cbx.setOnCheckedChangeListener(this);
+            name.setOnClickListener(this);
         }
 
         @Override
@@ -129,6 +136,25 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             entity.setSelected(isChecked);
             boolean isAnyItemSelected = Helper.isAnyItemSelected(mDataset);
             mDeleteMenuItem.setVisible(isAnyItemSelected);
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            List<BundleKeyEntity> list = Helper.getAllNotificationBundleKeys(entity.getPackageName());
+            for(BundleKeyEntity e:list)
+            {
+                BundleKeyEntity e1 = entity.getBundleKey(e.getKey());
+                if(e1 != null)
+                    e.setIsFollowed(true);
+            }
+            entity.setBundleKeys(list);
+
+            NotificationDetailsFragment fragment = NotificationDetailsFragment.newInstance(new Gson().toJson(entity));
+            ((Activity)mContext).getFragmentManager().beginTransaction()
+                    .replace(R.id.frame_content,fragment)
+                    .addToBackStack("app details")
+                    .commit();
         }
     }
 }

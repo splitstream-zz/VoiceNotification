@@ -83,7 +83,8 @@ public class DBHelper extends SQLiteOpenHelper {
     private AppInfoEntity getApp(Cursor cursor, boolean getBundleKeys)
     {
         String packageName = cursor.getString(cursor.getColumnIndex(DBContract.AppFeed.COLUMN_NAME_PACKAGE_NAME));
-        AppInfoEntity app = new AppInfoEntity(packageName);
+        String label = cursor.getString(cursor.getColumnIndex(DBContract.AppFeed.COLUMN_NAME_APPLICATION_LABEL));
+        AppInfoEntity app = new AppInfoEntity(packageName, label);
         app.setIsFollowed(true);
         if(getBundleKeys)
             app.setBundleKeys(getSortedBundleKeys(packageName));
@@ -98,6 +99,7 @@ public class DBHelper extends SQLiteOpenHelper {
     {
         ContentValues values = new ContentValues();
         values.put(DBContract.AppFeed.COLUMN_NAME_PACKAGE_NAME, app.getPackageName());
+        values.put(DBContract.AppFeed.COLUMN_NAME_APPLICATION_LABEL, app.getApplicationLabel());
         return getWritableDatabase().insert(DBContract.AppFeed.TABLE_NAME, null, values);
     }
 

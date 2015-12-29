@@ -65,7 +65,7 @@ public class FollowedAppFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         DBHelper db = new DBHelper(getActivity());
-        List<AppInfoEntity> apps = db.getAllApps(false);
+        List<AppInfoEntity> apps = db.getAllApps(true);
         db.close();
         mAdapter = new FollowedAppAdapter(getActivity(), apps );
         mProgressBarVisibility = View.GONE;

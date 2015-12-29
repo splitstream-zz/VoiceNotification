@@ -68,7 +68,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
                 FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
                 fragmentManager.beginTransaction()
                         .replace(R.id.frame_content, fragment)
-                        .addToBackStack("notificationdetails_"+ mNotificationEntity.getID())
+                        .addToBackStack("notification details"+ mNotificationEntity.getID())
                 .commit();
             }
         }
@@ -78,12 +78,12 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
             DBHelper db = new DBHelper(buttonView.getContext());
 
             if(isChecked !=mNotificationEntity.isFollowed()) {
-                AppInfoEntity entity = new AppInfoEntity(mNotificationEntity.getPackageName());
-                if (isChecked)
-                    db.addApp(entity);
-                else
-                    db.deleteApp(entity,true);
                 mNotificationEntity.setIsFollowed(isChecked);
+                if (isChecked)
+                    db.addApp(mNotificationEntity);
+                else
+                    db.deleteApp(mNotificationEntity,true);
+
                 refresh();
             }
         }
