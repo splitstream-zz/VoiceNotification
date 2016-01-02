@@ -16,11 +16,10 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Adapters.NotificationDetailsAdapter;
+import org.stream.split.voicenotification.Adapters.ApplicatonDetailsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
@@ -33,7 +32,7 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
  * with a GridView.
 
  */
-public class NotificationDetailsFragment extends Fragment implements OnStartDragListener {
+public class ApplicationDetailsFragment extends Fragment implements OnStartDragListener {
 
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
     private AppInfoEntity mEntity;
@@ -52,11 +51,11 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private NotificationDetailsAdapter mAdapter;
+    private ApplicatonDetailsAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
-    public static NotificationDetailsFragment newInstance(String gsonNotificationEntity) {
-        NotificationDetailsFragment fragment = new NotificationDetailsFragment();
+    public static ApplicationDetailsFragment newInstance(String gsonNotificationEntity) {
+        ApplicationDetailsFragment fragment = new ApplicationDetailsFragment();
         Bundle args = new Bundle();
         args.putString(ARG_NOTIFICATION_GSON_OBJECT, gsonNotificationEntity);
         fragment.setArguments(args);
@@ -67,7 +66,7 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public NotificationDetailsFragment() {
+    public ApplicationDetailsFragment() {
     }
 
     @Override
@@ -80,7 +79,7 @@ public class NotificationDetailsFragment extends Fragment implements OnStartDrag
             mEntity = new Gson().fromJson(gsonToJson, AppInfoEntity.class);
         }
 
-        mAdapter = new NotificationDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
+        mAdapter = new ApplicatonDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
     }
     @Override
     public void onStart() {

@@ -9,7 +9,7 @@ import java.util.List;
 public class AppInfoEntity {
 
     //TODO is selected should be eliminated and data should be stored in viewholder?
-    private boolean mIsSelected = false;
+    private boolean mIsModified = false;
     private boolean mIsFollowed = false;
     private String mPackageName;
     private String mApplicationLabel;
@@ -72,11 +72,11 @@ public class AppInfoEntity {
     }
 
     public boolean isSelected() {
-        return mIsSelected;
+        return mIsModified;
     }
 
     public void setSelected(Boolean bool) {
-        mIsSelected = bool;
+        mIsModified = bool;
     }
 
     public AppInfoEntity(String packageName, String applicationLabel) {

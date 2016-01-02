@@ -15,9 +15,8 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
-import org.stream.split.voicenotification.Fragments.NotificationDetailsFragment;
+import org.stream.split.voicenotification.Fragments.ApplicationDetailsFragment;
 import org.stream.split.voicenotification.R;
 
 import java.util.List;
@@ -64,7 +63,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
                 DBHelper db = new DBHelper(mContext);
                 mNotificationEntity.setBundleKeys(db.getMessages(mNotificationEntity.getID()));
                 db.close();
-                Fragment fragment = NotificationDetailsFragment.newInstance(new Gson().toJson(mNotificationEntity));
+                Fragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(mNotificationEntity));
                 FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
                 fragmentManager.beginTransaction()
                         .replace(R.id.frame_content, fragment)

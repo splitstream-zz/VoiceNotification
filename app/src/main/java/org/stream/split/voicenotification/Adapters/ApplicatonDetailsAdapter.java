@@ -6,16 +6,12 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
-import android.widget.ListView;
 import android.widget.TextView;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperAdapter;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperViewHolder;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
@@ -29,7 +25,7 @@ import java.util.List;
 /**
  * Created by split on 2015-10-20.
  */
-public class NotificationDetailsAdapter extends RecyclerView.Adapter<NotificationDetailsAdapter.ViewHolder> implements ItemTouchHelperAdapter {
+public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDetailsAdapter.ViewHolder> implements ItemTouchHelperAdapter {
 
     final public String TAG = this.getClass().getSimpleName();
     private Context mContext;
@@ -94,7 +90,7 @@ public class NotificationDetailsAdapter extends RecyclerView.Adapter<Notificatio
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public NotificationDetailsAdapter(List<BundleKeyEntity> bundleKeys, OnStartDragListener onStartDragListener, Context context) {
+    public ApplicatonDetailsAdapter(List<BundleKeyEntity> bundleKeys, OnStartDragListener onStartDragListener, Context context) {
         Collections.sort(bundleKeys, Collections.reverseOrder(new Comparator<BundleKeyEntity>() {
             @Override
             public int compare(BundleKeyEntity lhs, BundleKeyEntity rhs) {
@@ -124,7 +120,7 @@ public class NotificationDetailsAdapter extends RecyclerView.Adapter<Notificatio
 
     // Create new views (invoked by the layout manager)
     @Override
-    public NotificationDetailsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ApplicatonDetailsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_notification_details_item, parent, false);

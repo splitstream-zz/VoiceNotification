@@ -1,14 +1,11 @@
 package org.stream.split.voicenotification.Adapters;
 
 import android.app.Activity;
-import android.app.Notification;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +19,7 @@ import com.google.gson.Gson;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Fragments.NotificationDetailsFragment;
+import org.stream.split.voicenotification.Fragments.ApplicationDetailsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
 
@@ -150,7 +147,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             }
             entity.setBundleKeys(list);
 
-            NotificationDetailsFragment fragment = NotificationDetailsFragment.newInstance(new Gson().toJson(entity));
+            ApplicationDetailsFragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(entity));
             ((Activity)mContext).getFragmentManager().beginTransaction()
                     .replace(R.id.frame_content,fragment)
                     .addToBackStack("app details")

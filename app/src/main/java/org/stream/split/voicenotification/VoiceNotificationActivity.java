@@ -28,7 +28,6 @@ import android.widget.CompoundButton;
 import android.widget.Switch;
 
 import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
-import org.stream.split.voicenotification.Fragments.NotificationDetailsFragment;
 import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
