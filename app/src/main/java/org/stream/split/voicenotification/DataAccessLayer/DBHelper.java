@@ -227,7 +227,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public List<NotificationEntity> getAllNotification(boolean getBundleKeys)
     {
         List <NotificationEntity> notifications = new ArrayList<>();
-        String sql_select_all = "SELECT * FROM " + DBContract.NotificationHistoryFeed.TABLE_NAME +";";
+        String sql_select_all = "SELECT * FROM " + DBContract.NotificationHistoryFeed.TABLE_NAME +
+                " ORDER BY "+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP + "ASC ;";
         Cursor cursor = getReadableDatabase().rawQuery(sql_select_all, null);
         if(cursor.moveToFirst())
         {

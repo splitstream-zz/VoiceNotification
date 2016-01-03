@@ -112,7 +112,10 @@ public class Helper {
                 logBuilder.append(value.getClass().getName());
             }
             else
+            {
                 logBuilder.append("value: null");
+                bundlekeys.add(new BundleKeyEntity(packageName, key, ""));
+            }
 
             Log.d(TAG, logBuilder.toString());
         }

@@ -25,6 +25,8 @@ import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
+import java.util.List;
+
 /**
  * A fragment representing a list of Items.
  * <p/>

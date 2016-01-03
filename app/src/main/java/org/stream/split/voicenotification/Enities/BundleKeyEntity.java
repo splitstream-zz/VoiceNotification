@@ -1,15 +1,17 @@
 package org.stream.split.voicenotification.Enities;
 
+import java.util.Comparator;
+
 /**
  * Created by split on 2015-11-26.
  */
-public class BundleKeyEntity {
+public class BundleKeyEntity implements Comparable {
     String mPackageName;
     String mKey;
     String mValue;
     int mPriority;
-    boolean mIsFollowed;
-    boolean mIsModified;
+    boolean mIsFollowed = false;
+    boolean mIsModified = false;
 
     public BundleKeyEntity(String packageName, String key, String value)
     {
@@ -71,5 +73,23 @@ public class BundleKeyEntity {
     }
     public void setValue(String value) {
         this.mValue = value;
+    }
+
+    @Override
+    public int compareTo(Object another) {
+        int result = 0;
+        if(another instanceof BundleKeyEntity) {
+            BundleKeyEntity another1 = (BundleKeyEntity)another;
+            if (this.isFollowed() && another1.isFollowed())
+                if (this.getPriority() > another1.getPriority())
+                    result = 1;
+                else
+                    result = -1;
+            else if (this.isFollowed())
+                result = 1;
+            else if (another1.isFollowed())
+                result = -1;
+        }
+        return result;
     }
 }

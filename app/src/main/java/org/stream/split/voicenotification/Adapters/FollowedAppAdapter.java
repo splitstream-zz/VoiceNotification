@@ -24,6 +24,8 @@ import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -139,12 +141,13 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         public void onClick(View v) {
 
             List<BundleKeyEntity> list = Helper.getAllNotificationBundleKeys(entity.getPackageName());
+            DBHelper db = new DBHelper(mContext);
             for(BundleKeyEntity e:list)
             {
-                BundleKeyEntity e1 = entity.getBundleKey(e.getKey());
-                if(e1 != null)
+                if(db.isBundleKeyFollowed(e))
                     e.setIsFollowed(true);
             }
+            db.close();
             entity.setBundleKeys(list);
 
             ApplicationDetailsFragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(entity));

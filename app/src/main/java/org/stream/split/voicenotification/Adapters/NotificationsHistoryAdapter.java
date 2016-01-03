@@ -120,7 +120,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
 
     public void addItem(NotificationEntity entity)
     {
-        mDataset.add(entity);
+        mDataset.add(0,entity);
     }
 
     public void refresh()

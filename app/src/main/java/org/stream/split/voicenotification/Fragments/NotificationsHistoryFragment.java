@@ -186,6 +186,7 @@ public class NotificationsHistoryFragment extends Fragment {
 //            ((TextView) emptyView).setText(emptyText);
 //        }
     }
+
     public class NotifyBroadcastReceiver extends BroadcastReceiver
     {
 
@@ -198,7 +199,7 @@ public class NotificationsHistoryFragment extends Fragment {
                 NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
 
                 mAdapter.addItem(notificationEntity);
-                mAdapter.notifyDataSetChanged();
+                mAdapter.refresh();
             }
         }
     }

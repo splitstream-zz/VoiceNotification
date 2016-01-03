@@ -11,6 +11,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperAdapter;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperViewHolder;
@@ -18,6 +19,7 @@ import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -36,7 +38,7 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, ItemTouchHelperViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener ,View.OnClickListener, ItemTouchHelperViewHolder {
 
         public LinearLayout mTextLayout;
         public TextView mKeyTextView;
@@ -59,10 +61,14 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
             StringBuilder builder = new StringBuilder(bundleKeyEntity.getKey() +" ["+ mBundleKeyEntity.getPriority() + "]");
             mKeyTextView.setText(builder.toString());
             mValueTextView.setText(bundleKeyEntity.getValue());
-            DBHelper db = new DBHelper(mContext);
+
             mCheckBox.setChecked(bundleKeyEntity.isFollowed());
-            db.close();
             mCheckBox.setOnClickListener(this);
+
+            if(bundleKeyEntity.isFollowed()) {
+                mKeyTextView.setOnLongClickListener(this);
+                mValueTextView.setOnLongClickListener(this);
+            }
 
         }
 
@@ -74,6 +80,8 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
             {
                 mBundleKeyEntity.setPriority(getAdapterPosition());
             }
+            Collections.sort(mDataset, Collections.reverseOrder());
+            notifyDataSetChanged();
         }
 
         @Override
@@ -87,27 +95,18 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
             mBundleKeyEntity.setPriority(getAdapterPosition());
             itemView.setBackgroundColor(0);
         }
+
+        @Override
+        public boolean onLongClick(View v) {
+            mDragStartListener.onStartDrag(this);
+            mBundleKeyEntity.setIsModified(true);
+            return false;
+        }
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
     public ApplicatonDetailsAdapter(List<BundleKeyEntity> bundleKeys, OnStartDragListener onStartDragListener, Context context) {
-        Collections.sort(bundleKeys, Collections.reverseOrder(new Comparator<BundleKeyEntity>() {
-            @Override
-            public int compare(BundleKeyEntity lhs, BundleKeyEntity rhs) {
-                int result = 0;
-                if(lhs.isFollowed() && rhs.isFollowed())
-                    if(lhs.getPriority()>rhs.getPriority())
-                        result = 1;
-                    else
-                        result = -1;
-                else if(lhs.isFollowed())
-                    result = 1;
-                else if(rhs.isFollowed())
-                    result = -1;
-
-                return result;
-            }
-        }));
+        Collections.sort(bundleKeys, Collections.reverseOrder());
         mDataset = bundleKeys;
         mContext = context;
         mDragStartListener = onStartDragListener;
@@ -134,16 +133,6 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
 
         BundleKeyEntity entity = mDataset.get(position);
         holder.Initialize(entity);
-
-        holder.mKeyTextView.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                    mDragStartListener.onStartDrag(holder);
-                    holder.mBundleKeyEntity.setIsModified(true);
-
-                return false;
-            }
-        });
 
     }
 
@@ -175,6 +164,12 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
     @Override
     public void onItemDismiss(int position) {
         //TODO implemetn function
+    }
+    public void refresh(List<BundleKeyEntity> entities)
+    {
+        mDataset.clear();
+        mDataset.addAll(entities);
+
     }
 
 }
