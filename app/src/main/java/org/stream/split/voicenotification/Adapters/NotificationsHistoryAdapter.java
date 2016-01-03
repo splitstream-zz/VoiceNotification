@@ -17,8 +17,10 @@ import com.google.gson.Gson;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Fragments.ApplicationDetailsFragment;
+import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
 
+import java.text.DateFormat;
 import java.util.List;
 
 /**
@@ -35,25 +37,26 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     // you provide access to all the views for a data item in a view holder
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CheckBox.OnCheckedChangeListener {
 
-        public TextView mTextView;
+        public TextView mLabelTextView;
+        public TextView mTimestampTextView;
         public CheckBox mCbx;
         public NotificationEntity mNotificationEntity;
 
 
         public ViewHolder(View v) {
             super(v);
-            mTextView = (TextView) v.findViewById(R.id.history_app_name);
+            mLabelTextView = (TextView) v.findViewById(R.id.history_app_name);
+            mTimestampTextView = (TextView) v.findViewById(R.id.history_app_timestamp);
             mCbx = (CheckBox) v.findViewById(R.id.history_app_add);
-
-
         }
         public void Initialize(NotificationEntity entity)
         {
             mNotificationEntity = entity;
-            mTextView.setText(entity.getApplicationLabel());
+            mLabelTextView.setText(entity.getApplicationLabel());
+            mTimestampTextView.setText(Helper.convertTime(entity.getOccurrenceTime()));
             mCbx.setChecked(entity.isFollowed());
             mCbx.setOnCheckedChangeListener(this);
-            mTextView.setOnClickListener(this);
+            mLabelTextView.setOnClickListener(this);
         }
 
         @Override
@@ -120,7 +123,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
 
     public void addItem(NotificationEntity entity)
     {
-        mDataset.add(0,entity);
+        mDataset.add(entity);
     }
 
     public void refresh()

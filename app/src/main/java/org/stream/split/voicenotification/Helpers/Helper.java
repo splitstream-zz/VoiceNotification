@@ -18,6 +18,9 @@ import org.stream.split.voicenotification.R;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.sql.Date;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -77,8 +80,9 @@ public class Helper {
     public static List<BundleKeyEntity>  IterateBundleExtras(Bundle bundle, String packageName)
     {
         List<BundleKeyEntity> bundlekeys = new ArrayList<>();
+        String [] keys = classStaticFieldNames(Notification.class,String.class, "EXTRA_");
 
-        for(String key:bundle.keySet())
+        for(String key:keys)
         {
             Object value = bundle.get(key);
 
@@ -294,7 +298,7 @@ public class Helper {
     public static List<BundleKeyEntity> getAllNotificationBundleKeys(String packageName)
     {
         List<BundleKeyEntity> bundleKeyEntities = new ArrayList<>();
-        String [] keys = classStaticFields(Notification.class);
+        String [] keys = classStaticFieldNames(Notification.class,String.class, "EXTRA_");
         for(String key:keys)
         {
             BundleKeyEntity entity = new BundleKeyEntity(packageName,key);
@@ -303,14 +307,14 @@ public class Helper {
         return bundleKeyEntities;
     }
 
-    public static String[] classStaticFields(Class c)
+    public static String[] classStaticFieldNames(Class c,Type fieldType, String nameContains)
     {
         Field[] fields = c.getDeclaredFields();
         List<String> list = new ArrayList<>();
         for(Field field:fields)
         {try {
-            boolean isString = field.getType().equals(String.class);
-            boolean containsExtra = field.getName().contains("EXTRA_");
+            boolean isString = field.getType().equals(fieldType);
+            boolean containsExtra = field.getName().contains(nameContains);
             boolean isStatic = Modifier.isStatic(field.getModifiers());
             if (field.getType().equals(String.class) && field.getName().contains("EXTRA_") && Modifier.isStatic(field.getModifiers()))
                 list.add(String.valueOf(field.get(null)));
@@ -333,5 +337,10 @@ public class Helper {
             }
         }
         return isSelected;
+    }
+    public static String convertTime(long time){
+        Date date = new Date(time);
+        Format format = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
+        return format.format(date);
     }
 }

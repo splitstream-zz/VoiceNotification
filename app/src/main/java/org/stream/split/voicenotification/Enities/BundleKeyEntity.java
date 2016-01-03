@@ -81,7 +81,7 @@ public class BundleKeyEntity implements Comparable {
         if(another instanceof BundleKeyEntity) {
             BundleKeyEntity another1 = (BundleKeyEntity)another;
             if (this.isFollowed() && another1.isFollowed())
-                if (this.getPriority() > another1.getPriority())
+                if (this.getPriority() < another1.getPriority())
                     result = 1;
                 else
                     result = -1;

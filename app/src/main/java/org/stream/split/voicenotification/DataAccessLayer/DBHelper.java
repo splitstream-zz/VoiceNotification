@@ -228,7 +228,7 @@ public class DBHelper extends SQLiteOpenHelper {
     {
         List <NotificationEntity> notifications = new ArrayList<>();
         String sql_select_all = "SELECT * FROM " + DBContract.NotificationHistoryFeed.TABLE_NAME +
-                " ORDER BY "+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP + "ASC ;";
+                " ORDER BY "+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP + " DESC ;";
         Cursor cursor = getReadableDatabase().rawQuery(sql_select_all, null);
         if(cursor.moveToFirst())
         {
@@ -320,13 +320,23 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         return bundleKeys;
     }
+//    public int getNextBundleKeyPriority(String packageName)
+//    {
+//        int maxPriority = 0;
+//        String sql_query = "SELECT MAX("+ DBContract.BundleKeysFeed.COLUMN_NAME_PRIORITY+") FROM" + DBContract.BundleKeysFeed.TABLE_NAME+
+//                " WHERE " + DBContract.BundleKeysFeed.COLUMN_NAME_PACKAGE_NAME +" = " + packageName;
+//        Cursor cursor = getReadableDatabase().rawQuery(sql_query,null);
+//        if(cursor.moveToFirst())
+//            maxPriority = cursor.getInt(cursor.getColumnIndex(DBContract.BundleKeysFeed.COLUMN_NAME_PRIORITY));
+//        return maxPriority++;
+//    }
     public List<BundleKeyEntity> getSortedBundleKeys(String packageName)
     {
         List<BundleKeyEntity> bundleKeys = new ArrayList<>();
 
         String sql_select_bundlekeys = "SELECT * FROM " + DBContract.BundleKeysFeed.TABLE_NAME +
                 " WHERE " + DBContract.BundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName+"'"+
-                " ORDER BY " + DBContract.BundleKeysFeed.COLUMN_NAME_PRIORITY + " DESC;";
+                " ORDER BY " + DBContract.BundleKeysFeed.COLUMN_NAME_PRIORITY + " ASC;";
         Log.d(TAG, sql_select_bundlekeys);
 
         Cursor cursor = getReadableDatabase().rawQuery(sql_select_bundlekeys, null);

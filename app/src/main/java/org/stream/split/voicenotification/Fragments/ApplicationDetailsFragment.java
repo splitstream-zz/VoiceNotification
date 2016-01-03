@@ -34,6 +34,7 @@ import java.util.List;
  * with a GridView.
 
  */
+//TODO back button warning of not saving modified data?
 public class ApplicationDetailsFragment extends Fragment implements OnStartDragListener {
 
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
@@ -167,23 +168,30 @@ public class ApplicationDetailsFragment extends Fragment implements OnStartDragL
             @Override
             public void onClick(View v) {
 
-                updateDatabase();
-                Snackbar.make(v, "Application has been added", Snackbar.LENGTH_SHORT).show();
+                String result  = updateDatabase();
+                Snackbar.make(v, result, Snackbar.LENGTH_SHORT).show();
 
                 getFragmentManager().popBackStack();
             }
         });
     }
 
-    private void updateDatabase()
+    private String updateDatabase()
     {
         DBHelper db = new DBHelper(getActivity());
         boolean isFallowed = db.isAppFollowed(mEntity.getPackageName());
+        StringBuilder snackBarText = new StringBuilder();
 
+        snackBarText.append(mEntity.getApplicationLabel());
+        snackBarText.append(" ");
         if(mEntity.isFollowed())
         {
-            if(!isFallowed)
+            if(!isFallowed) {
                 db.addApp(mEntity);
+                snackBarText.append("has been added");
+            }
+            else
+                snackBarText.append("has been modified");
 
             for(BundleKeyEntity entity:mAdapter.getModifiedItems()) {
 
@@ -195,10 +203,13 @@ public class ApplicationDetailsFragment extends Fragment implements OnStartDragL
         }
         else
         {
-            if (isFallowed)
+            if (isFallowed) {
                 db.deleteApp(mEntity, true);
+                snackBarText.append("has been deleted");
+            }
         }
         db.close();
+        return snackBarText.toString();
     }
 
     @Override

@@ -65,10 +65,10 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
             mCheckBox.setChecked(bundleKeyEntity.isFollowed());
             mCheckBox.setOnClickListener(this);
 
-            if(bundleKeyEntity.isFollowed()) {
-                mKeyTextView.setOnLongClickListener(this);
-                mValueTextView.setOnLongClickListener(this);
-            }
+//            if(bundleKeyEntity.isFollowed()) {
+//                mKeyTextView.setOnLongClickListener(this);
+//                mValueTextView.setOnLongClickListener(this);
+//            }
 
         }
 
@@ -78,7 +78,13 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
             mBundleKeyEntity.setIsFollowed(((CheckBox) v).isChecked());
             if(((CheckBox) v).isChecked())
             {
-                mBundleKeyEntity.setPriority(getAdapterPosition());
+                int maxPriority = 0;
+                for(BundleKeyEntity e:mDataset)
+                {
+                    if(e.getPriority()> maxPriority)
+                        maxPriority = e.getPriority();
+                }
+                mBundleKeyEntity.setPriority(++maxPriority);
             }
             Collections.sort(mDataset, Collections.reverseOrder());
             notifyDataSetChanged();
@@ -156,9 +162,18 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
 
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
-        Collections.swap(mDataset,fromPosition,toPosition);
-        notifyItemMoved(fromPosition, toPosition);
-        return false;
+        BundleKeyEntity fromPositionEntity = mDataset.get(fromPosition);
+        BundleKeyEntity toPositionEntity = mDataset.get(toPosition);
+        if(fromPositionEntity.isFollowed() && toPositionEntity.isFollowed()) {
+            int tempPriority = toPositionEntity.getPriority();
+            toPositionEntity.setPriority(fromPositionEntity.getPriority());
+            fromPositionEntity.setPriority(tempPriority);
+            Collections.swap(mDataset, fromPosition, toPosition);
+            notifyItemMoved(fromPosition, toPosition);
+            return false;
+        }
+        else
+            return true;
     }
 
     @Override

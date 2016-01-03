@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 public final class DBContract {
 
     public final static String DB_Name = "VoiceNotification.db";
-    public final static int DB_Version = 43;
+    public final static int DB_Version = 44;
     public final static int HistoryQuantityLimit = 50;
 
     DBContract(){}
