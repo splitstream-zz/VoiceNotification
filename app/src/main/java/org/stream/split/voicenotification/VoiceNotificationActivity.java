@@ -27,6 +27,7 @@ import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 
+import org.stream.split.voicenotification.Fragments.BaseFragment;
 import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
 import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
@@ -92,7 +93,19 @@ public class VoiceNotificationActivity extends AppCompatActivity
         //creating persistent notification for purposes of informing user of running up
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         createPersistentAppNotification();
+        checkNotificationAccess();
+    }
 
+    private void checkNotificationAccess() {
+        if(!NotificationService.isNotificationRelayActive())
+            Snackbar.make(findViewById(R.id.coordinator_layout),"Brak dostępu do powiadomień!",Snackbar.LENGTH_LONG)
+                    .setAction("Zezwól", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            Intent notificationAccess = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
+                            startActivity(notificationAccess);
+                        }
+                    }).show();
     }
 
     @Override
@@ -130,9 +143,18 @@ public class VoiceNotificationActivity extends AppCompatActivity
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         }
-        if (mFragmentManager.getBackStackEntryCount() > 1 && !CURRENT_FRAGMENT.getClass().equals(NotificationsHistoryFragment.class)) {
-            mFragmentManager.popBackStack();
-        } else {
+
+        if(CURRENT_FRAGMENT instanceof BaseFragment && ((BaseFragment) CURRENT_FRAGMENT).isModified()) {
+            Snackbar.make(findViewById(R.id.coordinator_layout), "Discard unsaved data?", Snackbar.LENGTH_LONG)
+                    .setAction("YES", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            mFragmentManager.popBackStack();
+                        }
+                    }).show();
+            return;
+        }
+        if(CURRENT_FRAGMENT instanceof NotificationsHistoryFragment) {
             if (System.currentTimeMillis() - mExitBackKeyTimestamp < mExitBackKeyInterval) {
                 Log.d(TAG, String.valueOf(System.currentTimeMillis() - mExitBackKeyTimestamp));
                 finish();
@@ -141,6 +163,8 @@ public class VoiceNotificationActivity extends AppCompatActivity
                 Snackbar.make(findViewById(R.id.coordinator_layout), "Naciśnij kliwisz back aby wyjśc z aplikajci", Snackbar.LENGTH_SHORT).show();
             }
         }
+        else
+            mFragmentManager.popBackStack();
     }
 
     @Override

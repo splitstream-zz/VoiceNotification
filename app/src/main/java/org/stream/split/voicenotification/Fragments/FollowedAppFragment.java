@@ -64,17 +64,14 @@ public class FollowedAppFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        DBHelper db = new DBHelper(getActivity());
-        List<AppInfoEntity> apps = db.getAllApps(true);
-        db.close();
-        mAdapter = new FollowedAppAdapter(getActivity(), apps );
-        mProgressBarVisibility = View.GONE;
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_followed_app_list, container, false);
+        mAdapter = new FollowedAppAdapter(getActivity(), new ArrayList<AppInfoEntity>() );
         mProgressBar = (ProgressBar) view.findViewById(R.id.loading_apps);
         mProgressBar.setVisibility(mProgressBarVisibility);
         // Set the adapter
@@ -97,6 +94,11 @@ public class FollowedAppFragment extends Fragment {
     public void onStart() {
         super.onStart();
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
+        DBHelper db = new DBHelper(getActivity());
+        List<AppInfoEntity> apps = db.getAllApps(true);
+        db.close();
+        mAdapter.addAll(apps);
+        mProgressBarVisibility = View.GONE;
     }
 
     @Override

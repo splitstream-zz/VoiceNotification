@@ -7,19 +7,19 @@
     <ImageView android:id="@+id/app_icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:gravity="center"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/app_name"
-        android:layout_alignRight="@+id/app_cbx"
-        android:layout_alignLeft="@id/app_icon"
+        android:layout_toStartOf="@+id/app_cbx"
+        android:layout_toEndOf="@id/app_icon"
         android:gravity="center"/>
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:id="@id/app_cbx"
         android:gravity="center"/>
 </RelativeLayout>

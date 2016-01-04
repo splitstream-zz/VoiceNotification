@@ -34,8 +34,7 @@ import java.util.List;
  * with a GridView.
 
  */
-//TODO back button warning of not saving modified data?
-public class ApplicationDetailsFragment extends Fragment implements OnStartDragListener {
+public class ApplicationDetailsFragment extends BaseFragment implements OnStartDragListener {
 
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
     private AppInfoEntity mEntity;
@@ -117,6 +116,7 @@ public class ApplicationDetailsFragment extends Fragment implements OnStartDragL
         mAddDeleteCbx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                mEntity.setIsModified(true);
                 mEntity.setIsFollowed(isChecked);
                 if (isChecked)
                     mRecyclerView.setVisibility(View.VISIBLE);
@@ -170,7 +170,6 @@ public class ApplicationDetailsFragment extends Fragment implements OnStartDragL
 
                 String result  = updateDatabase();
                 Snackbar.make(v, result, Snackbar.LENGTH_SHORT).show();
-
                 getFragmentManager().popBackStack();
             }
         });
@@ -215,6 +214,16 @@ public class ApplicationDetailsFragment extends Fragment implements OnStartDragL
     @Override
     public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
         mItemTouchHelper.startDrag(viewHolder);
+    }
+
+    @Override
+    public boolean isModified() {
+        boolean isModified = false;
+        if(mEntity.isModified())
+            isModified = true;
+        if(!mAdapter.getModifiedItems().isEmpty())
+            isModified = true;
+        return isModified;
     }
 
     /**

@@ -24,8 +24,6 @@ import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -79,7 +77,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         List<AppInfoEntity> selectedApps = new ArrayList<>();
         for(AppInfoEntity entity:mDataset)
         {
-            if(entity.isSelected())
+            if(entity.isModified())
                 selectedApps.add(entity);
         }
         return selectedApps;
@@ -125,14 +123,14 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
-            cbx.setChecked(entity.isSelected());
+            cbx.setChecked(entity.isModified());
             cbx.setOnCheckedChangeListener(this);
             name.setOnClickListener(this);
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            entity.setSelected(isChecked);
+            entity.setIsModified(isChecked);
             boolean isAnyItemSelected = Helper.isAnyItemSelected(mDataset);
             mDeleteMenuItem.setVisible(isAnyItemSelected);
         }

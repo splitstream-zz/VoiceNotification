@@ -5,24 +5,26 @@
     android:padding="10dp">
     <LinearLayout
         android:id="@+id/bundlekey_text"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/bundlekey_name"
-        android:gravity="center"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/bundlekey_value"
-        android:gravity="center"/>
+        android:layout_toEndOf="@+id/bundlekey_cbx"
+        android:orientation="vertical"
+        android:layout_gravity="center">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/bundlekey_name"
+            android:layout_gravity="center"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/bundlekey_value"
+            android:layout_gravity="center"/>
     </LinearLayout>
     <CheckBox
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
         android:id="@+id/bundlekey_cbx"
-        android:gravity="center"/>
+        android:layout_gravity="center_vertical"/>
 </RelativeLayout>

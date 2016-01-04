@@ -223,7 +223,6 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         return affectedRows;
     }
-    //TODO add support for isfollowed - where AppFeed.packageName != null (columnName AS allias)
     public List<NotificationEntity> getAllNotification(boolean getBundleKeys)
     {
         List <NotificationEntity> notifications = new ArrayList<>();

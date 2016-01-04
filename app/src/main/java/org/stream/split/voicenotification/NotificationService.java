@@ -27,19 +27,17 @@ public class NotificationService extends NotificationListenerService {
     public static final String NOTIFICATION_OBJECT = "notification_object";
     public static final String ACTION_NOTIFICATION_POSTED = TAG + ".notificationPosted";
     public static final String ACTION_NOTIFICATION_REMOVED = TAG + ".notificationRemoved";
-
+    private static boolean mIsSystemNotificationServiceConnected = false;
+    public static boolean isNotificationRelayActive()
+    {
+        return mIsSystemNotificationServiceConnected;
+    }
 
 
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
     private final IBinder mBinder = new NotificationCatcherBinder();
     private NotificationBroadcastReceiver mVoiceGenerator;
-    private boolean mIsSystemNotificationServiceConnected = false;
     private boolean mIsVoiceActive = false;
-
-    public boolean isNotificationRelayActive()
-    {
-        return mIsSystemNotificationServiceConnected;
-    }
 
     public boolean isVoiceActive() {
         return mIsVoiceActive;

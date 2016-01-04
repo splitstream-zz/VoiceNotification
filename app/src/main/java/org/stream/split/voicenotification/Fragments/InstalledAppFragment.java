@@ -1,6 +1,5 @@
 package org.stream.split.voicenotification.Fragments;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -37,7 +36,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class InstalledAppFragment extends Fragment {
+public class InstalledAppFragment extends BaseFragment {
 
     private final String TAG = this.getClass().getSimpleName();
     private RecyclerView mRecyclerView;
@@ -128,12 +127,24 @@ public class InstalledAppFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.add_app_menu_item:
                 AddSelectedAppsToDB();
-                moveToFollowedFragment();
+                getFragmentManager().popBackStack();
                 return true;
             default:
                 return false;
         }
 
+    }
+
+    private void SetUpFabInstalled() {
+        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
+        fab.setImageResource(R.drawable.ic_apply_applications);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AddSelectedAppsToDB();
+                getFragmentManager().popBackStack();
+            }
+        });
     }
 
     private void AddSelectedAppsToDB() {
@@ -144,25 +155,12 @@ public class InstalledAppFragment extends Fragment {
             db.close();
         }
     }
-    private void moveToFollowedFragment()
-    {
-        getFragmentManager().popBackStack();
-        getFragmentManager().beginTransaction()
-                .replace(R.id.frame_content, new FollowedAppFragment())
-                .commit();
+
+    @Override
+    public boolean isModified() {
+        return !mAdapter.getSelectedItems().isEmpty();
     }
 
-    private void SetUpFabInstalled() {
-        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
-        fab.setImageResource(R.drawable.ic_apply_applications);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                AddSelectedAppsToDB();
-                moveToFollowedFragment();
-            }
-        });
-    }
     private class LoadApplicationsAsync extends AsyncTask<Void,Void,ArrayList<AppInfoEntity>>
     {
 

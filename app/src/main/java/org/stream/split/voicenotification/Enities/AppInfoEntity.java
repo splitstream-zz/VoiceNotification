@@ -70,11 +70,11 @@ public class AppInfoEntity {
         return mPackageName;
     }
 
-    public boolean isSelected() {
+    public boolean isModified() {
         return mIsModified;
     }
 
-    public void setSelected(Boolean bool) {
+    public void setIsModified(Boolean bool) {
         mIsModified = bool;
     }
 

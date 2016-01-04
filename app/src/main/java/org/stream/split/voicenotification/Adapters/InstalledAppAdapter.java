@@ -3,10 +3,8 @@ package org.stream.split.voicenotification.Adapters;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.support.v7.widget.RecyclerView;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -72,7 +70,7 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
         List<AppInfoEntity> selectedApps = new ArrayList<>();
         for(AppInfoEntity entity:mDataset)
         {
-            if(entity.isSelected())
+            if(entity.isModified())
                 selectedApps.add(entity);
         }
         return selectedApps;
@@ -107,13 +105,13 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
             } catch (PackageManager.NameNotFoundException e) {
                 e.printStackTrace();
             }
-            cbx.setChecked(entity.isFollowed());
+            cbx.setChecked(entity.isModified());
             cbx.setOnCheckedChangeListener(this);
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            entity.setSelected(isChecked);
+            entity.setIsModified(isChecked);
             mAddAppBtn.setVisible(Helper.isAnyItemSelected(mDataset));
         }
     }

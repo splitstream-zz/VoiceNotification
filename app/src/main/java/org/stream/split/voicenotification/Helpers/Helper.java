@@ -90,7 +90,6 @@ public class Helper {
             logBuilder.append("key: ");
             logBuilder.append(key);
             logBuilder.append("\t\t\t\t");
-            //TODO może spróbować czy nie lepiej sprawdzać czy to jest typ któy nas interesuje (string,charsequence itd)
             if(value != null )  {
 
                 if(value instanceof CharSequence[])
@@ -331,7 +330,7 @@ public class Helper {
         boolean isSelected= false;
         for(AppInfoEntity entity:entities)
         {
-            if(entity.isSelected()) {
+            if(entity.isModified()) {
                 isSelected = true;
                 break;
             }
