@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -116,9 +117,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         }
         public void Initialize(AppInfoEntity entity)
         {
-            this.entity = entity;
-            name.setText(entity.getApplicationLabel());
-            name.setOnClickListener(this);
+
             Drawable icon = null;
             try{
                 icon = mContext.getPackageManager().getApplicationIcon(entity.getPackageName());
@@ -131,8 +130,14 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
                 DBHelper db = new DBHelper(mContext);
                 db.deleteApp(entity,true);
                 db.close();
-                mDataset.remove(entity);
+                StringBuilder builder = new StringBuilder(entity.getApplicationLabel());
+                builder.append(" was removed");
+                Snackbar.make(((Activity)mContext).findViewById(R.id.frame_content), builder.toString(),Snackbar.LENGTH_SHORT).show();
+                this.itemView.setVisibility(View.GONE);
             }
+            this.entity = entity;
+            name.setText(entity.getApplicationLabel());
+            name.setOnClickListener(this);
         }
 
         @Override

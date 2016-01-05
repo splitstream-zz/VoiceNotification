@@ -31,12 +31,12 @@ public class AppInfoEntity {
     }
 
     public String getBundleKeyValue(String key) {
-        String value = null;
+        StringBuilder value = new StringBuilder();
         for (BundleKeyEntity entity : mBundleKeys) {
             if (entity.getKey().equals(key))
-                value = entity.getValue();
+                value.append(entity.getValue());
         }
-        return value;
+        return value.toString();
     }
     public BundleKeyEntity getBundleKey(String key) {
         BundleKeyEntity result = null;

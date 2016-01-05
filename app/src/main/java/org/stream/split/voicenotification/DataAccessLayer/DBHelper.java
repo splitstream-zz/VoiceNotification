@@ -401,4 +401,19 @@ public class DBHelper extends SQLiteOpenHelper {
                 " AND " + DBContract.BundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() +"';";
         getWritableDatabase().execSQL(sql_query);
     }
+
+    public NotificationEntity getLastNotification(String packageName, boolean getBundleKeys) {
+        String sql_query = "SELECT * From " + DBContract.NotificationHistoryFeed.TABLE_NAME +
+                " WHERE " + DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName + "'" +
+                " AND "+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP + " = " +
+                " (SELECT MAX("+DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP+") From " + DBContract.NotificationHistoryFeed.TABLE_NAME +
+                " WHERE " + DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName + "');";
+        Cursor cursor = getReadableDatabase().rawQuery(sql_query,null);
+        NotificationEntity entity = null;
+
+        if(cursor.moveToFirst())
+            entity = getNotification(cursor,getBundleKeys);
+
+        return entity;
+    }
 }

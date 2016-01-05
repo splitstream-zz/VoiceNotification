@@ -73,7 +73,7 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
             StringBuilder builder = new StringBuilder(bundleKeyEntity.getKey() + " [" + mBundleKeyEntity.getPriority() + "]");
 
             mKeyTextView.setText(builder.toString());
-            if(bundleKeyEntity.getValue().isEmpty())
+            if(bundleKeyEntity.getValue() == null || bundleKeyEntity.getValue().isEmpty())
                 mValueTextView.setVisibility(View.GONE);
             else
             {

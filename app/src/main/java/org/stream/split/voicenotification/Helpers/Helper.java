@@ -96,12 +96,18 @@ public class Helper {
                 {
                     logBuilder.append("\n====== Charsequense[]======\n");
 
+                    StringBuilder builder = new StringBuilder();
                     for(CharSequence seq:bundle.getCharSequenceArray(key)) {
+
                         logBuilder.append("value(charseq): ");
                         logBuilder.append(seq);
                         logBuilder.append("\n");
-                        bundlekeys.add(new BundleKeyEntity(packageName, key, new StringBuilder(seq).toString()));
+
+                        builder.append(seq);
+                        builder.append("\n");
                     }
+                    bundlekeys.add(new BundleKeyEntity(packageName, key, builder.toString()));
+
                     logBuilder.append("====== \"Charsequense[]======\n");
                 }
                 else {
@@ -260,7 +266,8 @@ public class Helper {
                 .setOngoing(persistance)
                 .setContentIntent(pendingIntent)
                 .setPriority(Notification.PRIORITY_DEFAULT)
-                .setSmallIcon(R.drawable.ic_persistent_notification);
+                .setSmallIcon(R.drawable.ic_persistent_notification)
+        .setTicker("voice notification");
 
         return builder.build();
     }

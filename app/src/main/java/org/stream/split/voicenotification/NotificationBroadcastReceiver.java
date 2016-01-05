@@ -36,25 +36,27 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         String gsonToJson;
 
         if(extras != null) {
-            gsonToJson = extras.getString(NotificationService.NOTIFICATION_OBJECT);
-            NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
+            gsonToJson = extras.getString(NotificationService.NEW_NOTIFICATION_OBJECT);
+            NotificationEntity newNotificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
+            gsonToJson = extras.getString(NotificationService.LAST_NOTIFICATION_OBJECT);
+            NotificationEntity lastNotificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
 
-            String PackageName = notificationEntity.getPackageName();
+            String PackageName = newNotificationEntity.getPackageName();
 
             DBHelper db = new DBHelper(context);
             List<BundleKeyEntity> bundleKeyEntities = db.getSortedBundleKeys(PackageName);
             db.close();
 
-            Log.d(TAG, PackageName + " isFollowed: " + String.valueOf(notificationEntity.isFollowed()));
+            Log.d(TAG, PackageName + " isFollowed: " + String.valueOf(newNotificationEntity.isFollowed()));
 
-            if (notificationEntity.isFollowed()) {
+            if (newNotificationEntity.isFollowed()) {
                 switch(intent.getAction())
                 {
                     case NotificationService.ACTION_NOTIFICATION_POSTED:
-                        mSpeechModule.addUtterance(notificationEntity,bundleKeyEntities, mAutostart);
+                        mSpeechModule.addUtterance(newNotificationEntity,lastNotificationEntity,bundleKeyEntities, mAutostart);
                         break;
                     case NotificationService.ACTION_NOTIFICATION_REMOVED:
-                        mSpeechModule.removeUtterance(notificationEntity.getUtteranceId());
+                        mSpeechModule.removeUtterance(newNotificationEntity.getUtteranceId());
                         break;
                 }
             }

@@ -16,11 +16,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.app.Fragment;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.DataAccessLayer.DBContract;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
@@ -196,7 +194,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
             Bundle extras = intent.getExtras();
             String gsonToJson;
             if(extras != null) {
-                gsonToJson = extras.getString(NotificationService.NOTIFICATION_OBJECT);
+                gsonToJson = extras.getString(NotificationService.NEW_NOTIFICATION_OBJECT);
                 NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
 
                 mAdapter.addItem(notificationEntity);

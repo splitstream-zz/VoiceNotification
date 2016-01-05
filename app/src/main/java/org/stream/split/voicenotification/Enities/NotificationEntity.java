@@ -59,10 +59,6 @@ public class NotificationEntity extends AppInfoEntity
         mOccurrenceTime = occurrenceTime;
         mUtteranceId = utteranceId;
     }
-//    public NotificationEntity( long sbnId, String packageName, String applicationName, long occurrenceTime)
-//    {
-//        this(sbnId,packageName,applicationName,occurrenceTime,null);
-//    }
     public NotificationEntity(long ID)
     {
         mId = ID;

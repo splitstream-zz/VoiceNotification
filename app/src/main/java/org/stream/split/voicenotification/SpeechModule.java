@@ -42,51 +42,53 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     }
 
-    public void addUtterance(NotificationEntity notificationEntity,List<BundleKeyEntity> bundleKeysEntities,boolean autoStart)
+    public void addUtterance(NotificationEntity newNotificationEntity,NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities,boolean autoStart)
     {
         //TODO usunąć po fazie testów?
-        if(bundleKeysEntities.isEmpty())
+        if(followedBundleKeysEntities.isEmpty())
         {
-            bundleKeysEntities = mDefualtKeys;
+            followedBundleKeysEntities = mDefualtKeys;
         }
         Log.d(TAG,"mDefualtKeys.size(): "+String.valueOf(mDefualtKeys.size()));
 
 
-        StringBuilder builder = new StringBuilder();
-        for(BundleKeyEntity entity:bundleKeysEntities)
-        {
-            String value = notificationEntity.getBundleKeyValue(entity.getKey());
-            if(value != null && !value.isEmpty()) {
-                Log.d(TAG, value);
-                builder.append(value);
-                builder.append(". ");
-            }
-            else
-                Log.d(TAG, "!!!!! Followed key: " + entity.getKey()+"\tvalue: null");
-        }
-        String utteranceMessage = builder.toString();
-        UtteranceEntity utteranceEntity = new UtteranceEntity(notificationEntity.getUtteranceId(), utteranceMessage);
+        String utteranceMessage =getUtteranceMessage(newNotificationEntity,lastNotificationEntity,followedBundleKeysEntities);
+        UtteranceEntity utteranceEntity = new UtteranceEntity(newNotificationEntity.getUtteranceId(), utteranceMessage);
 
         Log.d(TAG, "Utterance: " + utteranceEntity.getMessage() + "\t utteranceId: " + utteranceEntity.getUtteranceId());
 
-        boolean utteranceUpdated = false;
-        for(UtteranceEntity entity:mUtterances)
-        {
-            if(entity.getUtteranceId() == notificationEntity.getUtteranceId())
-            {
-                entity = utteranceEntity;
-                utteranceUpdated = true;
-            }
-        }
-
-        if(!utteranceUpdated)
-            mUtterances.add(utteranceEntity);
+        mUtterances.add(utteranceEntity);
 
         Log.d(TAG, "autostart = " + autoStart);
         if(autoStart)
         {
             startNext();
         }
+    }
+    private String getUtteranceMessage(NotificationEntity newNotificationEntity,NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities)
+    {
+        StringBuilder messagebuilder = new StringBuilder();
+        for(BundleKeyEntity followedBundleKey:followedBundleKeysEntities)
+        {
+            BundleKeyEntity newFollowedBundleKeys = newNotificationEntity.getBundleKey(followedBundleKey.getKey());
+            String[] textLines = newFollowedBundleKeys.getValue().split("\\n");
+            for(String line:textLines)
+            {
+                if(lastNotificationEntity != null) {
+                    BundleKeyEntity lastFollowedBundleKey = lastNotificationEntity.getBundleKey(followedBundleKey.getKey());
+                    if (lastFollowedBundleKey != null && !lastFollowedBundleKey.getValue().contains(line)) {
+                        messagebuilder.append(line);
+                        messagebuilder.append(".\n");
+                    }
+                }
+                else {
+                    messagebuilder.append(line);
+                    messagebuilder.append(".\n");
+                }
+            }
+
+        }
+        return messagebuilder.toString();
     }
     public void removeUtterance(String utteraanceId)
     {
@@ -147,9 +149,9 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     }
     public void shutdown()
     {
+        clearUtterances();
         if(mTts != null) {
             mTts.stop();
-            clearUtterances();
             mTts.shutdown();
             mTts = null;
         }
@@ -230,9 +232,6 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
             }
         }
     }
-//    private int setLanguage(Locale locale)
-//    {
-//
-//    }
+
 
 }

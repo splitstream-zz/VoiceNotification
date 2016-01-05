@@ -131,7 +131,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     {
         if(mDataset.size() > 50)
             mDataset.remove(mDataset.size()-1);
-        mDataset.add(entity);
+        mDataset.add(0,entity);
     }
 
     public void refresh()
