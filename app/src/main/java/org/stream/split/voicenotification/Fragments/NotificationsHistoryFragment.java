@@ -42,7 +42,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class NotificationsHistoryFragment extends Fragment {
+public class NotificationsHistoryFragment extends BaseFragment {
 
     private final static String TAG = "NotificationsHistoryFragment";
     private final int mTestingNotificationID = 6879;
@@ -62,6 +62,7 @@ public class NotificationsHistoryFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        activity.setTitle(getTitle());
 
         try {
             mListener = (OnFragmentInteractionListener) activity;
@@ -199,7 +200,7 @@ public class NotificationsHistoryFragment extends Fragment {
                 NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
 
                 mAdapter.addItem(notificationEntity);
-                mAdapter.refresh();
+                mAdapter.notifyDataSetChanged();
             }
         }
     }

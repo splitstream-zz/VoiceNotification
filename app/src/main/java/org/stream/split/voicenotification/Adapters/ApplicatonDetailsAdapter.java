@@ -53,7 +53,7 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
     // you provide access to all the views for a data item in a view holder
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener ,View.OnClickListener, ItemTouchHelperViewHolder {
 
-        //public LinearLayout mTextLayout;
+        public LinearLayout mTextLayout;
         public TextView mKeyTextView;
         public TextView mValueTextView;
         public CheckBox mCheckBox;
@@ -62,7 +62,7 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
 
         public ViewHolder(View v) {
             super(v);
-            //mTextLayout = (LinearLayout) v.findViewById(R.id.bundlekey_text);
+            mTextLayout = (LinearLayout) v.findViewById(R.id.bundlekey_text);
             mKeyTextView = (TextView) v.findViewById(R.id.bundlekey_name);
             mValueTextView = (TextView) v.findViewById(R.id.bundlekey_value);
             mCheckBox = (CheckBox) v.findViewById(R.id.bundlekey_cbx);
@@ -73,16 +73,18 @@ public class ApplicatonDetailsAdapter extends RecyclerView.Adapter<ApplicatonDet
             StringBuilder builder = new StringBuilder(bundleKeyEntity.getKey() + " [" + mBundleKeyEntity.getPriority() + "]");
 
             mKeyTextView.setText(builder.toString());
-            mKeyTextView.setOnClickListener(this);
-
-            mValueTextView.setText(bundleKeyEntity.getValue());
-            mValueTextView.setOnClickListener(this);
+            if(bundleKeyEntity.getValue().isEmpty())
+                mValueTextView.setVisibility(View.GONE);
+            else
+            {
+                mValueTextView.setText(bundleKeyEntity.getValue());
+                mValueTextView.setVisibility(View.VISIBLE);
+            }
 
             mCheckBox.setChecked(bundleKeyEntity.isFollowed());
             mCheckBox.setOnClickListener(this);
 
-            mKeyTextView.setOnLongClickListener(this);
-            mValueTextView.setOnLongClickListener(this);
+            mTextLayout.setOnLongClickListener(this);
         }
 
         @Override

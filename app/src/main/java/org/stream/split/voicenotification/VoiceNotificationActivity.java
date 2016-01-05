@@ -135,6 +135,12 @@ public class VoiceNotificationActivity extends AppCompatActivity
         Log.d(TAG, "onDestroy()");
     }
 
+    @Override
+    public void onAttachFragment(Fragment fragment) {
+        super.onAttachFragment(fragment);
+        if(fragment instanceof BaseFragment)
+            setTitle(((BaseFragment) fragment).getTitle());
+    }
 
 
     @Override
@@ -149,6 +155,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
                     .setAction("YES", new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            ((BaseFragment) CURRENT_FRAGMENT).finish();
                             mFragmentManager.popBackStack();
                         }
                     }).show();

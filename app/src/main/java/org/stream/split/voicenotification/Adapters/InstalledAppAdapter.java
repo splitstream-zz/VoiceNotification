@@ -2,17 +2,17 @@ package org.stream.split.voicenotification.Adapters;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
+import org.stream.split.voicenotification.Controls.ImageCheckBox;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
@@ -84,29 +84,31 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
 
     public class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener
     {
-        ImageView icon;
         TextView name;
-        CheckBox cbx;
+        ImageCheckBox cbx;
         AppInfoEntity entity;
 
         public ViewHolder(View v)
         {
             super(v);
             name = (TextView) v.findViewById(R.id.app_name);
-            icon = (ImageView) v.findViewById(R.id.app_icon);
-            cbx = (CheckBox) v.findViewById(R.id.app_cbx);
+            cbx = (ImageCheckBox) v.findViewById(R.id.app_Customcbx);
+
         }
         public void Initialize(AppInfoEntity entity)
         {
             this.entity = entity;
             name.setText(entity.getApplicationLabel());
-            try {
-                icon.setImageDrawable(mContext.getPackageManager().getApplicationIcon(entity.getPackageName()));
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
+            try{
+                Drawable icon = mContext.getPackageManager().getApplicationIcon(entity.getPackageName());
+                cbx.initialize(icon);
+                cbx.setChecked(entity.isModified());
+                cbx.setOnCheckedChangeListener(this);
             }
-            cbx.setChecked(entity.isModified());
-            cbx.setOnCheckedChangeListener(this);
+            catch(PackageManager.NameNotFoundException ex)
+            {
+                mDataset.remove(entity);
+            }
         }
 
         @Override

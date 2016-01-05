@@ -3,6 +3,7 @@ package org.stream.split.voicenotification.Adapters;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
+import org.stream.split.voicenotification.Controls.ImageCheckBox;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
@@ -95,44 +97,48 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
     {
         mDataset.clear();
         DBHelper db = new DBHelper(mContext);
-        mDataset = db.getAllApps(true);
+        mDataset = db.getAllFollowedApps(true);
         db.close();
         notifyDataSetChanged();
     }
 
     protected class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnClickListener
     {
-        ImageView icon;
         TextView name;
-        CheckBox cbx;
+        ImageCheckBox cbx;
         AppInfoEntity entity;
 
         public ViewHolder(View v)
         {
             super(v);
             name = (TextView) v.findViewById(R.id.app_name);
-            icon = (ImageView) v.findViewById(R.id.app_icon);
-            cbx = (CheckBox) v.findViewById(R.id.app_cbx);
+            cbx = (ImageCheckBox) v.findViewById(R.id.app_Customcbx);
         }
         public void Initialize(AppInfoEntity entity)
         {
             this.entity = entity;
             name.setText(entity.getApplicationLabel());
-            try {
-                icon.setImageDrawable(mContext.getPackageManager().getApplicationIcon(entity.getPackageName()));
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
-            }
-            cbx.setChecked(entity.isModified());
-            cbx.setOnCheckedChangeListener(this);
             name.setOnClickListener(this);
+            Drawable icon = null;
+            try{
+                icon = mContext.getPackageManager().getApplicationIcon(entity.getPackageName());
+                cbx.initialize(icon);
+                cbx.setChecked(entity.isModified());
+                cbx.setOnCheckedChangeListener(this);
+            }
+            catch(PackageManager.NameNotFoundException ex)
+            {
+                DBHelper db = new DBHelper(mContext);
+                db.deleteApp(entity,true);
+                db.close();
+                mDataset.remove(entity);
+            }
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             entity.setIsModified(isChecked);
-            boolean isAnyItemSelected = Helper.isAnyItemSelected(mDataset);
-            mDeleteMenuItem.setVisible(isAnyItemSelected);
+            mDeleteMenuItem.setVisible(Helper.isAnyItemSelected(mDataset));
         }
 
         @Override

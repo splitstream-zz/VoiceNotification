@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -37,6 +38,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     // you provide access to all the views for a data item in a view holder
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CheckBox.OnCheckedChangeListener {
 
+        public LinearLayout mTextLayout;
         public TextView mLabelTextView;
         public TextView mTimestampTextView;
         public CheckBox mCbx;
@@ -45,6 +47,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
 
         public ViewHolder(View v) {
             super(v);
+            mTextLayout = (LinearLayout) v.findViewById(R.id.history_text_layout);
             mLabelTextView = (TextView) v.findViewById(R.id.history_app_name);
             mTimestampTextView = (TextView) v.findViewById(R.id.history_app_timestamp);
             mCbx = (CheckBox) v.findViewById(R.id.history_app_add);
@@ -52,11 +55,14 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
         public void Initialize(NotificationEntity entity)
         {
             mNotificationEntity = entity;
-            mLabelTextView.setText(entity.getApplicationLabel());
+            StringBuilder builder = new StringBuilder(entity.getApplicationLabel());
+            builder.append("[" + getAdapterPosition() + "]");
+            mLabelTextView.setText(builder.toString());
             mTimestampTextView.setText(Helper.convertTime(entity.getOccurrenceTime()));
             mCbx.setChecked(entity.isFollowed());
+
+            mTextLayout.setOnClickListener(this);
             mCbx.setOnCheckedChangeListener(this);
-            mLabelTextView.setOnClickListener(this);
         }
 
         @Override
@@ -123,6 +129,8 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
 
     public void addItem(NotificationEntity entity)
     {
+        if(mDataset.size() > 50)
+            mDataset.remove(mDataset.size()-1);
         mDataset.add(entity);
     }
 

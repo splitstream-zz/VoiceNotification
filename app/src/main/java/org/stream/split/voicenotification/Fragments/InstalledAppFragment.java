@@ -43,6 +43,7 @@ public class InstalledAppFragment extends BaseFragment {
     private OnFragmentInteractionListener mListener;
     private InstalledAppAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private LoadApplicationsAsync loading;
 
 
     /**
@@ -62,7 +63,8 @@ public class InstalledAppFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        new LoadApplicationsAsync().execute();
+        loading = new LoadApplicationsAsync();
+        loading.execute();
         mAdapter = new InstalledAppAdapter(getActivity(), new ArrayList<AppInfoEntity>() );
     }
 
@@ -141,7 +143,12 @@ public class InstalledAppFragment extends BaseFragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AddSelectedAppsToDB();
+                if(loading.getStatus() == AsyncTask.Status.RUNNING) {
+                    finish();
+                }
+                else {
+                    AddSelectedAppsToDB();
+                }
                 getFragmentManager().popBackStack();
             }
         });
@@ -158,7 +165,14 @@ public class InstalledAppFragment extends BaseFragment {
 
     @Override
     public boolean isModified() {
-        return !mAdapter.getSelectedItems().isEmpty();
+
+        return !mAdapter.getSelectedItems().isEmpty() && super.isModified();
+    }
+
+    @Override
+    public void finish() {
+        super.finish();
+        loading.cancel(true);
     }
 
     private class LoadApplicationsAsync extends AsyncTask<Void,Void,ArrayList<AppInfoEntity>>
@@ -175,7 +189,7 @@ public class InstalledAppFragment extends BaseFragment {
                     packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
 
             DBHelper db = new DBHelper(getActivity());
-            List<AppInfoEntity> followed = db.getAllApps(false);
+            List<AppInfoEntity> followed = db.getAllFollowedApps(false);
             db.close();
 
             for (ApplicationInfo info : installedApplications) {
@@ -187,10 +201,10 @@ public class InstalledAppFragment extends BaseFragment {
                         break;
                     }
                 }
-                if (!isFollowed) {
+
+                if(!isFollowed) {
                     AppInfoEntity appInfoEntity = new AppInfoEntity(info.packageName,
-                            Helper.getApplicationLabel(info.packageName, getActivity()));
-                    appInfoEntity.setIsFollowed(isFollowed);
+                            info.loadLabel(packageManager).toString());
                     appsInfo.add(appInfoEntity);
                 }
             }
@@ -200,6 +214,7 @@ public class InstalledAppFragment extends BaseFragment {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            setIsModified(true);
             mProgressBarVisibility = View.VISIBLE;
 
             if(mProgressBar != null)
@@ -214,6 +229,7 @@ public class InstalledAppFragment extends BaseFragment {
             mProgressBar.setVisibility(mProgressBarVisibility);
             mAdapter.addAll(apps);
             mAdapter.notifyDataSetChanged();
+            setIsModified(false);
         }
     }
 }

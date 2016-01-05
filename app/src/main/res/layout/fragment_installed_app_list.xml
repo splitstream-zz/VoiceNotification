@@ -11,6 +11,7 @@
         android:layout_height="wrap_content"
         android:indeterminate="true"
         android:visibility="gone"
+        android:layout_gravity="center_horizontal"
         android:id="@+id/loading_apps"/>
 
     <android.support.v7.widget.RecyclerView

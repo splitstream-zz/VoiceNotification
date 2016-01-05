@@ -51,7 +51,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.setForeignKeyConstraintsEnabled(true);
     }
 
-    public List<AppInfoEntity> getAllApps(boolean getBundleKeys)
+    public List<AppInfoEntity> getAllFollowedApps(boolean getBundleKeys)
     {
         List<AppInfoEntity> apps = new ArrayList<>();
         String sqlQuery = "Select * from " + DBContract.AppFeed.TABLE_NAME;

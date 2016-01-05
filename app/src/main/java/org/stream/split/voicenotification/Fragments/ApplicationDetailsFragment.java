@@ -82,6 +82,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
         }
 
         mAdapter = new ApplicatonDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
+        setTitle(mEntity.getApplicationLabel());
     }
     @Override
     public void onStart() {
@@ -93,6 +94,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_notification_details, container, false);
+
 
         // Set the adapter
         mRecyclerView = (RecyclerView) view.findViewById(R.id.list_budlekeys);

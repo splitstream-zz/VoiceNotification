@@ -3,14 +3,10 @@ package org.stream.split.voicenotification.Fragments;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,7 +16,6 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
 import org.stream.split.voicenotification.Adapters.FollowedAppAdapter;
-import org.stream.split.voicenotification.Adapters.InstalledAppAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
@@ -39,7 +34,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class FollowedAppFragment extends Fragment {
+public class FollowedAppFragment extends BaseFragment {
 
     private final String TAG = this.getClass().getSimpleName();
     private RecyclerView mRecyclerView;
@@ -52,6 +47,7 @@ public class FollowedAppFragment extends Fragment {
      */
     private ProgressBar mProgressBar;
     private int mProgressBarVisibility;
+    private MenuItem mDeleteMenuItem;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -85,6 +81,7 @@ public class FollowedAppFragment extends Fragment {
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
 
+
         SetUpFabInstalled();
 
         return view;
@@ -95,7 +92,7 @@ public class FollowedAppFragment extends Fragment {
         super.onStart();
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
         DBHelper db = new DBHelper(getActivity());
-        List<AppInfoEntity> apps = db.getAllApps(true);
+        List<AppInfoEntity> apps = db.getAllFollowedApps(true);
         db.close();
         mAdapter.addAll(apps);
         mProgressBarVisibility = View.GONE;
@@ -116,6 +113,7 @@ public class FollowedAppFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         //super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.followed_apps_menu, menu);
+        mDeleteMenuItem = menu.findItem(R.id.delete_app_menu_item);
         mAdapter.onCreateMenu(menu);
     }
 
@@ -130,6 +128,7 @@ public class FollowedAppFragment extends Fragment {
             case R.id.delete_app_menu_item:
                 deleteSelectedApps();
                 mAdapter.refresh();
+                mDeleteMenuItem.setVisible(!mAdapter.getSelectedItems().isEmpty());
                 return true;
             default:
                 return true;
