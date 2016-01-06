@@ -56,7 +56,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                         mSpeechModule.addUtterance(newNotificationEntity,lastNotificationEntity,bundleKeyEntities, mAutostart);
                         break;
                     case NotificationService.ACTION_NOTIFICATION_REMOVED:
-                        mSpeechModule.removeUtterance(newNotificationEntity.getUtteranceId());
+                        //mSpeechModule.removeUtterance(newNotificationEntity.getUtteranceId());
                         break;
                 }
             }

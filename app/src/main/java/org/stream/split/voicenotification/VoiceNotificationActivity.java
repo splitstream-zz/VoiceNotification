@@ -38,6 +38,7 @@ import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListen
 //TODO dodać do poszczególnych fragmentów tytuły
 //TODO extend fragment menager and make things more comprehensible
 //TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
+//TODO there is warning about notification access even when it is allowed.
 public class VoiceNotificationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener {
 
