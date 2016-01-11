@@ -33,7 +33,6 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     private Queue<UtteranceEntity> mUtterances;
     private Context mContext;
     private List<BundleKeyEntity> mDefualtKeys;
-    //private boolean mIsSpeaking = false;
 
     public SpeechModule(Context context)
     {
@@ -46,7 +45,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     }
 
-    public void addUtterance(NotificationEntity newNotificationEntity,NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities,boolean autoStart)
+    public void addUtterance(UtteranceEntity utteranceEntity,boolean autoStart)
     {
         //TODO usunąć po fazie testów?
         if(followedBundleKeysEntities.isEmpty())
@@ -56,7 +55,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         BaseLogger.d(TAG, "mDefualtKeys.size(): " + String.valueOf(mDefualtKeys.size()));
 
 
-        String utteranceMessage =getUtteranceMessage1(newNotificationEntity, lastNotificationEntity, followedBundleKeysEntities);
+        String utteranceMessage = getUtteranceEntity1(newNotificationEntity, lastNotificationEntity, followedBundleKeysEntities);
         UtteranceEntity utteranceEntity = new UtteranceEntity(newNotificationEntity.getUtteranceId(), utteranceMessage);
 
         BaseLogger.d(TAG, "Utterance: " + utteranceEntity.getMessage() + "\t utteranceId: " + utteranceEntity.getUtteranceId());
@@ -69,42 +68,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
             startNext();
         }
     }
-    private String getUtteranceMessage(NotificationEntity newNotificationEntity,NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities)
-    {
-        StringBuilder messagebuilder = new StringBuilder();
-        for(BundleKeyEntity followedBundleKey:followedBundleKeysEntities)
-        {
-            BundleKeyEntity newFollowedBundleKeys = newNotificationEntity.getBundleKey(followedBundleKey.getKey());
-            String[] textLines = newFollowedBundleKeys.getValue().split("\\n");
-            for(String line:textLines)
-            {
-                if(lastNotificationEntity != null) {
-                    BundleKeyEntity lastFollowedBundleKey = lastNotificationEntity.getBundleKey(followedBundleKey.getKey());
-                    if (lastFollowedBundleKey != null && !lastFollowedBundleKey.getValue().contains(line)) {
-                        messagebuilder.append(line);
-                        messagebuilder.append(".\n");
-                    }
-                }
-                else {
-                    messagebuilder.append(line);
-                    messagebuilder.append(".\n");
-                }
-            }
 
-        }
-        return messagebuilder.toString();
-    }
-    private String getUtteranceMessage1(NotificationEntity newNotificationEntity,NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities)
-    {
-        StringBuilder messagebuilder = new StringBuilder();
-        for(BundleKeyEntity followedBundleKey:followedBundleKeysEntities)
-        {
-            String newFollowedBundleValue = newNotificationEntity.getBundleKey(followedBundleKey.getKey()).getValue();
-            String lastFollowedBundleValue = lastNotificationEntity.getBundleKey(followedBundleKey.getKey()).getValue();
-            messagebuilder.append(newFollowedBundleValue.replace(lastFollowedBundleValue,""));
-        }
-        return messagebuilder.toString();
-    }
     public void removeUtterance(String utteraanceId)
     {
         Iterator<UtteranceEntity> i = mUtterances.iterator();

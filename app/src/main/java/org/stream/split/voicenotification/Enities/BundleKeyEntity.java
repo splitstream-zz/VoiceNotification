@@ -10,6 +10,7 @@ public class BundleKeyEntity implements Comparable {
     String mKey;
     String mValue;
     int mPriority;
+    String mUtteranceId;
     boolean mIsFollowed = false;
     boolean mIsModified = false;
 
@@ -29,6 +30,13 @@ public class BundleKeyEntity implements Comparable {
     {
         mPackageName = packageName;
         mKey = key;
+    }
+
+    public String getUtteranceId() {
+        return mUtteranceId;
+    }
+    public void setUtteranceId(String UtteranceId) {
+        this.mUtteranceId = UtteranceId;
     }
 
     public boolean isModified() {
