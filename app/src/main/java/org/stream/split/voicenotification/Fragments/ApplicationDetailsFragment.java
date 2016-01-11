@@ -2,7 +2,6 @@ package org.stream.split.voicenotification.Fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,7 +15,7 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Adapters.ApplicatonDetailsAdapter;
+import org.stream.split.voicenotification.Adapters.ApplicationDetailsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
@@ -24,8 +23,6 @@ import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
-
-import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -53,7 +50,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private ApplicatonDetailsAdapter mAdapter;
+    private ApplicationDetailsAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
     public static ApplicationDetailsFragment newInstance(String gsonNotificationEntity) {
@@ -81,11 +78,11 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
             mEntity = new Gson().fromJson(gsonToJson, AppInfoEntity.class);
         }
 
-        mAdapter = new ApplicatonDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
+        mAdapter = new ApplicationDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
         setTitle(mEntity.getApplicationLabel());
     }
     @Override
-    public void onStart() {
+     public void onStart() {
         super.onStart();
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
     }
@@ -128,6 +125,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
         });
 
         ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
+
         mItemTouchHelper = new ItemTouchHelper(callback);
         mItemTouchHelper.attachToRecyclerView(mRecyclerView);
         if(mEntity.isFollowed())

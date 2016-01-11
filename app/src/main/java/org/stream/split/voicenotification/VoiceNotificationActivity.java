@@ -39,6 +39,11 @@ import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListen
 //TODO extend fragment menager and make things more comprehensible
 //TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
 //TODO there is warning about notification access even when it is allowed.
+//TODO add setting to turn off persistent notification.
+//TODO turn off persistent notification after turning off switch
+//TODO Make proper logging class not only to output but db as well
+//TODO change persistent notification accordingly to app setting
+//TODO settings should store data to initialize application e.g. state of the voice utterences (on/of switch)
 public class VoiceNotificationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener {
 
@@ -99,8 +104,8 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
     private void checkNotificationAccess() {
         if(!NotificationService.isNotificationRelayActive())
-            Snackbar.make(findViewById(R.id.coordinator_layout),"Brak dostępu do powiadomień!",Snackbar.LENGTH_LONG)
-                    .setAction("Zezwól", new View.OnClickListener() {
+            Snackbar.make(findViewById(R.id.coordinator_layout),"Notification access denied!",Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Grant", new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             Intent notificationAccess = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");

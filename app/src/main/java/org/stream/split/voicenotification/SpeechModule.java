@@ -5,11 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.speech.tts.TextToSpeech;
-import android.util.Log;
 
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Enities.UtteranceEntity;
+import org.stream.split.voicenotification.Logging.BaseLogger;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,8 +19,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 
-//todo somewher when lastnotificationentity is null it goes nullargumentexception
+//todo somewhere when lastnotificationentity is null it goes nullargumentexception
 //TODO clean up after getMessage rearangment!
+//TODO title should be read always
+// TODO: text and textlines should be treat as one? or maybe when we have textlines we should compare the number of lines? (but then we shall not save it as one in HELPER.createnotification function.
 /**
  * Created by split on 2015-11-26.
  */
@@ -51,17 +53,17 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         {
             followedBundleKeysEntities = mDefualtKeys;
         }
-        Log.d(TAG,"mDefualtKeys.size(): "+String.valueOf(mDefualtKeys.size()));
+        BaseLogger.d(TAG, "mDefualtKeys.size(): " + String.valueOf(mDefualtKeys.size()));
 
 
         String utteranceMessage =getUtteranceMessage1(newNotificationEntity, lastNotificationEntity, followedBundleKeysEntities);
         UtteranceEntity utteranceEntity = new UtteranceEntity(newNotificationEntity.getUtteranceId(), utteranceMessage);
 
-        Log.d(TAG, "Utterance: " + utteranceEntity.getMessage() + "\t utteranceId: " + utteranceEntity.getUtteranceId());
+        BaseLogger.d(TAG, "Utterance: " + utteranceEntity.getMessage() + "\t utteranceId: " + utteranceEntity.getUtteranceId());
 
         mUtterances.add(utteranceEntity);
 
-        Log.d(TAG, "autostart = " + autoStart);
+        BaseLogger.d(TAG, "autostart = " + autoStart);
         if(autoStart)
         {
             startNext();
@@ -109,23 +111,23 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         while(i.hasNext())
         {
             UtteranceEntity entity = i.next();
-            Log.d(TAG, "utteranceId = " + entity.getUtteranceId());
+            BaseLogger.d(TAG, "utteranceId = " + entity.getUtteranceId());
             if(entity.getUtteranceId() == utteraanceId)
                 i.remove();
         }
     }
     public void startNext() {
-        Log.d(TAG, "startNext()");
+        BaseLogger.d(TAG, "startNext()");
 
         if(!mUtterances.isEmpty()) {
 
             if (mTts == null) {
-                Log.d(TAG, "mTts = null");
+                BaseLogger.d(TAG, "mTts = null");
                 mTts = new TextToSpeech(mContext, this);
                 return;
             }
             else {
-                Log.d(TAG, "else, isSpeaking() = " + mTts.isSpeaking());
+                BaseLogger.d(TAG, "else, isSpeaking() = " + mTts.isSpeaking());
                 UtteranceEntity utteranceEntity = mUtterances.peek();
                 speak(utteranceEntity);
             }
@@ -137,13 +139,13 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     }
     private void speak(UtteranceEntity utteranceEntity) {
-        Log.d(TAG, "speak()");
+        BaseLogger.d(TAG, "speak()");
 
         HashMap<String, String> params = new HashMap<>();
         String id = utteranceEntity.getUtteranceId();
         String message = utteranceEntity.getMessage();
 
-        Log.d(TAG, "startNext()\tutteranceId:" + id +"\tMessage: " + message);
+        BaseLogger.d(TAG, "startNext()\tutteranceId:" + id + "\tMessage: " + message);
         params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, id);
         mTts.speak(message, TextToSpeech.QUEUE_ADD, params);
 
@@ -174,12 +176,12 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     @Override
     public void onStart(String utteranceId) {
-        Log.d(TAG, "onStart(utteranceId)");
+        BaseLogger.d(TAG, "onStart(utteranceId)");
     }
 
     @Override
     public void onDone(String utteranceId) {
-        Log.d(TAG, "onDone()");
+        BaseLogger.d(TAG, "onDone()");
         if(!mUtterances.isEmpty()) {
             Queue<UtteranceEntity> utterances = new LinkedList<>();
             for(UtteranceEntity entity:mUtterances)
@@ -196,7 +198,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     @Override
     public void onError(String utteranceId) {
-        Log.d(TAG, "onError(String utteranceId)");
+        BaseLogger.d(TAG, "onError(String utteranceId)");
         if(mTts != null)
         {
             mTts.shutdown();
@@ -208,29 +210,29 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     @Override
     public void onError(String utteranceId, int errorCode) {
         super.onError(utteranceId, errorCode);
-        Log.d(TAG, "onError(String utteranceId, errorcode)");
+        BaseLogger.d(TAG, "onError(String utteranceId, errorcode)");
     }
 
     @Override
     public void onStop(String utteranceId, boolean interrupted) {
         super.onStop(utteranceId, interrupted);
-        Log.d(TAG, "onStop(String utteranceId, boolean interrupted)");
+        BaseLogger.d(TAG, "onStop(String utteranceId, boolean interrupted)");
     }
 
     @Override
     public void onInit(int status) {
-        Log.d(TAG, "onInit status = " + status);
+        BaseLogger.d(TAG, "onInit status = " + status);
         Locale locale = new Locale("pl","PL");
 
         if(status == TextToSpeech.SUCCESS)
         {
             mTts.setOnUtteranceProgressListener(this);
             int available  = mTts.isLanguageAvailable(locale);
-            Log.d(TAG, "is lang available " + available);
+            BaseLogger.d(TAG, "is lang available " + available);
 
             if(mTts.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) {
                 int languageSetResult = mTts.setLanguage(locale);
-                Log.d(TAG, "setLanguage: " + languageSetResult);
+                BaseLogger.d(TAG, "setLanguage: " + languageSetResult);
                 startNext();
             }
             else

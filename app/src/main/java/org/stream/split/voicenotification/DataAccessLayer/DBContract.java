@@ -103,6 +103,21 @@ public final class DBContract {
 
     }
 
+    public static abstract class SettingFeed implements BaseColumns
+    {
+        public static String TABLE_NAME = "settingsFeed";
+        public static String COLUMN_NAME_ID = "id";
+        public static String COLUMN_NAME_LABEL = "lable";
+        public static String COLUMN_NAME_VALUE = "value";
+
+        public static final String SQL_CREATE_TABLE =
+        "CREATE TABLE " + TABLE_NAME + "( "+
+                COLUMN_NAME_ID + " INTEGER PRIMARY KEY, "+
+                COLUMN_NAME_LABEL +  " TEXT NOT NULL, " +
+                COLUMN_NAME_VALUE + " TEXT NOT NULL);";
+        public static final String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
+    }
+
     public static abstract class LogFeed implements BaseColumns{
         public static final String TABLE_NAME = "Logs";
         public static final String COLUMN_NAME_MESSAGE = "Message";

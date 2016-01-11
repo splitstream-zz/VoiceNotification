@@ -19,10 +19,12 @@ import java.util.List;
  */
 public class DBHelper extends SQLiteOpenHelper {
     static final String TAG = "DBHelper";
+    Context mContext;
 
     public DBHelper(Context context)
     {
         super(context, DBContract.DB_Name, null, DBContract.DB_Version);
+        mContext = context;
     }
 
     @Override
@@ -33,15 +35,19 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL(DBContract.NotificationHistoryFeed.SQL_INSERTION_TRIGGER);
         db.execSQL(DBContract.BundleKeysFeed.SQL_CREATE_TABLE);
         db.execSQL(DBContract.BundlesHistoryFeed.SQL_CREATE_TABLE);
+        db.execSQL(DBContract.SettingFeed.SQL_CREATE_TABLE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
-        db.execSQL(DBContract.BundlesHistoryFeed.SQL_DELETE_TABLE);
-        db.execSQL(DBContract.NotificationHistoryFeed.SQL_DELETE_TABLE);
-        db.execSQL(DBContract.BundleKeysFeed.SQL_DELETE_TABLE);
-        db.execSQL(DBContract.AppFeed.SQL_DELETE_TABLE);
+//        db.execSQL(DBContract.BundlesHistoryFeed.SQL_DELETE_TABLE);
+//        db.execSQL(DBContract.NotificationHistoryFeed.SQL_DELETE_TABLE);
+//        db.execSQL(DBContract.BundleKeysFeed.SQL_DELETE_TABLE);
+//        db.execSQL(DBContract.AppFeed.SQL_DELETE_TABLE);
+//        db.execSQL(DBContract.BundlesHistoryFeed.SQL_DELETE_TABLE);
+//        db.execSQL(DBContract.SettingFeed.SQL_DELETE_TABLE);
+        mContext.deleteDatabase(DBContract.DB_Name);
         onCreate(db);
     }
 
@@ -265,6 +271,22 @@ public class DBHelper extends SQLiteOpenHelper {
             notificationEntity.setBundleKeys(getMessages(notificationId));
         return notificationEntity;
     }
+
+    public NotificationEntity getLastNotification(String packageName, boolean getBundleKeys) {
+        String sql_query = "SELECT * From " + DBContract.NotificationHistoryFeed.TABLE_NAME +
+                " WHERE " + DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName + "'" +
+                " AND "+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP + " = " +
+                " (SELECT MAX("+DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP+") From " + DBContract.NotificationHistoryFeed.TABLE_NAME +
+                " WHERE " + DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName + "');";
+        Cursor cursor = getReadableDatabase().rawQuery(sql_query,null);
+        NotificationEntity entity = null;
+
+        if(cursor.moveToFirst())
+            entity = getNotification(cursor,getBundleKeys);
+
+        return entity;
+    }
+
     public List<BundleKeyEntity> getMessages(long notificationId)
     {
         String sql_select_id = "SELECT * FROM "+ DBContract.BundlesHistoryFeed.TABLE_NAME +
@@ -402,18 +424,5 @@ public class DBHelper extends SQLiteOpenHelper {
         getWritableDatabase().execSQL(sql_query);
     }
 
-    public NotificationEntity getLastNotification(String packageName, boolean getBundleKeys) {
-        String sql_query = "SELECT * From " + DBContract.NotificationHistoryFeed.TABLE_NAME +
-                " WHERE " + DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName + "'" +
-                " AND "+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP + " = " +
-                " (SELECT MAX("+DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP+") From " + DBContract.NotificationHistoryFeed.TABLE_NAME +
-                " WHERE " + DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName + "');";
-        Cursor cursor = getReadableDatabase().rawQuery(sql_query,null);
-        NotificationEntity entity = null;
 
-        if(cursor.moveToFirst())
-            entity = getNotification(cursor,getBundleKeys);
-
-        return entity;
-    }
 }

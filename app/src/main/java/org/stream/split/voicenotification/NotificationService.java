@@ -3,6 +3,7 @@ package org.stream.split.voicenotification;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.nfc.Tag;
 import android.os.Binder;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
@@ -106,7 +107,7 @@ public class NotificationService extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-
+        super.onNotificationPosted(sbn);
         Log.d(TAG, "**********  onNotificationPosted");
         Log.d(TAG, "Id : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
         Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
@@ -169,8 +170,6 @@ public class NotificationService extends NotificationListenerService {
             return mBinder;
         else {
             Log.d(TAG, "onBind else intent.getAction(): " + intent.getAction());
-            if(intent.getExtras() != null)
-                Helper.IterateBundleExtras(intent.getExtras(),intent.getPackage());
             mIsSystemNotificationServiceConnected = true;
             return super.onBind(intent);
         }
@@ -182,12 +181,16 @@ public class NotificationService extends NotificationListenerService {
         //TODO not sure if it's needed either way
         Log.d(TAG, "onUnbind() intent.getAction(): " + intent.getAction());
         if(intent.getAction().equals(CUSTOM_BINDING)) {
-            NotificationServiceConnection.getInstance().onServiceDisconnected(new ComponentName(this, this.getClass()));
-        }
-        else
-            mIsSystemNotificationServiceConnected = false;
-        return super.onUnbind(intent);
 
+            NotificationServiceConnection.getInstance().onServiceDisconnected(new ComponentName(this, this.getClass()));
+
+        }
+        else {
+            Log.d(TAG, "!!!!!!!NotificationListenerService unbinded - trying to onBind(intent)");
+            mIsSystemNotificationServiceConnected = false;
+            onBind(intent);
+        }
+        return super.onUnbind(intent);
     }
 
     /**
