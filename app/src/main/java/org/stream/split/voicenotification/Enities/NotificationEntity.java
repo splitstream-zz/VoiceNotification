@@ -9,12 +9,10 @@ import java.util.List;
  */
 public class NotificationEntity extends AppInfoEntity
 {
-
     long mId;
     long mSbnId;
     long mOccurrenceTime;
     String mTinkerText;
-    String mUtteranceId;
 
     public long getID() {
         return mId;
@@ -44,25 +42,15 @@ public class NotificationEntity extends AppInfoEntity
         this.mOccurrenceTime = OccurrenceTime;
     }
 
-
-    public String getUtteranceId() {
-        return mUtteranceId;
-    }
-    public void setUtteranceId(String UtteranceId) {
-        this.mUtteranceId = UtteranceId;
-    }
-
-    public NotificationEntity( long sbnId, String packageName, String applicationLabel, long occurrenceTime, String utteranceId)
+    public NotificationEntity( long sbnId, String packageName, String applicationLabel, long occurrenceTime)
     {
         super(packageName,applicationLabel);
         mSbnId = sbnId;
         mOccurrenceTime = occurrenceTime;
-        mUtteranceId = utteranceId;
     }
+
     public NotificationEntity(long ID)
     {
         mId = ID;
     }
-
-
 }

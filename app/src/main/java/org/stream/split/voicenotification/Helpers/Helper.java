@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -215,22 +216,19 @@ public class Helper {
         return builder;
     }
 
-    public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, String label) {
+    public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, Context context) {
 
-        String utteranceId = getUtteranceId(sbn.getPackageName(), sbn.getId());
-
+        String label = getApplicationLabel(sbn.getPackageName(),context);
         NotificationEntity notificationEntity = new NotificationEntity(sbn.getId(),
                 sbn.getPackageName(),
                 label,
-                sbn.getPostTime(),
-                utteranceId);
+                sbn.getPostTime());
 
         notificationEntity.setBundleKeys(IterateBundleExtras(sbn.getNotification().extras, sbn.getPackageName()));
         if (sbn.getNotification().tickerText != null) {
             notificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
             notificationEntity.addBundleKey("custom.tickerText", sbn.getNotification().tickerText.toString());
         }
-
         return notificationEntity;
     }
     public static String getUtteranceId(String packageName, long sbnId)
@@ -346,7 +344,7 @@ public class Helper {
     }
     public static String convertTime(long time){
         Date date = new Date(time);
-        Format format = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy");
+        Format format = new SimpleDateFormat("HH:mm:ss dd.MM.yyyy", Locale.getDefault());
         return format.format(date);
     }
 }

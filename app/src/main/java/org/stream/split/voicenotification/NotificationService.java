@@ -3,7 +3,6 @@ package org.stream.split.voicenotification;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.nfc.Tag;
 import android.os.Binder;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
@@ -25,8 +24,7 @@ import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 public class NotificationService extends NotificationListenerService {
 
     public static final String TAG = "NotificationService";
-    public static final String NEW_NOTIFICATION_OBJECT = "new_notification_object";
-    public static final String LAST_NOTIFICATION_OBJECT = "last_notification_object";
+    public static final String NOTIFICATION_OBJECT = "new_notification_object";
     public static final String ACTION_NOTIFICATION_POSTED = TAG + ".notificationPosted";
     public static final String ACTION_NOTIFICATION_REMOVED = TAG + ".notificationRemoved";
     private static boolean mIsSystemNotificationServiceConnected = false;
@@ -115,28 +113,27 @@ public class NotificationService extends NotificationListenerService {
         if(sbn.getNotification().tickerText.toString().isEmpty())
             return;
 
-        String label = Helper.getApplicationLabel(sbn.getPackageName(), this);
-        NotificationEntity newNotificationEntity = Helper.createNotificationEntity(sbn, label);
+        NotificationEntity newNotificationEntity = Helper.createNotificationEntity(sbn, this);
+
         DBHelper db = new DBHelper(this);
-        NotificationEntity lastNotificationEntity = db.getLastNotification(newNotificationEntity.getPackageName(), true);
         long rowId = db.addNotification(newNotificationEntity);
         newNotificationEntity.setID(rowId);
-        StringBuilder builder = Helper.LogNotificationEntity(newNotificationEntity);
-        Log.d(TAG, builder.toString());
-
         boolean isFollowed = db.isAppFollowed(sbn.getPackageName());
-        if(isFollowed) {
-            newNotificationEntity.setIsFollowed(isFollowed);
+        newNotificationEntity.setIsFollowed(isFollowed);
+
+        if(newNotificationEntity.isFollowed()) {
             for(BundleKeyEntity entity:newNotificationEntity.getBundleKeys())
                 entity.setIsFollowed(db.isBundleKeyFollowed(entity));
         }
         db.close();
+
+        StringBuilder builder = Helper.LogNotificationEntity(newNotificationEntity);
+        Log.d(TAG, builder.toString());
         Log.d(TAG, "Newly inserted notification Id: " + newNotificationEntity.getID());
 
         Intent intent = new Intent();
         intent.setAction(ACTION_NOTIFICATION_POSTED);
-        intent.putExtra(NEW_NOTIFICATION_OBJECT, new Gson().toJson(newNotificationEntity));
-        intent.putExtra(LAST_NOTIFICATION_OBJECT, new Gson().toJson(lastNotificationEntity));
+        intent.putExtra(NOTIFICATION_OBJECT, new Gson().toJson(newNotificationEntity));
         sendBroadcast(intent);
     }
 

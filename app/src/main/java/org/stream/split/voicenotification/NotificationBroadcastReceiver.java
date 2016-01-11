@@ -11,6 +11,7 @@ import com.google.gson.Gson;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.UtteranceEntity;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     private final String TAG = "NotBrodRec";
     private boolean mAutostart = true;
     private SpeechModule mSpeechModule;
+    private Context mContext;
 
     public NotificationBroadcastReceiver(Context context)
     {
@@ -32,28 +34,19 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     public synchronized void onReceive(Context context, final Intent intent) {
 
         Log.d(TAG, "OnReceive()");
-        Bundle extras = intent.getExtras();
-        String gsonToJson;
+        Bundle bundle = intent.getExtras();
 
-        if(extras != null) {
-            gsonToJson = extras.getString(NotificationService.NEW_NOTIFICATION_OBJECT);
-            NotificationEntity newNotificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
-            gsonToJson = extras.getString(NotificationService.LAST_NOTIFICATION_OBJECT);
-            NotificationEntity lastNotificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
+        if(bundle != null) {
 
-            String PackageName = newNotificationEntity.getPackageName();
-
-            DBHelper db = new DBHelper(context);
-            List<BundleKeyEntity> bundleKeyEntities = db.getSortedBundleKeys(PackageName);
-            db.close();
-
-            Log.d(TAG, PackageName + " isFollowed: " + String.valueOf(newNotificationEntity.isFollowed()));
+            NotificationEntity newNotificationEntity = getNotificationEntity(bundle, NotificationService.NOTIFICATION_OBJECT);
+            Log.d(TAG, newNotificationEntity.getPackageName() + ".isFollowed() = " + String.valueOf(newNotificationEntity.isFollowed()));
 
             if (newNotificationEntity.isFollowed()) {
+
                 switch(intent.getAction())
                 {
                     case NotificationService.ACTION_NOTIFICATION_POSTED:
-                        mSpeechModule.addUtterance(newNotificationEntity,lastNotificationEntity,bundleKeyEntities, mAutostart);
+                        addUtterance(newNotificationEntity);
                         break;
                     case NotificationService.ACTION_NOTIFICATION_REMOVED:
                         //mSpeechModule.removeUtterance(newNotificationEntity.getUtteranceId());
@@ -62,8 +55,63 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
             }
         }
         else
-            Log.d(TAG, "!!!!!!!!intent.Extras == null gsontojson not successful");
+            Log.d(TAG, "!!!!!!!!intent.Extras == null (gson to json NOT successful)");
 
+    }
+    private void addUtterance(NotificationEntity newNotificationEntity)
+    {
+        String PackageName = newNotificationEntity.getPackageName();
+        DBHelper db = new DBHelper(mContext);
+        List<BundleKeyEntity> bundleKeyEntities = db.getSortedBundleKeys(PackageName);
+        db.close();
+        UtteranceEntity utteranceEntity = getUtteranceEntity1()
+
+    }
+    private NotificationEntity getNotificationEntity(Bundle bundle, String key)
+    {
+        String gsonToJson = bundle.getString(key);
+        return new Gson().fromJson(gsonToJson, NotificationEntity.class);
+    }
+
+
+    private String getUtteranceEntity(NotificationEntity newNotificationEntity, NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities)
+    {
+        StringBuilder messagebuilder = new StringBuilder();
+
+        for(BundleKeyEntity followedBundleKey:followedBundleKeysEntities)
+        {
+            BundleKeyEntity newFollowedBundleKeys = newNotificationEntity.getBundleKey(followedBundleKey.getKey());
+            String[] textLines = newFollowedBundleKeys.getValue().split("\\n");
+            for(String line:textLines)
+            {
+                if(lastNotificationEntity != null) {
+                    BundleKeyEntity lastFollowedBundleKey = lastNotificationEntity.getBundleKey(followedBundleKey.getKey());
+                    if (lastFollowedBundleKey != null && !lastFollowedBundleKey.getValue().contains(line)) {
+                        messagebuilder.append(line);
+                        messagebuilder.append(".\n");
+                    }
+                }
+                else {
+                    messagebuilder.append(line);
+                    messagebuilder.append(".\n");
+                }
+            }
+
+        }
+        return messagebuilder.toString();
+    }
+    private String getUtteranceEntity1(NotificationEntity newNotificationEntity, NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities)
+    {
+        UtteranceEntity utteranceEntity = new UtteranceEntity();
+        for(BundleKeyEntity followedBundleKey:followedBundleKeysEntities)
+        {
+            if(followedBundleKey.getKey().contains("title"))
+                utteranceEntitynewNotificationEntity.getBundleKey(followedBundleKey.getKey());
+            String newFollowedBundleValue = newNotificationEntity.getBundleKey(followedBundleKey.getKey()).getValue();
+            String lastFollowedBundleValue = lastNotificationEntity.getBundleKey(followedBundleKey.getKey()).getValue();
+            messagebuilder.append(newFollowedBundleValue.replace(lastFollowedBundleValue,""));
+        }
+        return messagebuilder.toString();
     }
 
     public void Shutdown()

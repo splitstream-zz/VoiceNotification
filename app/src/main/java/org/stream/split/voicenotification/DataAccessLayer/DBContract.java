@@ -9,7 +9,7 @@ public final class DBContract {
 
     public final static String DB_Name = "VoiceNotification.db";
     public final static int DB_Version = 44;
-    public final static int HistoryQuantityLimit = 50;
+    public final static int HistoryQuantityLimit = 51;
 
     DBContract(){}
 
@@ -52,7 +52,6 @@ public final class DBContract {
         public static final String TABLE_NAME = "NotificationHistory";
         public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_SBN_ID = "SbnId";
-        public static final String COLUMN_NAME_UTTERANCE_ID = "UtteranceId";
         public static final String COLUMN_NAME_TINKER_TEXT = "TinkerText";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
         public static final String COLUMN_NAME_INSERTION_TIMESTAMP = "InsertionDate";
@@ -63,7 +62,6 @@ public final class DBContract {
                         COLUMN_NAME_ID + " INTEGER PRIMARY KEY, " +
                         COLUMN_NAME_SBN_ID + " INTEGER NOT NULL, " +
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
-                        COLUMN_NAME_UTTERANCE_ID + " TEXT, " +
                         COLUMN_NAME_TINKER_TEXT + " TEXT, " +
                         COLUMN_NAME_INSERTION_TIMESTAMP + " INTEGER NOT NULL, " +
                         COLUMN_NAME_APPLICATION_LABEL + " TEXT);";
@@ -83,6 +81,7 @@ public final class DBContract {
         public static final String TABLE_NAME = "BundlesHistory";
         public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_NOTIFICATION_ID = "NotificationId";
+        public static final String COLUMN_NAME_UTTERANCE_ID = "UtteranceId";
         public static final String COLUMN_NAME_BUNDLE_KEY = "BundleKey";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
         public static final String COLUMN_NAME_BUNDLE_VALUE = "BundleValue";
@@ -92,6 +91,7 @@ public final class DBContract {
                         COLUMN_NAME_ID + " INTEGER PRIMARY KEY, "+
                         COLUMN_NAME_NOTIFICATION_ID + " INTEGER NOT NULL, " +
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
+                        COLUMN_NAME_UTTERANCE_ID + " TEXT, " +
                         COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_VALUE + " TEXT NOT NULL, " +
 
@@ -107,7 +107,7 @@ public final class DBContract {
     {
         public static String TABLE_NAME = "settingsFeed";
         public static String COLUMN_NAME_ID = "id";
-        public static String COLUMN_NAME_LABEL = "lable";
+        public static String COLUMN_NAME_LABEL = "label";
         public static String COLUMN_NAME_VALUE = "value";
 
         public static final String SQL_CREATE_TABLE =

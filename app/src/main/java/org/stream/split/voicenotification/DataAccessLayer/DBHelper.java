@@ -164,7 +164,6 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_SBN_ID, notificationEntity.getSbnId());
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME, notificationEntity.getPackageName());
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP, notificationEntity.getOccurrenceTime());
-        values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_UTTERANCE_ID, notificationEntity.getUtteranceId());
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_APPLICATION_LABEL, notificationEntity.getApplicationLabel());
         return getWritableDatabase().insert(DBContract.NotificationHistoryFeed.TABLE_NAME,null, values);
     }
@@ -205,7 +204,6 @@ public class DBHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME, notificationEntity.getPackageName());
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP, notificationEntity.getOccurrenceTime());
-        values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_UTTERANCE_ID, notificationEntity.getUtteranceId());
         values.put(DBContract.NotificationHistoryFeed.COLUMN_NAME_APPLICATION_LABEL, notificationEntity.getApplicationLabel());
         long rowsAffected = getWritableDatabase().update(DBContract.NotificationHistoryFeed.TABLE_NAME,
                 values,
@@ -265,7 +263,6 @@ public class DBHelper extends SQLiteOpenHelper {
         notificationEntity.setOccurrenceTime(cursor.getLong(cursor.getColumnIndex(DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP)));
         notificationEntity.setTinkerText(cursor.getString(cursor.getColumnIndex(DBContract.NotificationHistoryFeed.COLUMN_NAME_TINKER_TEXT)));
         notificationEntity.setApplicationLabel(cursor.getString(cursor.getColumnIndex(DBContract.NotificationHistoryFeed.COLUMN_NAME_APPLICATION_LABEL)));
-        notificationEntity.setUtteranceId(cursor.getString(cursor.getColumnIndex(DBContract.NotificationHistoryFeed.COLUMN_NAME_UTTERANCE_ID)));
         notificationEntity.setIsFollowed(isAppFollowed(notificationEntity.getPackageName()));
         if(getBundleKeys)
             notificationEntity.setBundleKeys(getMessages(notificationId));
