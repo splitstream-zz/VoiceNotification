@@ -9,12 +9,12 @@ import java.util.List;
 public class UtteranceEntity {
 
     String mUtteranceId;
-    List<String> mMessages = new ArrayList<>();
+    List<BundleKeyEntity> mMessages = new ArrayList<>();
 
-    public List<String> getMessages() {
+    public List<BundleKeyEntity> getMessages() {
         return mMessages;
     }
-    public void addMessage(String message) {
+    public void addMessage(BundleKeyEntity message) {
         this.mMessages.add(message);
     }
 

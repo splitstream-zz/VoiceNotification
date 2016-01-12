@@ -23,6 +23,7 @@ import java.util.Queue;
 //TODO clean up after getMessage rearangment!
 //TODO title should be read always
 // TODO: text and textlines should be treat as one? or maybe when we have textlines we should compare the number of lines? (but then we shall not save it as one in HELPER.createnotification function.
+// TODO: 2016-01-12 make sure utterance is not empty
 /**
  * Created by split on 2015-11-26.
  */
@@ -103,7 +104,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     }
     private void speak(UtteranceEntity utteranceEntity) {
-        BaseLogger.d(TAG, "speak()");
+        BaseLogger.getInstance().d(TAG, "speak()");
 
         HashMap<String, String> params = new HashMap<>();
         String id = utteranceEntity.getUtteranceId();

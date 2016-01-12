@@ -1,5 +1,6 @@
 package org.stream.split.voicenotification;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -17,6 +18,9 @@ import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /**
  * Created by split on 2015-10-18.
@@ -24,6 +28,7 @@ import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 public class NotificationService extends NotificationListenerService {
 
     public static final String TAG = "NotificationService";
+    public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
     public static final String NOTIFICATION_OBJECT = "new_notification_object";
     public static final String ACTION_NOTIFICATION_POSTED = TAG + ".notificationPosted";
     public static final String ACTION_NOTIFICATION_REMOVED = TAG + ".notificationRemoved";
@@ -33,9 +38,7 @@ public class NotificationService extends NotificationListenerService {
         return mIsSystemNotificationServiceConnected;
     }
 
-
-    public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
-    private final IBinder mBinder = new NotificationCatcherBinder();
+    private List<BroadcastReceiver> mReceivers = new ArrayList<>();
     private NotificationBroadcastReceiver mVoiceGenerator;
     private boolean mIsVoiceActive = false;
 
@@ -107,25 +110,11 @@ public class NotificationService extends NotificationListenerService {
     public void onNotificationPosted(StatusBarNotification sbn) {
         super.onNotificationPosted(sbn);
         Log.d(TAG, "**********  onNotificationPosted");
-        Log.d(TAG, "Id : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tNumber: " + sbn.getNotification().number + "\t" + sbn.getPackageName());
-        Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
+        Log.d(TAG, "Id : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tpackagename:" + sbn.getPackageName());
+        if(sbn.getNotification().tickerText != null)
+            Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
 
-        if(sbn.getNotification().tickerText.toString().isEmpty())
-            return;
-
-        NotificationEntity newNotificationEntity = Helper.createNotificationEntity(sbn, this);
-
-        DBHelper db = new DBHelper(this);
-        long rowId = db.addNotification(newNotificationEntity);
-        newNotificationEntity.setID(rowId);
-        boolean isFollowed = db.isAppFollowed(sbn.getPackageName());
-        newNotificationEntity.setIsFollowed(isFollowed);
-
-        if(newNotificationEntity.isFollowed()) {
-            for(BundleKeyEntity entity:newNotificationEntity.getBundleKeys())
-                entity.setIsFollowed(db.isBundleKeyFollowed(entity));
-        }
-        db.close();
+        NotificationEntity newNotificationEntity = createNotification(sbn);
 
         StringBuilder builder = Helper.LogNotificationEntity(newNotificationEntity);
         Log.d(TAG, builder.toString());
@@ -143,6 +132,23 @@ public class NotificationService extends NotificationListenerService {
         Log.d(TAG, "COLUMN_NAME_ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
         Intent intent = new Intent(ACTION_NOTIFICATION_REMOVED);
         sendBroadcast(intent);
+    }
+    private NotificationEntity createNotification(StatusBarNotification sbn)
+    {
+        NotificationEntity newNotificationEntity = Helper.createNotificationEntity(sbn, this);
+
+        DBHelper db = new DBHelper(this);
+        long rowId = db.addNotification(newNotificationEntity);
+        newNotificationEntity.setID(rowId);
+        boolean isFollowed = db.isAppFollowed(sbn.getPackageName());
+        newNotificationEntity.setIsFollowed(isFollowed);
+
+        if(newNotificationEntity.isFollowed()) {
+            for(BundleKeyEntity entity:newNotificationEntity.getBundleKeys())
+                entity.setIsFollowed(db.isBundleKeyFollowed(entity));
+        }
+        db.close();
+        return newNotificationEntity;
     }
 
     @Override
@@ -164,7 +170,7 @@ public class NotificationService extends NotificationListenerService {
     {
         Log.d(TAG, "onBind() intent.getAction(): " + intent.getAction());
         if(intent.getAction().equals(CUSTOM_BINDING))
-            return mBinder;
+            return new NotificationCatcherBinder();
         else {
             Log.d(TAG, "onBind else intent.getAction(): " + intent.getAction());
             mIsSystemNotificationServiceConnected = true;

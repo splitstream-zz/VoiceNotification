@@ -274,8 +274,9 @@ public class VoiceNotificationActivity extends AppCompatActivity
     private void unbindNotificationService()
     {
         // unBind to LocalService
-        mServiceConnection.unregisterAllRecivers();
+
         if (mServiceConnection.isServiceBound()) {
+            mServiceConnection.unregisterAllRecivers();
             unbindService(mServiceConnection);
         }
     }

@@ -2,6 +2,8 @@ package org.stream.split.voicenotification.Helpers;
 
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.IBinder;
@@ -22,8 +24,17 @@ public class NotificationServiceConnection implements ServiceConnection {
     private final String TAG = "NotificServConn";
     private NotificationService mNotificationService;
     private boolean mServiceBound;
-    private List<ReceiverIntent> mIntentReceivers = new ArrayList<>();
+    private List<BroadcastReceiver> mBroadcastReceivers = new ArrayList<>();
     private static NotificationServiceConnection mNotificationServiceConnection;
+    private Context mContext;
+
+    public NotificationServiceConnection(Context context)
+    {
+        mContext = context;
+        mContext.bindService(new Intent(NotificationService.CUSTOM_BINDING), this,Context.BIND_NOT_FOREGROUND);
+    }
+
+
 
     public void setActiveSpeechService(boolean isVoiceActive) {
         this.mIsVoiceActive = isVoiceActive;
@@ -66,24 +77,22 @@ public class NotificationServiceConnection implements ServiceConnection {
 
         return mNotificationServiceConnection;
     }
-    private void addReceiver(@NonNull BroadcastReceiver receiver, IntentFilter filter)
+    private void addReceiver(@NonNull BroadcastReceiver receiver)
     {
-        if(filter == null)
-            filter = new IntentFilter();
 
-        mIntentReceivers.add(new ReceiverIntent(receiver, filter));
+        mBroadcastReceivers.add(receiver);
     }
-    public int registerReceiver(@NonNull BroadcastReceiver receiver, IntentFilter filter)
+    public int registerReceiver(@NonNull BroadcastReceiver receiver)
     {
         Log.d(TAG, "registeringReceiver");
 
         if(!isRegisteredReceiver(receiver)) {
-            mIntentReceivers.add(new ReceiverIntent(receiver, filter));
+            mBroadcastReceivers.add(receiver);
         }
         if(isServiceBound())
         {
             Log.d(TAG, "registering: " + receiver.toString());
-            mNotificationService.registerReceiver(receiver,filter);
+            mNotificationService.registerReceiver(receiver,new IntentFilter());
             return 1;
         }
         else {
@@ -96,18 +105,18 @@ public class NotificationServiceConnection implements ServiceConnection {
     {
         Log.d(TAG, "registeringAllReceivers");
         if(isServiceBound())
-            for(ReceiverIntent receiver: mIntentReceivers)
+            for(BroadcastReceiver receiver: mBroadcastReceivers)
             {
-                this.registerReceiver(receiver.mReciver, receiver.mIntentFilter);
+                this.registerReceiver(receiver);
             }
     }
 
     public boolean isRegisteredReceiver(BroadcastReceiver receiver)
     {
         boolean isRegistered = false;
-        for(ReceiverIntent receiverIntent: mIntentReceivers)
+        for(BroadcastReceiver receiverEntity: mBroadcastReceivers)
         {
-            if(receiverIntent.mReciver == receiver)
+            if(receiverEntity.getClass().equals(receiver.getClass()))
                 isRegistered = true;
 
         }
@@ -118,7 +127,7 @@ public class NotificationServiceConnection implements ServiceConnection {
     {
         Log.d(TAG, "unregisteringAllReceivers");
         if(isServiceBound()) {
-            for (ReceiverIntent receiver : mIntentReceivers) {
+            for (ReceiverIntent receiver : mBroadcastReceivers) {
                 this.unregisterReceiver(receiver.mReciver);
             }
         }
@@ -127,7 +136,7 @@ public class NotificationServiceConnection implements ServiceConnection {
     public void unregisterReceiver(BroadcastReceiver receiver)
     {
         Log.d(TAG, "unregisteringReceivers");
-        Log.d(TAG, "mIntentReceivers.size(): " + mIntentReceivers.size());
+        Log.d(TAG, "mBroadcastReceivers.size(): " + mBroadcastReceivers.size());
         boolean isDeleted = false;
 
         if(isServiceBound()) {
@@ -143,16 +152,16 @@ public class NotificationServiceConnection implements ServiceConnection {
 
         isDeleted = removeReceiver(receiver);
 
-        Log.d(TAG, "mIntentReceivers.size(): " + mIntentReceivers.size() + "\tisDeleted: " + isDeleted);
+        Log.d(TAG, "mBroadcastReceivers.size(): " + mBroadcastReceivers.size() + "\tisDeleted: " + isDeleted);
     }
 
     private boolean removeReceiver(BroadcastReceiver receiver)
     {
         boolean isDeleted = false;
-        List<ReceiverIntent> list = new ArrayList<>();
-        for(ReceiverIntent item:mIntentReceivers)
+        List<BroadcastReceiver> list = new ArrayList<>();
+        for(BroadcastReceiver item: mBroadcastReceivers)
         {
-            if(item.mReciver != receiver)
+            if(item != receiver)
             {
                 list.add(item);
             }
@@ -162,13 +171,13 @@ public class NotificationServiceConnection implements ServiceConnection {
                 Log.d(TAG, "receiver: " + receiver + " was removed");
             }
         }
-        mIntentReceivers = list;
+        mBroadcastReceivers = list;
         return isDeleted;
     }
 
     @Override
     public void onServiceConnected(ComponentName name, IBinder service) {
-        if(!isServiceBound()) {
+        if(service instanceof NotificationService.NotificationCatcherBinder) {
             NotificationService.NotificationCatcherBinder binder = (NotificationService.NotificationCatcherBinder) service;
             mNotificationService = binder.getService();
             mServiceBound = true;
@@ -181,16 +190,8 @@ public class NotificationServiceConnection implements ServiceConnection {
     public void onServiceDisconnected(ComponentName name) {
         mServiceBound = false;
         mNotificationService = null;
+        mContext.start
     }
 }
 
-class ReceiverIntent {
-    public BroadcastReceiver mReciver;
-    public IntentFilter mIntentFilter;
-    public ReceiverIntent(BroadcastReceiver receiver, IntentFilter intentFilter)
-    {
-        mReciver = receiver;
-        mIntentFilter = intentFilter;
-    }
 
-}

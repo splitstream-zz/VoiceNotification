@@ -10,9 +10,9 @@ import java.util.List;
  * Created by split on 2016-01-09.
  */
 public class BaseLogger {
-    private BaseLogger mInstance;
+    private static BaseLogger mInstance;
     private List<ILog> mLoggers;
-    private boolean mLogToOutput;
+    private boolean mLogToOutput = true;
 
     private BaseLogger()
     {
@@ -23,7 +23,7 @@ public class BaseLogger {
         mLogToOutput = logToOutput;
     }
 
-    public BaseLogger getInstance()
+    public static BaseLogger getInstance()
     {
         if(mInstance == null)
             mInstance = new BaseLogger();
