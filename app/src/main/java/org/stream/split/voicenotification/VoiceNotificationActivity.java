@@ -54,7 +54,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
     private final int mPersistentNotificationID = 8976;
     private final int mTestingNotificationID = 6879;
     private FragmentManager mFragmentManager;
-    private Intent mServiceIntent;
     private NotificationServiceConnection mServiceConnection;
 
     /**
@@ -71,9 +70,8 @@ public class VoiceNotificationActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mServiceIntent = new Intent(this, NotificationService.class);
         mServiceConnection = NotificationServiceConnection.getInstance();
-        mServiceIntent.setAction(NotificationService.CUSTOM_BINDING);
+        mServiceConnection.initializeServiceContection(getBaseContext());
 
         setContentView(R.layout.activity_voice_notification);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -187,9 +185,9 @@ public class VoiceNotificationActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.voice_notification, menu);
         MenuItem menuItem = menu.findItem(R.id.offSwitch);
         View view = MenuItemCompat.getActionView(menuItem);
-
+        //Todo read from preferences state of the switch
+        boolean checked = true;
         Switch switcha = (Switch)view.findViewById(R.id.switchForActionBar);
-        boolean checked = mServiceConnection.IsVoiceActive();
         switcha.setChecked(checked);
         switcha.refreshDrawableState();
         switcha.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -218,13 +216,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
         }
 
         return false;
-    }
-
-    private void turnOffApp()
-    {
-        mServiceConnection.unregisterAllRecivers();
-        mNotificationManager.cancelAll();
-        finish();
     }
 
     @Override
@@ -276,7 +267,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
         // unBind to LocalService
 
         if (mServiceConnection.isServiceBound()) {
-            mServiceConnection.unregisterAllRecivers();
             unbindService(mServiceConnection);
         }
     }

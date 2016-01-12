@@ -64,7 +64,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         DBHelper db = new DBHelper(mContext);
         List<BundleKeyEntity> bundleKeyEntities = db.getSortedBundleKeys(PackageName);
         db.close();
-        UtteranceEntity utteranceEntity = getUtteranceEntity1()
+        //UtteranceEntity utteranceEntity = getUtteranceEntity1()
 
     }
     private NotificationEntity getNotificationEntity(Bundle bundle, String key)
@@ -73,20 +73,21 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         return new Gson().fromJson(gsonToJson, NotificationEntity.class);
     }
 
-    private String getUtteranceEntity1(NotificationEntity newNotificationEntity, NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities)
-    {
-        UtteranceEntity utteranceEntity = new UtteranceEntity();
-        for(BundleKeyEntity followedBundleKey:followedBundleKeysEntities)
-        {
-            if(followedBundleKey.getKey().contains("title"))
-                utteranceEntity.addMessage(newNotificationEntity.getBundleKey(followedBundleKey.getKey()));
-
-            String newFollowedBundleValue = newNotificationEntity.getBundleKey(followedBundleKey.getKey()).getValue();
-            String lastFollowedBundleValue = lastNotificationEntity.getBundleKey(followedBundleKey.getKey()).getValue();
-            messagebuilder.append(newFollowedBundleValue.replace(lastFollowedBundleValue,""));
-        }
-        return messagebuilder.toString();
-    }
+//    private UtteranceEntity getUtteranceEntity1(NotificationEntity newNotificationEntity, NotificationEntity lastNotificationEntity, List<BundleKeyEntity> followedBundleKeysEntities)
+//    {
+//        UtteranceEntity utteranceEntity = new UtteranceEntity();
+//
+//        if(followedBundleKey.getKey().contains("title"))
+//            utteranceEntity.addMessage(newNotificationEntity.getBundleKey(followedBundleKey.getKey()));
+//        for(BundleKeyEntity followedBundleKey:followedBundleKeysEntities)
+//        {
+//            String newFollowedBundleValue = newNotificationEntity.getBundleKey(followedBundleKey.getKey()).getValue();
+//            String lastFollowedBundleValue = lastNotificationEntity.getBundleKey(followedBundleKey.getKey()).getValue();
+//            //messagebuilder.append(newFollowedBundleValue.replace(lastFollowedBundleValue,""));
+//        }
+//
+//        return utteranceEntity;
+//    }
 
     public void Shutdown()
     {

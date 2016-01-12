@@ -8,6 +8,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.google.gson.Gson;
@@ -15,6 +16,7 @@ import com.google.gson.Gson;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 
@@ -42,10 +44,6 @@ public class NotificationService extends NotificationListenerService {
     private NotificationBroadcastReceiver mVoiceGenerator;
     private boolean mIsVoiceActive = false;
 
-    public boolean isVoiceActive() {
-        return mIsVoiceActive;
-    }
-
     public void setVoiceActive(boolean isVoiceActive) {
 
             if (isVoiceActive && !mIsVoiceActive) {
@@ -60,6 +58,9 @@ public class NotificationService extends NotificationListenerService {
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
+
+        Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this.getBaseContext()));
+
     }
 
     @Override
@@ -76,6 +77,13 @@ public class NotificationService extends NotificationListenerService {
         Log.d(TAG, "notification Listener onDestroy()");
     }
 
+    public void initializeService(boolean isSpeechModuleActive, List<BroadcastReceiver> receivers)
+    {
+        setVoiceActive(isSpeechModuleActive);
+        for(BroadcastReceiver receiver:receivers)
+            this.registerReceiver(receiver);
+    }
+
     private void unregisterVoiceReceiver()
     {
         Log.d(TAG, "unregisterVoiceReciver Before");
@@ -90,6 +98,50 @@ public class NotificationService extends NotificationListenerService {
             }
             mVoiceGenerator = null;
         }
+    }
+    public int registerReceiver(@NonNull BroadcastReceiver receiver)
+    {
+        Log.d(TAG, "registeringReceiver");
+
+        int result = -1;
+        if(!isRegisteredReceiver(receiver)) {
+            mReceivers.add(receiver);
+            super.registerReceiver(receiver, new IntentFilter());
+            result = 0;
+        }
+        else
+            result = 1;
+        return result;
+    }
+
+    public boolean isRegisteredReceiver(BroadcastReceiver receiver)
+    {
+        boolean isRegistered = false;
+        for(BroadcastReceiver receiverEntity: mReceivers)
+        {
+            if(receiverEntity == receiver)
+                isRegistered = true;
+
+        }
+        return isRegistered;
+    }
+
+    public void unregisterReceiver(BroadcastReceiver receiver) {
+        Log.d(TAG, "unregisteringReceiver");
+        Log.d(TAG, "mBroadcastReceivers.size(): " + mReceivers.size());
+        boolean isDeleted = false;
+
+        try {
+            isDeleted = mReceivers.remove(receiver);
+            if(isDeleted) {
+                super.unregisterReceiver(receiver);
+                Log.d(TAG, receiver.toString() + " was unregistered");
+                Log.d(TAG, "mBroadcastReceivers.size(): " + mReceivers.size() + "\tisDeleted: " + isDeleted);
+            }
+        } catch (IllegalArgumentException arg) {
+            Log.d(TAG, receiver.toString() + " is not registered");
+        }
+
     }
 
     private void registerVoiceReceivers()
@@ -185,8 +237,7 @@ public class NotificationService extends NotificationListenerService {
         Log.d(TAG, "onUnbind() intent.getAction(): " + intent.getAction());
         if(intent.getAction().equals(CUSTOM_BINDING)) {
 
-            NotificationServiceConnection.getInstance().onServiceDisconnected(new ComponentName(this, this.getClass()));
-
+            //NotificationServiceConnection.getInstance().onServiceDisconnected(new ComponentName(this, this.getClass()));
         }
         else {
             Log.d(TAG, "!!!!!!!NotificationListenerService unbinded - trying to onBind(intent)");
@@ -204,6 +255,14 @@ public class NotificationService extends NotificationListenerService {
         public NotificationService getService()
         {
             return NotificationService.this;
+        }
+        public void registerReceiver(BroadcastReceiver receiver)
+        {
+            NotificationService.this.registerReceiver(receiver);
+        }
+        public void unregisterReceiver(BroadcastReceiver receiver)
+        {
+            NotificationService.this.unregisterReceiver(receiver);
         }
     }
 }

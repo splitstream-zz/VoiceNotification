@@ -113,9 +113,8 @@ public class NotificationsHistoryFragment extends BaseFragment {
         super.onStart();
         Log.d(TAG,"onStart()");
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
-        IntentFilter filter = new IntentFilter(NotificationService.ACTION_NOTIFICATION_POSTED);
         mAdapter.refresh();
-        mConnection.registerReceiver(mReceiver, filter);
+        mConnection.registerReceiver(mReceiver);
     }
 
     @Override

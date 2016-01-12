@@ -1,6 +1,7 @@
 package org.stream.split.voicenotification.Exceptions;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
@@ -13,10 +14,10 @@ import java.io.StringWriter;
  * Created by split on 2016-01-11.
  */
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
-    private final Activity mContext;
+    private final Context mContext;
     private final String LINE_SEPARATOR = "\n";
 
-    public ExceptionHandler(Activity context)
+    public ExceptionHandler(Context context)
     {
         mContext = context;
     }
