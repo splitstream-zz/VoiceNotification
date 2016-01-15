@@ -22,9 +22,7 @@ public class AppInfoEntity {
         this.mApplicationLabel = ApplicationName;
     }
 
-    public List<BundleKeyEntity> getBundleKeys() {
-        return mBundleKeys;
-    }
+
 
     public void setBundleKeys(List<BundleKeyEntity> bundleKeys) {
         this.mBundleKeys = bundleKeys;
@@ -33,21 +31,36 @@ public class AppInfoEntity {
     public String getBundleKeyValue(String key) {
         StringBuilder value = new StringBuilder();
         for (BundleKeyEntity entity : mBundleKeys) {
-            if (entity.getKey().equals(key))
+            if (entity.getKey().equals(key)) {
                 value.append(entity.getValue());
+                value.append(".\n");
+            }
         }
         return value.toString();
     }
-    public BundleKeyEntity getBundleKey(String key) {
-        BundleKeyEntity result = null;
+    public List<BundleKeyEntity> getBundleKeys() {
+        return getBundleKeys(false);
+    }
+    public List<BundleKeyEntity> getBundleKeys(boolean onlyFollowed) {
+        List<BundleKeyEntity> result = mBundleKeys;
+        if(onlyFollowed) {
+            result = new ArrayList<>();
+            for(BundleKeyEntity entity:mBundleKeys)
+                if(entity.isFollowed())
+                    result.add(entity);
+        }
+        return result;
+    }
+    public List<BundleKeyEntity> getBundleKeys(String key) {
+        List<BundleKeyEntity> result = new ArrayList<>();
         for (BundleKeyEntity entity : mBundleKeys) {
             if (entity.getKey().equals(key)) {
-                result = entity;
-                break;
+                result.add(entity);
             }
         }
         return result;
     }
+
 
     public void addBundleKey(String key, String value) {
         mBundleKeys.add(new BundleKeyEntity(mPackageName, key, value));

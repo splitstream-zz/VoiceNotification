@@ -86,19 +86,19 @@ public class Helper {
         for(String key:keys)
         {
             Object value = bundle.get(key);
-
             StringBuilder logBuilder = new StringBuilder();
             logBuilder.append("key: ");
             logBuilder.append(key);
             logBuilder.append("\t\t\t\t");
             if(value != null )  {
 
-                if(value instanceof CharSequence[])
+                if(value instanceof Object[])
                 {
-                    logBuilder.append("\n====== Charsequense[]======\n");
+                    logBuilder.append("\n====== Charsequence[]======\n");
 
                     StringBuilder builder = new StringBuilder();
-                    for(CharSequence seq:bundle.getCharSequenceArray(key)) {
+
+                    for(Object seq:(Object[])value) {
 
                         logBuilder.append("value(charseq): ");
                         logBuilder.append(seq);
@@ -109,7 +109,7 @@ public class Helper {
                     }
                     bundlekeys.add(new BundleKeyEntity(packageName, key, builder.toString()));
 
-                    logBuilder.append("====== \"Charsequense[]======\n");
+                    logBuilder.append("====== \"Charsequence[]======\n");
                 }
                 else {
                     logBuilder.append("value: ");
@@ -216,21 +216,7 @@ public class Helper {
         return builder;
     }
 
-    public static NotificationEntity createNotificationEntity(StatusBarNotification sbn, Context context) {
 
-        String label = getApplicationLabel(sbn.getPackageName(),context);
-        NotificationEntity notificationEntity = new NotificationEntity(sbn.getId(),
-                sbn.getPackageName(),
-                label,
-                sbn.getPostTime());
-
-        notificationEntity.setBundleKeys(IterateBundleExtras(sbn.getNotification().extras, sbn.getPackageName()));
-        if (sbn.getNotification().tickerText != null) {
-            notificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
-            notificationEntity.addBundleKey("custom.tickerText", sbn.getNotification().tickerText.toString());
-        }
-        return notificationEntity;
-    }
     public static String getUtteranceId(String packageName, long sbnId)
     {
         StringBuilder utteranceId = new StringBuilder();

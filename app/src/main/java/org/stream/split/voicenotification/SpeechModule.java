@@ -33,6 +33,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     private TextToSpeech mTts;
     private Queue<UtteranceEntity> mUtterances;
     private Context mContext;
+    private BaseLogger logger = BaseLogger.getInstance();
 
     public SpeechModule(Context context)
     {
@@ -46,7 +47,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         if(utteranceEntity != null)
             mUtterances.add(utteranceEntity);
 
-        BaseLogger.getInstance().d(TAG, "autostart = " + autoStart);
+        logger.d(TAG, "autostart = " + autoStart);
         if(autoStart)
         {
             startNext();
@@ -59,24 +60,22 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         while(i.hasNext())
         {
             UtteranceEntity entity = i.next();
-            BaseLogger.getInstance().d(TAG, "utteranceId = " + entity.getUtteranceId());
+            logger.d(TAG, "utteranceId = " + entity.getUtteranceId());
             if(entity.getUtteranceId() == utteraanceId)
                 i.remove();
         }
     }
     public void startNext() {
-        BaseLogger.getInstance().d(TAG, "startNext()");
+        logger.d(TAG, "startNext()");
 
         if(!mUtterances.isEmpty()) {
-
             if (mTts == null) {
-                BaseLogger.getInstance().d(TAG, "mTts = null");
+                logger.d(TAG, "mTts = null");
                 mTts = new TextToSpeech(mContext, this);
-                return;
             }
             else {
-                BaseLogger.getInstance().d(TAG, "else, isSpeaking() = " + mTts.isSpeaking());
-                UtteranceEntity utteranceEntity = mUtterances.peek();
+                logger.d(TAG, "else, isSpeaking() = " + mTts.isSpeaking());
+                UtteranceEntity utteranceEntity = mUtterances.remove();
                 speak(utteranceEntity);
             }
         }
@@ -87,16 +86,14 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     }
     private void speak(UtteranceEntity utteranceEntity) {
-        BaseLogger.getInstance().d(TAG, "speak()");
+        logger.d(TAG, "speak()");
 
         HashMap<String, String> params = new HashMap<>();
         String id = utteranceEntity.getUtteranceId();
-        List<BundleKeyEntity> messages = utteranceEntity.getMessages();
-
-        //BaseLogger.getInstance().d(TAG, "startNext()\tutteranceId:" + id + "\tMessage: " + message);
+        String message = utteranceEntity.getFlatMessage();
+        logger.d(TAG, "\tutteranceId:" + id + "\tMessage: " + message);
         params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, id);
-        for(BundleKeyEntity message:messages)
-            mTts.speak(message.getValue(), TextToSpeech.QUEUE_ADD, params);
+        mTts.speak(message, TextToSpeech.QUEUE_ADD, params);
 
     }
     public void stopUtterance()
@@ -125,12 +122,12 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     @Override
     public void onStart(String utteranceId) {
-        BaseLogger.getInstance().d(TAG, "onStart(utteranceId)");
+        logger.d(TAG, "onStart(utteranceId)");
     }
 
     @Override
     public void onDone(String utteranceId) {
-        BaseLogger.getInstance().d(TAG, "onDone()");
+        logger.d(TAG, "onDone()");
         if(!mUtterances.isEmpty()) {
             Queue<UtteranceEntity> utterances = new LinkedList<>();
             for(UtteranceEntity entity:mUtterances)
@@ -147,7 +144,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 
     @Override
     public void onError(String utteranceId) {
-        BaseLogger.getInstance().d(TAG, "onError(String utteranceId)");
+        logger.d(TAG, "onError(String utteranceId)");
         if(mTts != null)
         {
             mTts.shutdown();
@@ -159,29 +156,29 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     @Override
     public void onError(String utteranceId, int errorCode) {
         super.onError(utteranceId, errorCode);
-        BaseLogger.getInstance().d(TAG, "onError(String utteranceId, errorcode)");
+        logger.d(TAG, "onError(String utteranceId, errorcode)");
     }
 
     @Override
     public void onStop(String utteranceId, boolean interrupted) {
         super.onStop(utteranceId, interrupted);
-        BaseLogger.getInstance().d(TAG, "onStop(String utteranceId, boolean interrupted)");
+        logger.d(TAG, "onStop(String utteranceId, boolean interrupted)");
     }
 
     @Override
     public void onInit(int status) {
-        BaseLogger.getInstance().d(TAG, "onInit status = " + status);
+        logger.d(TAG, "onInit status = " + status);
         Locale locale = new Locale("pl","PL");
 
         if(status == TextToSpeech.SUCCESS)
         {
             mTts.setOnUtteranceProgressListener(this);
             int available  = mTts.isLanguageAvailable(locale);
-            BaseLogger.getInstance().d(TAG, "is lang available " + available);
+            logger.d(TAG, "is lang available " + available);
 
             if(mTts.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) {
                 int languageSetResult = mTts.setLanguage(locale);
-                BaseLogger.getInstance().d(TAG, "setLanguage: " + languageSetResult);
+                logger.d(TAG, "setLanguage: " + languageSetResult);
                 startNext();
             }
             else

@@ -6,12 +6,8 @@ import android.app.FragmentTransaction;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Debug;
-import android.os.UserHandle;
-import android.service.notification.StatusBarNotification;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
@@ -71,7 +67,8 @@ public class VoiceNotificationActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         mServiceConnection = NotificationServiceConnection.getInstance();
-        mServiceConnection.initializeServiceContection(getBaseContext());
+        mServiceConnection.initializeServiceState(getBaseContext());
+        mServiceConnection.setActiveSpeechService(true);
 
         setContentView(R.layout.activity_voice_notification);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -120,7 +117,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
     @Override
     protected void onPostResume() {
         super.onPostResume();
-        bindNotificationService();
     }
 
     @Override
@@ -129,14 +125,14 @@ public class VoiceNotificationActivity extends AppCompatActivity
         // Unbind from the service
         Log.d(TAG, "onStop()");
 
-        unbindNotificationService();
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "onDestroy()");
+        mServiceConnection.unregisterAllReceivers();
+
     }
 
     @Override
@@ -186,17 +182,16 @@ public class VoiceNotificationActivity extends AppCompatActivity
         MenuItem menuItem = menu.findItem(R.id.offSwitch);
         View view = MenuItemCompat.getActionView(menuItem);
         //Todo read from preferences state of the switch
-        boolean checked = true;
+        boolean checked = mServiceConnection.isSpeechServiceActive();
         Switch switcha = (Switch)view.findViewById(R.id.switchForActionBar);
         switcha.setChecked(checked);
-        switcha.refreshDrawableState();
-        switcha.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        switcha.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mServiceConnection.setActiveSpeechService(isChecked);
+            public void onClick(View v) {
+                mServiceConnection.setActiveSpeechService(((Switch)v).isChecked());
             }
         });
-
+        switcha.refreshDrawableState();
         return true;
     }
 
@@ -237,8 +232,8 @@ public class VoiceNotificationActivity extends AppCompatActivity
             case R.id.nav_share:
                 break;
             case R.id.nav_send:
-                createTestingNotification();
-                snackBar = Snackbar.make(drawer, "test notification was send", Snackbar.LENGTH_SHORT);
+//                createTestingNotification();
+//                snackBar = Snackbar.make(drawer, "test notification was send", Snackbar.LENGTH_SHORT);
                 break;
         }
 
@@ -256,39 +251,25 @@ public class VoiceNotificationActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
-    private void bindNotificationService()
-    {
-        // Bind to LocalService
-        bindService(mServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
-    }
-    private void unbindNotificationService()
-    {
-        // unBind to LocalService
-
-        if (mServiceConnection.isServiceBound()) {
-            unbindService(mServiceConnection);
-        }
-    }
-
-    private void createTestingNotification()
-    {
-        Intent intent = new Intent(getApplicationContext(), VoiceNotificationActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = Helper.createNotification(getApplicationContext(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
-        if(Debug.isDebuggerConnected())
-        {
-            Log.d(TAG, "create test notification DEBUG MODE ON");
-
-            UserHandle userHandle = android.os.Process.myUserHandle();
-
-            StatusBarNotification sbn = new StatusBarNotification(this.getPackageName(),"",mTestingNotificationID,"tag?",18,19,3,notification,userHandle, System.currentTimeMillis() );
-            mServiceConnection.sentTestNotification(sbn);
-
-        }
-        mNotificationManager.notify(mTestingNotificationID, notification);
-
-    }
+//
+//    private void createTestingNotification()
+//    {
+//        Intent intent = new Intent(getApplicationContext(), VoiceNotificationActivity.class);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        Notification notification = Helper.createNotification(getApplicationContext(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
+//        if(Debug.isDebuggerConnected())
+//        {
+//            Log.d(TAG, "create test notification DEBUG MODE ON");
+//
+//            UserHandle userHandle = android.os.Process.myUserHandle();
+//
+//            StatusBarNotification sbn = new StatusBarNotification(this.getPackageName(),"",mTestingNotificationID,"tag?",18,19,3,notification,userHandle, System.currentTimeMillis() );
+//            mServiceConnection.sentTestNotification(sbn);
+//
+//        }
+//        mNotificationManager.notify(mTestingNotificationID, notification);
+//
+//    }
     private void createPersistentAppNotification()
     {
         Intent intent = new Intent(getApplicationContext(),VoiceNotificationActivity.class);

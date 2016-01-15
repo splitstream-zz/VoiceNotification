@@ -197,7 +197,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
                     if(entity.isFollowed())
                         db.addUpdateBundleKey(entity);
                     else
-                        db.deleteBundleKey(entity);
+                        db.deleteFollowedBundleKey(entity);
             }
         }
         else

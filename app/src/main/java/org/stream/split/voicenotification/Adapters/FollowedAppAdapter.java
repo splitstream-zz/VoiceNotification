@@ -11,9 +11,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
@@ -153,7 +151,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             DBHelper db = new DBHelper(mContext);
             for(BundleKeyEntity e:list)
             {
-                if(db.isBundleKeyFollowed(e))
+                if(db.isFollowed(e))
                     e.setIsFollowed(true);
             }
             db.close();

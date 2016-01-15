@@ -82,8 +82,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
         mAdapter = new NotificationsHistoryAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
-
-
+        mConnection.registerReceiver(mReceiver);
     }
 
 
@@ -114,7 +113,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
         Log.d(TAG,"onStart()");
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
         mAdapter.refresh();
-        mConnection.registerReceiver(mReceiver);
+
     }
 
     @Override
@@ -139,6 +138,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
     @Override
     public void onDetach() {
         super.onDetach();
+        LOGGER.d(TAG, "onDetach()");
         mListener = null;
 
     }
@@ -167,7 +167,11 @@ public class NotificationsHistoryFragment extends BaseFragment {
                 PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 Notification notification = Helper.createNotification(getActivity(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
                 mNotificationManager.notify(mTestingNotificationID, notification);
-                Snackbar.make(v, "test notification was send", Snackbar.LENGTH_SHORT).show();
+                DBHelper db = new DBHelper(getActivity());
+                NotificationEntity entity = db.getLastNotification(getActivity().getPackageName(), true);
+                db.close();
+                Snackbar.make(v, "test notification was send " + entity.getOccurrenceTime(), Snackbar.LENGTH_SHORT).show();
+
             }
         });
     }
@@ -190,6 +194,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            LOGGER.d(TAG, "HISTORY FRAGMENT onReceive()");
             Bundle extras = intent.getExtras();
             String gsonToJson;
             if(extras != null) {
@@ -197,7 +202,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
                 NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
 
                 mAdapter.addItem(notificationEntity);
-                mAdapter.notifyDataSetChanged();
+                mAdapter.refresh();
             }
         }
     }

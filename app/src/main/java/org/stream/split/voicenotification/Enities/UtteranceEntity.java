@@ -1,5 +1,7 @@
 package org.stream.split.voicenotification.Enities;
 
+import org.stream.split.voicenotification.DataAccessLayer.DBContract;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +19,9 @@ public class UtteranceEntity {
     public void addMessage(BundleKeyEntity message) {
         this.mMessages.add(message);
     }
+    public void addMessages(List<BundleKeyEntity> messages) {
+        this.mMessages.addAll(messages);
+    }
 
     public String getUtteranceId() {
         return mUtteranceId;
@@ -30,5 +35,15 @@ public class UtteranceEntity {
     }
     public UtteranceEntity()
     {}
+
+    public String getFlatMessage()
+    {
+        StringBuilder message = new StringBuilder();
+        for(BundleKeyEntity bundle:mMessages) {
+            message.append(bundle.getValue());
+            message.append(".\n");
+        }
+        return message.toString();
+    }
 
 }

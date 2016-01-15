@@ -1,7 +1,6 @@
 package org.stream.split.voicenotification;
 
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
@@ -18,7 +17,7 @@ import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Helpers.Helper;
-import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
+import org.stream.split.voicenotification.Logging.BaseLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +30,7 @@ public class NotificationService extends NotificationListenerService {
 
     public static final String TAG = "NotificationService";
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
+    public static final String CUSTOM_BINDING_SEND_NOTIFICATION = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher.send_notification";
     public static final String NOTIFICATION_OBJECT = "new_notification_object";
     public static final String ACTION_NOTIFICATION_POSTED = TAG + ".notificationPosted";
     public static final String ACTION_NOTIFICATION_REMOVED = TAG + ".notificationRemoved";
@@ -39,10 +39,11 @@ public class NotificationService extends NotificationListenerService {
     {
         return mIsSystemNotificationServiceConnected;
     }
+    private static BaseLogger LOGGER = BaseLogger.getInstance();
 
     private List<BroadcastReceiver> mReceivers = new ArrayList<>();
     private NotificationBroadcastReceiver mVoiceGenerator;
-    private boolean mIsVoiceActive = false;
+    private static boolean mIsVoiceActive = false;
 
     public void setVoiceActive(boolean isVoiceActive) {
 
@@ -59,7 +60,7 @@ public class NotificationService extends NotificationListenerService {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
 
-        Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this.getBaseContext()));
+        //Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this.getBaseContext()));
 
     }
 
@@ -84,33 +85,25 @@ public class NotificationService extends NotificationListenerService {
             this.registerReceiver(receiver);
     }
 
-    private void unregisterVoiceReceiver()
-    {
-        Log.d(TAG, "unregisterVoiceReciver Before");
-        if(mVoiceGenerator != null) {
-            Log.d(TAG, "unregisterVoiceReciver Inside");
-            this.mVoiceGenerator.Shutdown();
 
-            try {
-                unregisterReceiver(mVoiceGenerator);
-            } catch (IllegalArgumentException arg) {
-                Log.e(TAG, "mVoiceGenerator is not registered!!!!!");
-            }
-            mVoiceGenerator = null;
-        }
-    }
     public int registerReceiver(@NonNull BroadcastReceiver receiver)
     {
-        Log.d(TAG, "registeringReceiver");
-
+        Log.d(TAG, "registeringReceiver " + receiver.getClass().getSimpleName());
+        LOGGER.d(TAG, "mreceivers.size() = " + String.valueOf(mReceivers.size()));
         int result = -1;
         if(!isRegisteredReceiver(receiver)) {
+
             mReceivers.add(receiver);
-            super.registerReceiver(receiver, new IntentFilter());
+            IntentFilter intentFilter = new IntentFilter();
+            intentFilter.addAction(ACTION_NOTIFICATION_POSTED);
+            super.registerReceiver(receiver, intentFilter);
+            LOGGER.d(TAG, receiver.getClass().getSimpleName() + " was successfully registered");
             result = 0;
         }
-        else
+        else {
+            LOGGER.d(TAG, receiver.getClass().getSimpleName() + " was already registered");
             result = 1;
+        }
         return result;
     }
 
@@ -133,6 +126,7 @@ public class NotificationService extends NotificationListenerService {
 
         try {
             isDeleted = mReceivers.remove(receiver);
+
             if(isDeleted) {
                 super.unregisterReceiver(receiver);
                 Log.d(TAG, receiver.toString() + " was unregistered");
@@ -142,6 +136,11 @@ public class NotificationService extends NotificationListenerService {
             Log.d(TAG, receiver.toString() + " is not registered");
         }
 
+    }
+
+    private void unregisterAllReceivers() {
+        for(BroadcastReceiver receiver:mReceivers)
+            unregisterReceiver(receiver);
     }
 
     private void registerVoiceReceivers()
@@ -158,9 +157,23 @@ public class NotificationService extends NotificationListenerService {
 
     }
 
+    private void unregisterVoiceReceiver()
+    {
+        Log.d(TAG, "unregisterVoiceReciver Before");
+        if(mVoiceGenerator != null) {
+            this.mVoiceGenerator.Shutdown();
+            try {
+                unregisterReceiver(mVoiceGenerator);
+                LOGGER.d(TAG, "unregisterVoiceReciver Inside");
+            } catch (IllegalArgumentException arg) {
+                Log.e(TAG, "mVoiceGenerator is not registered!!!!!");
+            }
+            mVoiceGenerator = null;
+        }
+    }
+
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        super.onNotificationPosted(sbn);
         Log.d(TAG, "**********  onNotificationPosted");
         Log.d(TAG, "Id : " + sbn.getId() + ",\tTAG: " + sbn.getTag() + ",\tpackagename:" + sbn.getPackageName());
         if(sbn.getNotification().tickerText != null)
@@ -187,7 +200,21 @@ public class NotificationService extends NotificationListenerService {
     }
     private NotificationEntity createNotification(StatusBarNotification sbn)
     {
-        NotificationEntity newNotificationEntity = Helper.createNotificationEntity(sbn, this);
+
+        String label = Helper.getApplicationLabel(sbn.getPackageName(),this);
+
+        NotificationEntity newNotificationEntity = new NotificationEntity(sbn.getId(),
+                sbn.getPackageName(),
+                label,
+                sbn.getPostTime());
+
+        List<BundleKeyEntity> bundles = Helper.IterateBundleExtras(sbn.getNotification().extras, sbn.getPackageName());
+
+        newNotificationEntity.setBundleKeys(bundles);
+        if (sbn.getNotification().tickerText != null) {
+            newNotificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
+            newNotificationEntity.addBundleKey("custom.tickerText", sbn.getNotification().tickerText.toString());
+        }
 
         DBHelper db = new DBHelper(this);
         long rowId = db.addNotification(newNotificationEntity);
@@ -197,7 +224,7 @@ public class NotificationService extends NotificationListenerService {
 
         if(newNotificationEntity.isFollowed()) {
             for(BundleKeyEntity entity:newNotificationEntity.getBundleKeys())
-                entity.setIsFollowed(db.isBundleKeyFollowed(entity));
+                entity.setIsFollowed(db.isFollowed(entity));
         }
         db.close();
         return newNotificationEntity;
@@ -223,6 +250,10 @@ public class NotificationService extends NotificationListenerService {
         Log.d(TAG, "onBind() intent.getAction(): " + intent.getAction());
         if(intent.getAction().equals(CUSTOM_BINDING))
             return new NotificationCatcherBinder();
+//        else if(intent.getAction().equals(CUSTOM_BINDING_SEND_NOTIFICATION))
+//        {
+//
+//        }
         else {
             Log.d(TAG, "onBind else intent.getAction(): " + intent.getAction());
             mIsSystemNotificationServiceConnected = true;
@@ -233,15 +264,11 @@ public class NotificationService extends NotificationListenerService {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        //TODO not sure if it's needed either way
         Log.d(TAG, "onUnbind() intent.getAction(): " + intent.getAction());
-        if(intent.getAction().equals(CUSTOM_BINDING)) {
-
-            //NotificationServiceConnection.getInstance().onServiceDisconnected(new ComponentName(this, this.getClass()));
-        }
-        else {
+        if(!intent.getAction().equals(CUSTOM_BINDING)) {
             Log.d(TAG, "!!!!!!!NotificationListenerService unbinded - trying to onBind(intent)");
             mIsSystemNotificationServiceConnected = false;
+            //todo not sure if this onBind is going to help
             onBind(intent);
         }
         return super.onUnbind(intent);
@@ -264,5 +291,18 @@ public class NotificationService extends NotificationListenerService {
         {
             NotificationService.this.unregisterReceiver(receiver);
         }
+        public void setVoiceActive(boolean isActive)
+        {
+            NotificationService.this.setVoiceActive(isActive);
+        }
+        public void unregisterAllReceivers()
+        {
+            NotificationService.this.unregisterAllReceivers();
+        }
+        public void sendTestNotification(StatusBarNotification sbn)
+        {
+            NotificationService.this.onNotificationPosted(sbn);
+        }
     }
+
 }

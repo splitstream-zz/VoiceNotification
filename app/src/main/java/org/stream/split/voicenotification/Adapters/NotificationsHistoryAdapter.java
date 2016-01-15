@@ -21,7 +21,6 @@ import org.stream.split.voicenotification.Fragments.ApplicationDetailsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
 
-import java.text.DateFormat;
 import java.util.List;
 
 /**
@@ -70,7 +69,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
             if(mContext instanceof Activity)
             {
                 DBHelper db = new DBHelper(mContext);
-                mNotificationEntity.setBundleKeys(db.getMessages(mNotificationEntity.getID()));
+                mNotificationEntity.setBundleKeys(db.getBundleKeys(mNotificationEntity.getID()));
                 db.close();
                 Fragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(mNotificationEntity));
                 FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
