@@ -167,10 +167,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
                 PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                 Notification notification = Helper.createNotification(getActivity(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
                 mNotificationManager.notify(mTestingNotificationID, notification);
-                DBHelper db = new DBHelper(getActivity());
-                NotificationEntity entity = db.getLastNotification(getActivity().getPackageName(), true);
-                db.close();
-                Snackbar.make(v, "test notification was send " + entity.getOccurrenceTime(), Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(v, "test notification was send ", Snackbar.LENGTH_SHORT).show();
 
             }
         });

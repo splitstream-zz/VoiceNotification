@@ -7,6 +7,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -66,6 +67,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
         mServiceConnection = NotificationServiceConnection.getInstance();
         mServiceConnection.initializeServiceState(getBaseContext());
         mServiceConnection.setActiveSpeechService(true);
@@ -95,6 +97,8 @@ public class VoiceNotificationActivity extends AppCompatActivity
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         createPersistentAppNotification();
         checkNotificationAccess();
+        View root = drawer.getRootView();
+        root.setBackgroundColor(Color.LTGRAY);
     }
 
     private void checkNotificationAccess() {
