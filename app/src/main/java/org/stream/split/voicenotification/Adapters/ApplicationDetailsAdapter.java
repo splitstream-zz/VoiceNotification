@@ -2,6 +2,8 @@ package org.stream.split.voicenotification.Adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.shapes.RoundRectShape;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +13,7 @@ import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.stream.split.voicenotification.Controls.ImageCheckBox;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperAdapter;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperViewHolder;
@@ -22,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 //TODO disable dismiss feature
+
 /**
  * Created by split on 2015-10-20.
  */
@@ -35,12 +39,13 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener ,View.OnClickListener, ItemTouchHelperViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener, View.OnClickListener, ItemTouchHelperViewHolder {
 
         public LinearLayout mTextLayout;
         public TextView mKeyTextView;
         public TextView mValueTextView;
         public CheckBox mCheckBox;
+        public ImageCheckBox mShowAlwaysCheckBox;
         public BundleKeyEntity mBundleKeyEntity;
 
 
@@ -50,6 +55,7 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
             mKeyTextView = (TextView) v.findViewById(R.id.bundlekey_name);
             mValueTextView = (TextView) v.findViewById(R.id.bundlekey_value);
             mCheckBox = (CheckBox) v.findViewById(R.id.bundlekey_cbx);
+            mShowAlwaysCheckBox = (ImageCheckBox) v.findViewById(R.id.bundlekey_show_always_cbx);
         }
 
         public void Initialize(BundleKeyEntity bundleKeyEntity) {
@@ -57,10 +63,9 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
             StringBuilder builder = new StringBuilder(bundleKeyEntity.getKey() + " [" + mBundleKeyEntity.getPriority() + "]");
 
             mKeyTextView.setText(builder.toString());
-            if(bundleKeyEntity.getValue() == null || bundleKeyEntity.getValue().isEmpty())
+            if (bundleKeyEntity.getValue() == null || bundleKeyEntity.getValue().isEmpty())
                 mValueTextView.setVisibility(View.GONE);
-            else
-            {
+            else {
                 mValueTextView.setText(bundleKeyEntity.getValue());
                 mValueTextView.setVisibility(View.VISIBLE);
             }
@@ -68,15 +73,36 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
             mCheckBox.setChecked(bundleKeyEntity.isFollowed());
             mCheckBox.setOnClickListener(this);
 
+            Drawable showAlwaysDrawable = mContext.getResources().getDrawable(R.drawable.ic_show_always);
+            initializeShowAlwaysCbx(mBundleKeyEntity.isFollowed(), showAlwaysDrawable);
+
             mTextLayout.setOnLongClickListener(this);
+        }
+
+        private void initializeShowAlwaysCbx(boolean isFollowed, Drawable showAlwaysDrawable) {
+            if (isFollowed) {
+                RoundRectShape backgroundShape = new RoundRectShape(new float[] { 45, 45, 45, 45, 45, 45, 45, 45 }, null,null);
+                mShowAlwaysCheckBox.initialize(showAlwaysDrawable, 40, 40, mContext.getResources().getColor(R.color.colorAccent),backgroundShape);
+                mShowAlwaysCheckBox.setVisibility(View.VISIBLE);
+                boolean isShownAlways = mBundleKeyEntity.isShowAlways();
+                mShowAlwaysCheckBox.setChecked(isShownAlways);
+                mShowAlwaysCheckBox.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mBundleKeyEntity.setIsModified(true);
+                        mBundleKeyEntity.setIsShowAlways(((CheckBox) v).isChecked());
+                    }
+                });
+            } else
+                mShowAlwaysCheckBox.setVisibility(View.GONE);
+
         }
 
         @Override
         public void onClick(View v) {
             mBundleKeyEntity.setIsModified(true);
             mBundleKeyEntity.setIsFollowed(((CheckBox) v).isChecked());
-            if(((CheckBox) v).isChecked())
-            {
+            if (((CheckBox) v).isChecked()) {
                 int maxPriority = getMaxPriority();
                 mBundleKeyEntity.setPriority(++maxPriority);
             }
@@ -109,8 +135,7 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
         mDragStartListener = onStartDragListener;
     }
 
-    public List<BundleKeyEntity> getItems()
-    {
+    public List<BundleKeyEntity> getItems() {
         return mDataset;
     }
 
@@ -138,13 +163,11 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
     public int getItemCount() {
         return mDataset.size();
     }
-    public List<BundleKeyEntity> getModifiedItems()
-    {
+
+    public List<BundleKeyEntity> getModifiedItems() {
         List<BundleKeyEntity> bundleKeys = new ArrayList<>();
-        for(BundleKeyEntity entity:mDataset)
-        {
-            if(entity.isModified())
-            {
+        for (BundleKeyEntity entity : mDataset) {
+            if (entity.isModified()) {
                 bundleKeys.add(entity);
             }
         }
@@ -156,8 +179,8 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
         BundleKeyEntity fromPositionEntity = mDataset.get(fromPosition);
         BundleKeyEntity toPositionEntity = mDataset.get(toPosition);
 
-       //log(fromPosition,toPosition);
-        if(fromPositionEntity.isFollowed() && toPositionEntity.isFollowed()) {
+        //log(fromPosition,toPosition);
+        if (fromPositionEntity.isFollowed() && toPositionEntity.isFollowed()) {
             int tempPriority = toPositionEntity.getPriority();
             toPositionEntity.setPriority(fromPositionEntity.getPriority());
             fromPositionEntity.setPriority(tempPriority);
@@ -167,8 +190,7 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
 
             fromPositionEntity.setIsModified(true);
             toPositionEntity.setIsModified(true);
-        }
-        else
+        } else
             return true;
 
         //log(fromPosition,toPosition);
@@ -179,14 +201,14 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
     public void onItemDismiss(int position) {
         //TODO implemetn function
     }
-    public void refresh(List<BundleKeyEntity> entities)
-    {
+
+    public void refresh(List<BundleKeyEntity> entities) {
         mDataset.clear();
         mDataset.addAll(entities);
 
     }
-    private void log(int fromPosition, int toPosition)
-    {
+
+    private void log(int fromPosition, int toPosition) {
         BundleKeyEntity fromPositionEntity = mDataset.get(fromPosition);
         BundleKeyEntity toPositionEntity = mDataset.get(toPosition);
         StringBuilder builder = new StringBuilder();
@@ -209,12 +231,11 @@ public class ApplicationDetailsAdapter extends RecyclerView.Adapter<ApplicationD
         builder.append("\n");
         Log.d(TAG, builder.toString());
     }
-    private int getMaxPriority()
-    {
+
+    private int getMaxPriority() {
         int maxPriority = 0;
-        for(BundleKeyEntity e:mDataset)
-        {
-            if(e.getPriority()> maxPriority)
+        for (BundleKeyEntity e : mDataset) {
+            if (e.getPriority() > maxPriority)
                 maxPriority = e.getPriority();
         }
         return maxPriority;

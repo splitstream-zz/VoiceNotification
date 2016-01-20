@@ -98,8 +98,8 @@ public class Helper {
 
                     StringBuilder builder = new StringBuilder();
 
-                    for(Object seq:(Object[])value) {
 
+                    for(Object seq:(Object[])value) {
                         logBuilder.append("value(charseq): ");
                         logBuilder.append(seq);
                         logBuilder.append("\n");
@@ -107,6 +107,7 @@ public class Helper {
                         builder.append(seq);
                         builder.append("\n");
                     }
+
                     bundlekeys.add(new BundleKeyEntity(packageName, key, builder.toString()));
 
                     logBuilder.append("====== \"Charsequence[]======\n");
@@ -254,18 +255,6 @@ public class Helper {
         .setTicker("voice notification");
 
         return builder.build();
-    }
-
-    public static Notification createPersistentAppNotification(Context context, PendingIntent pendingIntent)
-    {
-        Resources res = context.getResources();
-        Notification notification = createNotification(context,
-                pendingIntent,
-                res.getString(R.string.Notification_title),
-                res.getString(R.string.Notification_text),
-                res.getString(R.string.Notification_subtext),
-                true);
-        return notification;
     }
 
     public static boolean tryParseInt(String value) {

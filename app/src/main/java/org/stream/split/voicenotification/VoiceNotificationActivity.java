@@ -6,9 +6,16 @@ import android.app.FragmentTransaction;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Debug;
+import android.os.UserHandle;
+import android.preference.PreferenceManager;
+import android.service.notification.StatusBarNotification;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
@@ -21,9 +28,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CompoundButton;
 import android.widget.Switch;
 
+import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Fragments.BaseFragment;
 import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
 import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
@@ -31,6 +39,8 @@ import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
+import org.stream.split.voicenotification.Logging.BaseLogger;
+
 //TODO make some nice splash screen
 //TODO dodać do poszczególnych fragmentów tytuły
 //TODO extend fragment menager and make things more comprehensible
@@ -42,16 +52,19 @@ import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListen
 //TODO change persistent notification accordingly to app setting
 //TODO settings should store data to initialize application e.g. state of the voice utterences (on/of switch)
 public class VoiceNotificationActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
     public static Fragment CURRENT_FRAGMENT;
 
-    private final String TAG = "VoiceNotificationActivity";
+    private final String TAG = "VoiceNotifiActivity";
     private NotificationManager mNotificationManager;
-    private final int mPersistentNotificationID = 8976;
     private final int mTestingNotificationID = 6879;
     private FragmentManager mFragmentManager;
     private NotificationServiceConnection mServiceConnection;
+    private SharedPreferences mSharedPreferences;
+    private boolean mIsVoiceActive;
+    private Switch mIsVoiceActiveSwitch;
+    private BaseLogger logger = BaseLogger.getInstance();
 
     /**
      * zmienna w której zapisywany jest timestamp naciśniecia klawisza back
@@ -63,14 +76,28 @@ public class VoiceNotificationActivity extends AppCompatActivity
      */
     private long mExitBackKeyInterval = 3000;
 
+    public boolean isVoiceActive() {
+        return mIsVoiceActive;
+    }
+
+    public void setIsVoiceActive(boolean isVoiceActive) {
+        this.mIsVoiceActive = isVoiceActive;
+        String isVoiceActivePrefKey = getResources().getString(R.string.pref_is_voice_active_key);
+        logger.d(TAG, "set voice active = "+isVoiceActive);
+        mSharedPreferences.edit().putBoolean(isVoiceActivePrefKey,isVoiceActive).apply();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        //Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
+        //logger.addExcludedTag(DBHelper.TAG);
+        Resources res = this.getResources();
+        mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        initializeActivity(mSharedPreferences, res);
 
         mServiceConnection = NotificationServiceConnection.getInstance();
-        mServiceConnection.initializeServiceState(getBaseContext());
-        mServiceConnection.setActiveSpeechService(true);
 
         setContentView(R.layout.activity_voice_notification);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -95,10 +122,15 @@ public class VoiceNotificationActivity extends AppCompatActivity
         }
         //creating persistent notification for purposes of informing user of running up
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        createPersistentAppNotification();
         checkNotificationAccess();
+
+        //setting background from splash screen back to color
         View root = drawer.getRootView();
         root.setBackgroundColor(Color.LTGRAY);
+    }
+
+    private void initializeActivity(SharedPreferences sharedPreferences, Resources res) {
+        mIsVoiceActive = sharedPreferences.getBoolean(res.getString(R.string.pref_is_voice_active_key),false);
     }
 
     private void checkNotificationAccess() {
@@ -116,11 +148,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
+        Intent intent = new Intent(this,NotificationService.class);
+        intent.setAction(NotificationService.CUSTOM_BINDING);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
     }
 
     @Override
@@ -128,15 +159,14 @@ public class VoiceNotificationActivity extends AppCompatActivity
         super.onStop();
         // Unbind from the service
         Log.d(TAG, "onStop()");
-
+        unbindService(mServiceConnection);
+        mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mServiceConnection.unregisterAllReceivers();
-
     }
 
     @Override
@@ -186,16 +216,17 @@ public class VoiceNotificationActivity extends AppCompatActivity
         MenuItem menuItem = menu.findItem(R.id.offSwitch);
         View view = MenuItemCompat.getActionView(menuItem);
         //Todo read from preferences state of the switch
-        boolean checked = mServiceConnection.isSpeechServiceActive();
-        Switch switcha = (Switch)view.findViewById(R.id.switchForActionBar);
-        switcha.setChecked(checked);
-        switcha.setOnClickListener(new View.OnClickListener() {
+        mIsVoiceActiveSwitch = (Switch)view.findViewById(R.id.switchForActionBar);
+        mIsVoiceActiveSwitch.setChecked(isVoiceActive());
+        mIsVoiceActiveSwitch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mServiceConnection.setActiveSpeechService(((Switch)v).isChecked());
+                Switch switcha = (Switch) v;
+                setIsVoiceActive(switcha.isChecked());
+
             }
         });
-        switcha.refreshDrawableState();
+        mIsVoiceActiveSwitch.refreshDrawableState();
         return true;
     }
 
@@ -236,8 +267,8 @@ public class VoiceNotificationActivity extends AppCompatActivity
             case R.id.nav_share:
                 break;
             case R.id.nav_send:
-//                createTestingNotification();
-//                snackBar = Snackbar.make(drawer, "test notification was send", Snackbar.LENGTH_SHORT);
+                createTestingNotification();
+                snackBar = Snackbar.make(drawer, "test notification was send", Snackbar.LENGTH_SHORT);
                 break;
         }
 
@@ -255,32 +286,26 @@ public class VoiceNotificationActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-//
-//    private void createTestingNotification()
-//    {
-//        Intent intent = new Intent(getApplicationContext(), VoiceNotificationActivity.class);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//        Notification notification = Helper.createNotification(getApplicationContext(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
-//        if(Debug.isDebuggerConnected())
-//        {
-//            Log.d(TAG, "create test notification DEBUG MODE ON");
-//
-//            UserHandle userHandle = android.os.Process.myUserHandle();
-//
-//            StatusBarNotification sbn = new StatusBarNotification(this.getPackageName(),"",mTestingNotificationID,"tag?",18,19,3,notification,userHandle, System.currentTimeMillis() );
-//            mServiceConnection.sentTestNotification(sbn);
-//
-//        }
-//        mNotificationManager.notify(mTestingNotificationID, notification);
-//
-//    }
-    private void createPersistentAppNotification()
+
+    private void createTestingNotification()
     {
-        Intent intent = new Intent(getApplicationContext(),VoiceNotificationActivity.class);
+        Intent intent = new Intent(getApplicationContext(), VoiceNotificationActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-        Notification notification = Helper.createPersistentAppNotification(getApplicationContext(), pendingIntent);
-        mNotificationManager.notify(mPersistentNotificationID, notification);
+        Notification notification = Helper.createNotification(getApplicationContext(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
+        if(Debug.isDebuggerConnected())
+        {
+            Log.d(TAG, "create test notification DEBUG MODE ON");
+
+            UserHandle userHandle = android.os.Process.myUserHandle();
+
+            StatusBarNotification sbn = new StatusBarNotification(this.getPackageName(),"",mTestingNotificationID,"tag?",18,19,3,notification,userHandle, System.currentTimeMillis() );
+            mServiceConnection.sendTestNotification(sbn);
+
+        }
+        mNotificationManager.notify(mTestingNotificationID, notification);
+
     }
+
 
     /**
      * Funkcja służaca do komunikacji pomiędzy Fragmentami
@@ -291,4 +316,17 @@ public class VoiceNotificationActivity extends AppCompatActivity
         Snackbar.make(this.findViewById(R.id.frame_content),"sdasd",Snackbar.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        Resources res = getResources();
+        logger.d(TAG,"onSharedPreferenceChanged()");
+        if(key.equals(res.getString(R.string.pref_is_voice_active_key)))
+        {
+            Boolean isVoiceActive = sharedPreferences.getBoolean(key,false);
+            mIsVoiceActiveSwitch.setChecked(isVoiceActive);
+            mIsVoiceActive = isVoiceActive;
+            logger.d(TAG,"onSharedPreferenceChanged(), isVoiceActive = " + isVoiceActive);
+        }
+
+    }
 }

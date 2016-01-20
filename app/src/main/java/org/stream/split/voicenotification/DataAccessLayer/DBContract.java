@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 public final class DBContract {
 
     public final static String DB_Name = "VoiceNotification.db";
-    public final static int DB_Version = 45;
+    public final static int DB_Version = 47;
     public final static int HistoryQuantityLimit = 51;
 
     DBContract(){}
@@ -35,12 +35,14 @@ public final class DBContract {
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
         public static final String COLUMN_NAME_BUNDLE_KEY = "BundleKey";
         public static final String COLUMN_NAME_PRIORITY = "BundleKeyPriority";
+        public static final String COLUMN_NAME_SHOW_ALWAYS = "ShowAlways";
 
         public static final String SQL_CREATE_TABLE =
                 "CREATE TABLE " + TABLE_NAME + "( "+
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_PRIORITY + " INTEGER NOT NULL, " +
+                        COLUMN_NAME_SHOW_ALWAYS + " INTEGER DEFAULT 0, " +
                         "PRIMARY KEY("+COLUMN_NAME_PACKAGE_NAME+", "+ COLUMN_NAME_BUNDLE_KEY +"), " +
                         "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " + AppFeed.TABLE_NAME + "(" + AppFeed.COLUMN_NAME_PACKAGE_NAME +
                         ") ON DELETE CASCADE);";

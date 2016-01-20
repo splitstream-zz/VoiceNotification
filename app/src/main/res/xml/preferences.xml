@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="@string/pref_config_setting_system" >
+    <PreferenceCategory android:title="@string/pref_category_title"
+        >
         <Preference
-            android:summary="@string/pref_config_setting_accept_notifications_summary"
-            android:title="@string/pref_config_setting_accept_notifications_title" >
+            android:summary="@string/pref_accept_notifications_summary"
+            android:title="@string/pref_accept_notifications_title" >
             <intent android:action="android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS">
             </intent>
         </Preference>
+        <CheckBoxPreference android:title="@string/pref_is_persistent_notification_title"
+            android:key="@string/pref_is_persistent_notification_key"
+            android:defaultValue="@bool/isNotificationPersistent"/>
+        <CheckBoxPreference android:key="@string/pref_is_voice_active_key"
+            android:title="@string/pref_is_voice_active_title"/>
     </PreferenceCategory>
 </PreferenceScreen>

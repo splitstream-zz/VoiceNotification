@@ -116,7 +116,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         public void Initialize(AppInfoEntity entity)
         {
 
-            Drawable icon = null;
+            Drawable icon;
             try{
                 icon = mContext.getPackageManager().getApplicationIcon(entity.getPackageName());
                 cbx.initialize(icon);
@@ -149,10 +149,13 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
 
             List<BundleKeyEntity> list = Helper.getAllNotificationBundleKeys(entity.getPackageName());
             DBHelper db = new DBHelper(mContext);
-            for(BundleKeyEntity e:list)
+            for(BundleKeyEntity e1:list)
             {
-                if(db.isFollowed(e))
-                    e.setIsFollowed(true);
+                for(BundleKeyEntity e2:entity.getBundleKeys())
+                    if(e1.getKey().equals(e2.getKey())) {
+                        e1.setIsShowAlways(e2.isShowAlways());
+                        e1.setIsFollowed(e2.isFollowed());
+                    }
             }
             db.close();
             entity.setBundleKeys(list);

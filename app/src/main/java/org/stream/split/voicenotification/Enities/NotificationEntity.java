@@ -9,48 +9,48 @@ import java.util.List;
  */
 public class NotificationEntity extends AppInfoEntity
 {
-    long mId;
-    long mSbnId;
-    long mOccurrenceTime;
-    String mTinkerText;
+        long mId;
+        long mSbnId;
+        long mOccurrenceTime;
+        String mTinkerText;
 
-    public long getID() {
+public long getID() {
         return mId;
-    }
-    public void setID(long ID) {
+        }
+public void setID(long ID) {
         this.mId = ID;
-    }
+        }
 
-    public long getSbnId() {
+public long getSbnId() {
         return mSbnId;
-    }
-    public void setSbnId(long sbnId) {
+        }
+public void setSbnId(long sbnId) {
         this.mSbnId = sbnId;
-    }
+        }
 
-    public String getTinkerText() {
+public String getTinkerText() {
         return mTinkerText;
-    }
-    public void setTinkerText(String TinkerText) {
+        }
+public void setTinkerText(String TinkerText) {
         this.mTinkerText = TinkerText;
-    }
+        }
 
-    public long getOccurrenceTime() {
+public long getOccurrenceTime() {
         return mOccurrenceTime;
-    }
-    public void setOccurrenceTime(long OccurrenceTime) {
+        }
+public void setOccurrenceTime(long OccurrenceTime) {
         this.mOccurrenceTime = OccurrenceTime;
-    }
+        }
 
-    public NotificationEntity( long sbnId, String packageName, String applicationLabel, long occurrenceTime)
-    {
+public NotificationEntity( long sbnId, String packageName, String applicationLabel, long occurrenceTime)
+        {
         super(packageName,applicationLabel);
         mSbnId = sbnId;
         mOccurrenceTime = occurrenceTime;
-    }
+        }
 
-    public NotificationEntity(long ID)
-    {
+public NotificationEntity(long ID)
+        {
         mId = ID;
-    }
-}
+        }
+        }

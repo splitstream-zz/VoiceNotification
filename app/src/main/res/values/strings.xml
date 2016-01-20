@@ -7,9 +7,11 @@
     <string name="action_settings">Settings</string>
     <string name="action_turn_off">Turn off</string>
 
-    <string name="Notification_title">powiadomienia głosowe</string>
-    <string name="Notification_text">aplikacja aktywna</string>
-    <string name="Notification_subtext">przejdz do ustawień</string>
+    <string name="Persistent_notification_title">Voice notification</string>
+    <string name="Persistent_notification_text_enabled">aplikacja aktywna</string>
+    <string name="Persistent_notification_text_no_notification_access">brak dostępu do powiadomień</string>
+    <string name="Persistent_notification_text_disabled">aplikacja nie aktywna</string>
+    <string name="Persistent_notification_ticker_text">Voice notification</string>
 
     <string name="service_name">notification catcher</string>
 
@@ -22,11 +24,16 @@
     <string name="CustomIntent_NotificationCatcher">org.stream.split.voicenotification.CustomIntent_NotificationCatcher</string>
     <string name="delete_app">Usuń</string>
 
-    <string name="pref_config_setting_accept_notifications_title">Powiadomienia</string>
-    <string name="pref_config_setting_accept_notifications_summary">zezwól aplikacji na przechwytywanie powiadomień</string>
-    <string name="pref_config_setting_system">Ustawienia</string>
-    <string name="shared_preferences">org.stream.split.voicenotification.shared_pref</string>
+    <string name="pref_accept_notifications_title">Powiadomienia</string>
+    <string name="pref_accept_notifications_summary">zezwól aplikacji na przechwytywanie powiadomień</string>
+    <string name="pref_category_title">Ustawienia</string>
+    <string name="shared_preferences">sharedPref</string>
 
+    <string name="pref_is_persistent_notification_key">Stałe powiadomieni</string>
+    <string name="pref_is_persistent_notification_title">Stałe powiadomieni</string>
+
+    <string name="pref_is_voice_active_key">powiadomienia głosowe</string>
+    <string name="pref_is_voice_active_title">powiadomienia głosowe</string>
 
 
 </resources>

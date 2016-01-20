@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 
+import org.stream.split.voicenotification.Logging.BaseLogger;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 import java.io.PrintWriter;
@@ -14,8 +15,11 @@ import java.io.StringWriter;
  * Created by split on 2016-01-11.
  */
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
+
     private final Context mContext;
     private final String LINE_SEPARATOR = "\n";
+    private BaseLogger Logger = BaseLogger.getInstance();
+    private String TAG = this.getClass().getSimpleName();
 
     public ExceptionHandler(Context context)
     {
@@ -55,9 +59,8 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         errorReport.append(Build.VERSION.INCREMENTAL);
         errorReport.append(LINE_SEPARATOR);
 
-
-
-        Intent intent = new Intent(mContext, VoiceNotificationActivity.class);
+        Logger.d(TAG, errorReport.toString());
+        Intent intent = new Intent(mContext, mContext.getClass());
         intent.putExtra("error", errorReport.toString());
         mContext.startActivity(intent);
 

@@ -1,10 +1,13 @@
 package org.stream.split.voicenotification.Fragments;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +26,7 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
  * Use the {@link SettingsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class SettingsFragment extends PreferenceFragment {
+public class SettingsFragment extends PreferenceFragment{
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -73,6 +76,10 @@ public class SettingsFragment extends PreferenceFragment {
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+    }
 
     @Override
     public void onAttach(Activity activity) {
@@ -90,14 +97,4 @@ public class SettingsFragment extends PreferenceFragment {
         super.onDetach();
         mListener = null;
     }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(new long[]{1,2,3});
-        }
-    }
-
-
-
 }

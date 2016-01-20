@@ -147,19 +147,6 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
         super.onDetach();
     }
 
-//    /**
-//     * The default content for this Fragment has a TextView that is shown when
-//     * the list is empty. If you would like to change the text, call this method
-//     * to supply the text it should use.
-//     */
-//    public void setEmptyText(CharSequence emptyText) {
-//        View emptyView = mListView.getEmptyView();
-//
-//        if (emptyView instanceof TextView) {
-//            ((TextView) emptyView).setText(emptyText);
-//        }
-//    }
-
     void setUpFab() {
 
         android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);

@@ -27,6 +27,7 @@ public class NotificationServiceConnection implements ServiceConnection {
     private boolean mIsVoiceActive = false;
     private Context mContext;
     private BaseLogger logger = BaseLogger.getInstance();
+    private boolean mIsServiceBound;
 
     public static NotificationServiceConnection getInstance()
     {
@@ -38,36 +39,28 @@ public class NotificationServiceConnection implements ServiceConnection {
     {
 
     }
-    public void initializeServiceState(Context context)
-    {
-        mContext = context;
-    }
-
 
     public void setActiveSpeechService(boolean isVoiceActive) {
+        if(mIsServiceBound)
+            mNotificationService.setVoiceActive(isVoiceActive);
         logger.d(TAG, "setActiveSpeechService("+isVoiceActive+")");
         this.mIsVoiceActive = isVoiceActive;
-        bindService();
     }
 
     public void registerReceiver(@NonNull BroadcastReceiver receiver)
     {
-        logger.d(TAG,"registering receiver" + receiver.getClass().getSimpleName());
-        mBroadcastReceivers.add(receiver);
-        bindService();
+        logger.d(TAG, "registering receiver" + receiver.getClass().getSimpleName());
+        if(mIsServiceBound)
+            mNotificationService.registerReceiver(receiver);
+        else
+            mBroadcastReceivers.add(receiver);
     }
-    public void unregisterReceiver(@NonNull BroadcastReceiver receiver)
-    {
-        mBroadcastReceivers.remove(receiver);
-        bindService();
-    }
+    public void unregisterReceiver(@NonNull BroadcastReceiver receiver) {
+        if (mIsServiceBound)
+            mNotificationService.unregisterReceiver(receiver);
+        else
+            mBroadcastReceivers.remove(receiver);
 
-    private void bindService()
-    {
-        logger.d(TAG, "binding");
-        Intent intent = new Intent(mContext,NotificationService.class);
-        intent.setAction(NotificationService.CUSTOM_BINDING);
-        mContext.bindService(intent, this, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -78,14 +71,13 @@ public class NotificationServiceConnection implements ServiceConnection {
             mNotificationService = (NotificationService.NotificationCatcherBinder) service;
             for(BroadcastReceiver receiver:mBroadcastReceivers)
                 mNotificationService.registerReceiver(receiver);
-            mBroadcastReceivers.clear();
-            mNotificationService.setVoiceActive(mIsVoiceActive);
-            mContext.unbindService(this);
+            mIsServiceBound = true;
         }
     }
 
     @Override
     public void onServiceDisconnected(ComponentName name) {
+        mIsServiceBound = false;
         logger.d(TAG,"!!!!!!!!!!!!Service was disconexted");
         mNotificationService = null;
         Intent intent = new Intent(mContext,name.getClass());
@@ -98,6 +90,11 @@ public class NotificationServiceConnection implements ServiceConnection {
 
     public boolean isSpeechServiceActive() {
         return mIsVoiceActive;
+    }
+
+    public void sendTestNotification(StatusBarNotification sbn) {
+        if(mIsServiceBound)
+            mNotificationServiceConnection.sendTestNotification(sbn);
     }
 }
 

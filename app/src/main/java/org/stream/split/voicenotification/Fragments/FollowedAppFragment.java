@@ -25,6 +25,7 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
 import java.util.ArrayList;
 import java.util.List;
 
+//todo add empty listview textview  recommend to add new apps to followed list
 /**
  * A fragment representing a list of Items.
  * <p/>

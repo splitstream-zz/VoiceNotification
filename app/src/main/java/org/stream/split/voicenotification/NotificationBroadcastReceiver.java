@@ -16,6 +16,7 @@ import org.stream.split.voicenotification.Enities.UtteranceEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,7 +25,6 @@ import java.util.List;
 public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     private final String TAG = "NotBrodRec";
-    private boolean mAutostart = true;
     private SpeechModule mSpeechModule;
     private static BaseLogger LOGGER = BaseLogger.getInstance();
     private Context mContext;
@@ -69,7 +69,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         LOGGER.d(TAG, "addUtterance()");
         UtteranceEntity utteranceEntity = getUtteranceEntity(newNotificationEntity);
         LOGGER.d(TAG, "addUtterance(), getUtterance completed");
-        mSpeechModule.addUtterance(utteranceEntity,mAutostart);
+        mSpeechModule.addUtterance(utteranceEntity);
     }
     private NotificationEntity getNotificationEntity(Bundle bundle, String key)
     {
@@ -83,35 +83,43 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         String PackageName = newNotificationEntity.getPackageName();
 
         DBHelper db = new DBHelper(mContext);
-        List<BundleKeyEntity> followedBundleKeys = db.getFollowedBundleKeys(PackageName);
+        List<BundleKeyEntity> followedBundleKeys = db.getSortedFollowedBundleKeys(PackageName);
         NotificationEntity lastNotificationEntity = db.getLastNotification(PackageName, true);
         db.close();
 
         UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
         if(lastNotificationEntity != null)
-            lastUtteranceEntity.addMessages(lastNotificationEntity.getBundleKeys());
+            lastUtteranceEntity.addMessages(lastNotificationEntity.getBundleKeys(true));
         String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
         LOGGER.d(TAG, "getUtteranceEntity()");
+        LOGGER.d(TAG, "lastUtterance.getFlatMessage(): " + lastUtteranceFlatMessage);
 
         UtteranceEntity utteranceEntity = new UtteranceEntity();
         utteranceEntity.setUtteranceId(Helper.getUtteranceId(PackageName,newNotificationEntity.getID()));
 
-        for(BundleKeyEntity followedEntity:followedBundleKeys)
-        {
+        for(BundleKeyEntity followedEntity:followedBundleKeys) {
             List<BundleKeyEntity> newBundleKeys = newNotificationEntity.getBundleKeys(followedEntity.getKey());
-            switch(followedEntity.getKey()) {
-                case Notification.EXTRA_TITLE:
-                    utteranceEntity.addMessages(newBundleKeys);
-                    break;
-                default:
-                    for(BundleKeyEntity entity:newBundleKeys)
-                    {
-                        if(!lastUtteranceFlatMessage.contains(entity.getValue()))
-                            utteranceEntity.addMessage(entity);
+            List<BundleKeyEntity> lastBundleKeys = new ArrayList<>();
+            if(lastNotificationEntity != null)
+                lastBundleKeys = lastNotificationEntity.getBundleKeys(followedEntity.getKey());
+
+            if (followedEntity.isShowAlways())
+                utteranceEntity.addMessages(newBundleKeys);
+            else {
+                for (BundleKeyEntity newEntity : newBundleKeys) {
+                    boolean isNew = true;
+                    for (BundleKeyEntity lastEntity : lastBundleKeys) {
+                        if (newEntity.getValue().equals(lastEntity.getValue())) {
+                            isNew = false;
+                            LOGGER.d(TAG, "Repeated: " + newEntity.getValue());
+                            break;
+                        }
                     }
+                    if (isNew)
+                        utteranceEntity.addMessage(newEntity);
+                }
             }
         }
-
         return utteranceEntity;
     }
 

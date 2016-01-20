@@ -1,7 +1,5 @@
 package org.stream.split.voicenotification.Enities;
 
-import java.util.Comparator;
-
 /**
  * Created by split on 2015-11-26.
  */
@@ -10,14 +8,21 @@ public class BundleKeyEntity implements Comparable {
     String mKey;
     String mValue;
     int mPriority;
-    String mUtteranceId;
     boolean mIsFollowed = false;
     boolean mIsModified = false;
+    boolean mIsShowAlways = false;
+
 
     public BundleKeyEntity(String packageName, String key, String value)
     {
         this(packageName,key);
         mValue = value;
+    }
+
+    public BundleKeyEntity(String packageName, String key, int priority,boolean isShowAlways)
+    {
+        this(packageName,key,priority);
+        mIsShowAlways = isShowAlways;
     }
 
     public BundleKeyEntity(String packageName, String key, int priority) {
@@ -31,12 +36,12 @@ public class BundleKeyEntity implements Comparable {
         mPackageName = packageName;
         mKey = key;
     }
-
-    public String getUtteranceId() {
-        return mUtteranceId;
+    public boolean isShowAlways() {
+        return mIsShowAlways;
     }
-    public void setUtteranceId(String UtteranceId) {
-        this.mUtteranceId = UtteranceId;
+
+    public void setIsShowAlways(boolean isShowAlways) {
+        this.mIsShowAlways = isShowAlways;
     }
 
     public boolean isModified() {

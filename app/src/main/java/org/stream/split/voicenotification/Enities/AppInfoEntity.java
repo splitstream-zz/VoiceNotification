@@ -31,9 +31,9 @@ public class AppInfoEntity {
     public String getBundleKeyValue(String key) {
         StringBuilder value = new StringBuilder();
         for (BundleKeyEntity entity : mBundleKeys) {
-            if (entity.getKey().equals(key)) {
+            if (!entity.getValue().isEmpty() && entity.getKey().equals(key)) {
                 value.append(entity.getValue());
-                value.append(".\n");
+                value.append(". ");
             }
         }
         return value.toString();

@@ -8,6 +8,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
@@ -31,6 +33,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     static final public String TAG = "NotificationsHistoryAdapter";
     private Context mContext;
     private List<NotificationEntity> mDataset;
+    private boolean mAnimationFlag = false;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -118,6 +121,21 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
 
         NotificationEntity entity = mDataset.get(position);
         holder.Initialize(entity);
+        setAnimation(holder.itemView, position);
+    }
+
+    /**
+     * Here is the key method to apply the animation
+     */
+    private void setAnimation(View viewToAnimate, int position)
+    {
+        // If the bound view wasn't previously displayed on screen, it's animated
+        if (position == 0 && mAnimationFlag)
+        {
+            mAnimationFlag = false;
+            Animation animation = AnimationUtils.loadAnimation(mContext, R.anim.anim_insertion);
+            viewToAnimate.startAnimation(animation);
+        }
     }
 
     // Return the size of your dataset (invoked by the layout manager)
@@ -131,6 +149,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
         if(mDataset.size() > 50)
             mDataset.remove(mDataset.size()-1);
         mDataset.add(0,entity);
+        mAnimationFlag = true;
     }
 
     public void refresh()

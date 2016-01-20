@@ -82,7 +82,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
         mAdapter = new NotificationsHistoryAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
-        mConnection.registerReceiver(mReceiver);
+
     }
 
 
@@ -112,6 +112,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
         super.onStart();
         Log.d(TAG,"onStart()");
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
+        mConnection.registerReceiver(mReceiver);
         mAdapter.refresh();
 
     }
@@ -197,7 +198,6 @@ public class NotificationsHistoryFragment extends BaseFragment {
             if(extras != null) {
                 gsonToJson = extras.getString(NotificationService.NOTIFICATION_OBJECT);
                 NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
-
                 mAdapter.addItem(notificationEntity);
                 mAdapter.refresh();
             }
