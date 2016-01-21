@@ -7,7 +7,6 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -110,7 +109,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
     @Override
     public void onStart() {
         super.onStart();
-        Log.d(TAG,"onStart()");
+        Log.d(TAG, "onStart()");
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
         mConnection.registerReceiver(mReceiver);
         mAdapter.refresh();
@@ -196,7 +195,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
             Bundle extras = intent.getExtras();
             String gsonToJson;
             if(extras != null) {
-                gsonToJson = extras.getString(NotificationService.NOTIFICATION_OBJECT);
+                gsonToJson = extras.getString(NotificationService.NEW_NOTIFICATION_OBJECT);
                 NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
                 mAdapter.addItem(notificationEntity);
                 mAdapter.refresh();

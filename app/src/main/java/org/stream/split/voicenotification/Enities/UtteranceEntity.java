@@ -41,7 +41,17 @@ public class UtteranceEntity {
         StringBuilder message = new StringBuilder();
         for(BundleKeyEntity bundle:mMessages) {
             message.append(bundle.getValue());
-            message.append(".\n");
+            //message.append("\n");
+        }
+        return message.toString();
+    }
+    public String getFlatMessage(String key)
+    {
+        StringBuilder message = new StringBuilder();
+        for(BundleKeyEntity bundle:mMessages) {
+            if(bundle.getKey().equals(key))
+            message.append(bundle.getValue());
+            //message.append("\n");
         }
         return message.toString();
     }

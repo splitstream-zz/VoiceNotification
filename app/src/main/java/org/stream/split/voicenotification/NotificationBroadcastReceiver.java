@@ -1,6 +1,5 @@
 package org.stream.split.voicenotification;
 
-import android.app.Notification;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,7 +15,6 @@ import org.stream.split.voicenotification.Enities.UtteranceEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,8 +24,20 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     private final String TAG = "NotBrodRec";
     private SpeechModule mSpeechModule;
-    private static BaseLogger LOGGER = BaseLogger.getInstance();
+    private static BaseLogger logger = BaseLogger.getInstance();
     private Context mContext;
+    private boolean mIsVoiceActive;
+
+    public boolean isVoiceActive() {
+        return mIsVoiceActive;
+    }
+
+    public void setIsVoiceActive(boolean isVoiceActive) {
+        this.mIsVoiceActive = isVoiceActive;
+        if(!isVoiceActive)
+            mSpeechModule.stop();
+    }
+
 
     public NotificationBroadcastReceiver(Context context)
     {
@@ -43,7 +53,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
         if(bundle != null) {
 
-            NotificationEntity newNotificationEntity = getNotificationEntity(bundle, NotificationService.NOTIFICATION_OBJECT);
+            NotificationEntity newNotificationEntity = getNotificationEntity(bundle, NotificationService.NEW_NOTIFICATION_OBJECT);
             Log.d(TAG, newNotificationEntity.getPackageName() + ".isFollowed() = " + String.valueOf(newNotificationEntity.isFollowed()));
 
             if (newNotificationEntity.isFollowed()) {
@@ -51,8 +61,9 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
                 switch(intent.getAction())
                 {
                     case NotificationService.ACTION_NOTIFICATION_POSTED:
-                        LOGGER.d(TAG, "ACTION_NOTIFICATION_POSTED");
-                        addUtterance(newNotificationEntity);
+                        logger.d(TAG, "ACTION_NOTIFICATION_POSTED");
+                        if(isVoiceActive())
+                            addUtterance(newNotificationEntity);
                         break;
                     case NotificationService.ACTION_NOTIFICATION_REMOVED:
                         //mSpeechModule.removeUtterance(newNotificationEntity.getUtteranceId());
@@ -66,9 +77,9 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     }
     private void addUtterance(NotificationEntity newNotificationEntity)
     {
-        LOGGER.d(TAG, "addUtterance()");
+        logger.d(TAG, "addUtterance()");
         UtteranceEntity utteranceEntity = getUtteranceEntity(newNotificationEntity);
-        LOGGER.d(TAG, "addUtterance(), getUtterance completed");
+        logger.d(TAG, "addUtterance(), getUtterance completed");
         mSpeechModule.addUtterance(utteranceEntity);
     }
     private NotificationEntity getNotificationEntity(Bundle bundle, String key)
@@ -79,59 +90,64 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     private UtteranceEntity getUtteranceEntity(NotificationEntity newNotificationEntity) {
 
-        LOGGER.d(TAG, "getUtteranceEntity()");
+        logger.d(TAG, "getUtteranceEntity()");
         String PackageName = newNotificationEntity.getPackageName();
 
         DBHelper db = new DBHelper(mContext);
         List<BundleKeyEntity> followedBundleKeys = db.getSortedFollowedBundleKeys(PackageName);
-        NotificationEntity lastNotificationEntity = db.getLastNotification(PackageName, true);
+        NotificationEntity lastNotificationEntity = db.getLastNotification(newNotificationEntity.getID(), true);
+        logger.d(TAG, "lasnotification.getID: " + lastNotificationEntity.getID());
         db.close();
 
-        UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
-        if(lastNotificationEntity != null)
-            lastUtteranceEntity.addMessages(lastNotificationEntity.getBundleKeys(true));
-        String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
-        LOGGER.d(TAG, "getUtteranceEntity()");
-        LOGGER.d(TAG, "lastUtterance.getFlatMessage(): " + lastUtteranceFlatMessage);
+//        UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
+//        if(lastNotificationEntity != null)
+//            lastUtteranceEntity.addMessages(lastNotificationEntity.getBundleKeys(true));
+//        String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
+        logger.d(TAG, "getUtteranceEntity()");
+
 
         UtteranceEntity utteranceEntity = new UtteranceEntity();
         utteranceEntity.setUtteranceId(Helper.getUtteranceId(PackageName,newNotificationEntity.getID()));
 
+        logger.d(TAG,"========for1========");
         for(BundleKeyEntity followedEntity:followedBundleKeys) {
+            logger.d(TAG, "key: " + followedEntity.getKey());
             List<BundleKeyEntity> newBundleKeys = newNotificationEntity.getBundleKeys(followedEntity.getKey());
-            List<BundleKeyEntity> lastBundleKeys = new ArrayList<>();
-            if(lastNotificationEntity != null)
-                lastBundleKeys = lastNotificationEntity.getBundleKeys(followedEntity.getKey());
+            UtteranceEntity temp = new UtteranceEntity();
+            temp.addMessages(newBundleKeys);
 
-            if (followedEntity.isShowAlways())
+            List<BundleKeyEntity> lastBundleKeys = lastNotificationEntity.getBundleKeys(followedEntity.getKey());
+            UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
+            lastUtteranceEntity.addMessages(lastBundleKeys);
+            String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
+
+            logger.d(TAG, "lastUtterance.getFlatMessage(): " + lastUtteranceFlatMessage);
+
+            if (followedEntity.isShowAlways()) {
+                logger.d(TAG, "isShownAlways");
                 utteranceEntity.addMessages(newBundleKeys);
-            else {
-                for (BundleKeyEntity newEntity : newBundleKeys) {
-                    boolean isNew = true;
-                    for (BundleKeyEntity lastEntity : lastBundleKeys) {
-                        if (newEntity.getValue().equals(lastEntity.getValue())) {
-                            isNew = false;
-                            LOGGER.d(TAG, "Repeated: " + newEntity.getValue());
-                            break;
-                        }
-                    }
-                    if (isNew)
-                        utteranceEntity.addMessage(newEntity);
-                }
             }
+            else {
+                logger.d(TAG, "========for2========");
+                for (BundleKeyEntity newEntity : newBundleKeys) {
+                    String newUtteranceMessage = temp.getFlatMessage().replace(lastUtteranceFlatMessage, "");
+                    newEntity.setValue(newUtteranceMessage);
+                    utteranceEntity.addMessage(newEntity);
+                    logger.d(TAG, "===message====:\n" + newUtteranceMessage + "\n====end message====");
+                    logger.d(TAG, "===value====:\n" + newEntity.getValue() + "\n====end value====");
+                }
+                logger.d(TAG,"========/for2========");
+            }
+
         }
+        logger.d(TAG,"========/for1========");
+        logger.d(TAG, "New utterance: " + utteranceEntity.getFlatMessage());
         return utteranceEntity;
     }
 
-    public void Shutdown()
+    public void stop()
     {
-        if(mSpeechModule != null)
-        {
-            mSpeechModule.stopUtterance();
-            mSpeechModule.clearUtterances();
-            mSpeechModule.shutdown();
-        }
-
+        mSpeechModule.stop();
     }
 
 }

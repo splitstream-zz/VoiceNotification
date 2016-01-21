@@ -21,14 +21,12 @@ import com.google.gson.Gson;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
-import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Logger;
 
 
 /**
@@ -38,7 +36,8 @@ public class NotificationService extends NotificationListenerService implements 
 
     public static final String TAG = "NotificationService";
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
-    public static final String NOTIFICATION_OBJECT = "new_notification_object";
+    public static final String NEW_NOTIFICATION_OBJECT = "new_notification_object";
+    public static final String LAST_NOTIFICATION_OBJECT = "last_notification_object";
     public static final String ACTION_NOTIFICATION_POSTED = TAG + ".notificationPosted";
     public static final String ACTION_NOTIFICATION_REMOVED = TAG + ".notificationRemoved";
     private static boolean mIsSystemNotificationServiceConnected = false;
@@ -47,7 +46,7 @@ public class NotificationService extends NotificationListenerService implements 
     private SharedPreferences mSharedPreferences;
     private int mPersistentNotificationID = 69;
     private List<BroadcastReceiver> mReceivers = new ArrayList<>();
-    private NotificationBroadcastReceiver mVoiceGenerator;
+    private static NotificationBroadcastReceiver mVoiceGenerator;
     private boolean mIsVoiceActive = false;
     private boolean mIsPersistentNotification = true;
 
@@ -68,11 +67,12 @@ public class NotificationService extends NotificationListenerService implements 
 
     private void setIsVoiceActive(boolean isVoiceActive) {
 
-        if (isVoiceActive && !mIsVoiceActive)
-            this.registerVoiceReceivers();
-        if (!isVoiceActive)
-            this.unregisterVoiceReceiver();
+//        if (isVoiceActive && !mIsVoiceActive)
+//            this.registerVoiceReceivers();
+//        if (!isVoiceActive)
+//            this.unregisterVoiceReceiver();
         mIsVoiceActive = isVoiceActive;
+        mVoiceGenerator.setIsVoiceActive(isVoiceActive);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class NotificationService extends NotificationListenerService implements 
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
         //Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this.getBaseContext()));
-
+        registerVoiceReceivers();
         Resources res = this.getResources();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
@@ -94,7 +94,7 @@ public class NotificationService extends NotificationListenerService implements 
         Logger.d(TAG, "initializing service");
 
         Boolean isVoiceActive = pref.getBoolean(res.getString(R.string.pref_is_voice_active_key),false);
-        Logger.d(TAG, "mIsvoiceActive = " + isVoiceActive);
+        Logger.d(TAG, "mIsVoiceActive = " + isVoiceActive);
         setIsVoiceActive(isVoiceActive);
 
         boolean isPersistentNotification = pref.getBoolean(res.getString(R.string.pref_is_persistent_notification_key),true);
@@ -219,31 +219,34 @@ public class NotificationService extends NotificationListenerService implements 
 
     }
 
-    private void registerVoiceReceivers()
+    private synchronized void registerVoiceReceivers()
     {
-        Log.d(TAG, "registerVoiceReciver Before");
+        Log.d(TAG, "registerVoiceReciver");
         if(mVoiceGenerator == null) {
-            Log.d(TAG, "registerVoiceReciver Inside");
+            Log.d(TAG, "mVoiceGenerator is being registered");
             mVoiceGenerator = new NotificationBroadcastReceiver(this);
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(ACTION_NOTIFICATION_POSTED);
             intentFilter.addAction(ACTION_NOTIFICATION_REMOVED);
             registerReceiver(mVoiceGenerator, intentFilter);
         }
+        else
+            Logger.d(TAG, "mVoiceGenerator != null");
 
     }
 
-    private void unregisterVoiceReceiver()
+    private synchronized void unregisterVoiceReceiver()
     {
-        Log.d(TAG, "unregisterVoiceReciver Before");
+        Log.d(TAG, "unregisterVoiceReciver");
         if(mVoiceGenerator != null) {
-            this.mVoiceGenerator.Shutdown();
+            mVoiceGenerator.stop();
             try {
                 unregisterReceiver(mVoiceGenerator);
-                Logger.d(TAG, "unregisterVoiceReciver Inside");
+                Logger.d(TAG, "mVoiceGenerator is being unregistered");
             } catch (IllegalArgumentException arg) {
                 Log.e(TAG, "mVoiceGenerator is not registered!!!!!");
             }
+
             mVoiceGenerator = null;
         }
     }
@@ -256,7 +259,15 @@ public class NotificationService extends NotificationListenerService implements 
             if (sbn.getNotification().tickerText != null)
                 Log.d(TAG, "TickerText: " + sbn.getNotification().tickerText);
 
-            NotificationEntity newNotificationEntity = createNotification(sbn);
+            DBHelper db = new DBHelper(this);
+
+            NotificationEntity temp = createNotification(sbn);
+
+            //first added to db and then load to get all needed data from db
+            long rowId = db.addNotification(temp);
+            NotificationEntity newNotificationEntity = db.getNotification(rowId, true);
+
+            db.close();
 
             StringBuilder builder = Helper.LogNotificationEntity(newNotificationEntity);
             Log.d(TAG, builder.toString());
@@ -264,7 +275,7 @@ public class NotificationService extends NotificationListenerService implements 
 
             Intent intent = new Intent();
             intent.setAction(ACTION_NOTIFICATION_POSTED);
-            intent.putExtra(NOTIFICATION_OBJECT, new Gson().toJson(newNotificationEntity));
+            intent.putExtra(NEW_NOTIFICATION_OBJECT, new Gson().toJson(newNotificationEntity));
             sendBroadcast(intent);
         }
         else
@@ -301,17 +312,6 @@ public class NotificationService extends NotificationListenerService implements 
             newNotificationEntity.addBundleKey("custom.tickerText", sbn.getNotification().tickerText.toString());
         }
 
-        DBHelper db = new DBHelper(this);
-        long rowId = db.addNotification(newNotificationEntity);
-        newNotificationEntity.setID(rowId);
-        boolean isFollowed = db.isAppFollowed(sbn.getPackageName());
-        newNotificationEntity.setIsFollowed(isFollowed);
-
-        if(newNotificationEntity.isFollowed()) {
-            for(BundleKeyEntity entity:newNotificationEntity.getBundleKeys())
-                entity.setIsFollowed(db.isFollowed(entity));
-        }
-        db.close();
         return newNotificationEntity;
     }
 
@@ -354,7 +354,7 @@ public class NotificationService extends NotificationListenerService implements 
         Logger.d(TAG, "onSharedPreferencesChanged, key = " + key);
         if(key.equals(res.getString(R.string.pref_is_persistent_notification_key)))
             setIsPersistentNotification(sharedPreferences.getBoolean(key, true));
-        else if(key.equals(res.getString(R.string.pref_is_voice_active_key)))
+        if(key.equals(res.getString(R.string.pref_is_voice_active_key)))
             setIsVoiceActive(sharedPreferences.getBoolean(key, false));
         updatePersistentAppNotification();
     }

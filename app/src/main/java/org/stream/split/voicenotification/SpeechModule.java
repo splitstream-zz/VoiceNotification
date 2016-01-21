@@ -41,9 +41,10 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     public SpeechModule(Context context)
     {
         super();
-        am= (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         mContext = context;
         mUtterances = new LinkedList<>();
+        am= (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+
     }
 
     public void addUtterance(UtteranceEntity utteranceEntity)
@@ -51,7 +52,6 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         logger.d(TAG, "addUtterance()");
         if(utteranceEntity != null)
             mUtterances.add(utteranceEntity);
-
         startNext();
 
     }
@@ -69,7 +69,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     }
     public synchronized void startNext() {
         logger.d(TAG, "startNext()");
-        am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
+
         if(!mUtterances.isEmpty()) {
             if (mTts == null) {
                 logger.d(TAG, "mTts = null");
@@ -93,11 +93,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         mTts.speak(message, TextToSpeech.QUEUE_ADD, params);
 
     }
-    public void stopUtterance()
-    {
-        if(mTts != null)
-            mTts.stop();
-    }
+
     public void clearUtterances()
     {
         if(mUtterances != null)
@@ -121,13 +117,13 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     @Override
     public void onStart(String utteranceId) {
         logger.d(TAG, "onStart(utteranceId)");
+        am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
     }
 
     @Override
     public void onDone(String utteranceId) {
         logger.d(TAG, "onDone()");
-        if(!mTts.isSpeaking())
-            shutdown();
+        am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
     }
 
     @Override
@@ -151,6 +147,8 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     public void onStop(String utteranceId, boolean interrupted) {
         super.onStop(utteranceId, interrupted);
         logger.d(TAG, "onStop(String utteranceId, boolean interrupted)");
+        am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+
     }
 
     @Override
@@ -185,4 +183,8 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     }
 
 
+    public void stop() {
+        if(mTts != null)
+            mTts.stop();
+    }
 }
