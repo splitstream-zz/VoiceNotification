@@ -297,13 +297,13 @@ public class DBHelper extends SQLiteOpenHelper {
         String sql_query = "SELECT " + lastRowIdColumnName + ", MIN(diff) AS minTimedifference, * "+
         "FROM ("+
                 "SELECT t2.rowId AS " +lastRowIdColumnName + ", "+
-                "t2."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP +" - t1."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP +" AS diff, * "+
+                "t1."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP +" - t2."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP +" AS diff, * "+
                 "FROM "+
                 DBContract.NotificationHistoryFeed.TABLE_NAME+ " t1 INNER JOIN "+
                 DBContract.NotificationHistoryFeed.TABLE_NAME+ " t2 "+
-                " ON t2."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP +" > t1."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP +
+                " ON t2."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP +" < t1."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_INSERTION_TIMESTAMP +
                 " AND t1."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME + " = t2."+ DBContract.NotificationHistoryFeed.COLUMN_NAME_PACKAGE_NAME +
-                " WHERE t1.rowId = '" +rowId+ "');";
+                " WHERE t1.rowId = " +rowId+ ");";
         logger.d(TAG, sql_query);
         Cursor cursor = getReadableDatabase().rawQuery(sql_query, null);
         NotificationEntity entity = null;
