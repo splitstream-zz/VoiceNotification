@@ -77,8 +77,13 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     }
     private void addUtterance(NotificationEntity newNotificationEntity)
     {
+        DBHelper db = new DBHelper(mContext);
+        List<BundleKeyEntity> followedBundleKeys = db.getSortedFollowedBundleKeys(newNotificationEntity.getPackageName());
+        NotificationEntity lastNotificationEntity = db.getLastNotification(newNotificationEntity.getID(), true);
+        logger.d(TAG, "lasnotification.getID: " + lastNotificationEntity.getID());
+        db.close();
         logger.d(TAG, "addUtterance()");
-        UtteranceEntity utteranceEntity = getUtteranceEntity(newNotificationEntity);
+        UtteranceEntity utteranceEntity = getUtteranceEntity(newNotificationEntity,lastNotificationEntity,followedBundleKeys);
         logger.d(TAG, "addUtterance(), getUtterance completed");
         mSpeechModule.addUtterance(utteranceEntity);
     }
@@ -88,16 +93,9 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         return new Gson().fromJson(gsonToJson, NotificationEntity.class);
     }
 
-    private UtteranceEntity getUtteranceEntity(NotificationEntity newNotificationEntity) {
-
-        logger.d(TAG, "getUtteranceEntity()");
-        String PackageName = newNotificationEntity.getPackageName();
-
-        DBHelper db = new DBHelper(mContext);
-        List<BundleKeyEntity> followedBundleKeys = db.getSortedFollowedBundleKeys(PackageName);
-        NotificationEntity lastNotificationEntity = db.getLastNotification(newNotificationEntity.getID(), true);
-        logger.d(TAG, "lasnotification.getID: " + lastNotificationEntity.getID());
-        db.close();
+    private UtteranceEntity getUtteranceEntity(NotificationEntity newNotificationEntity,
+                                               NotificationEntity lastNotificationEntity,
+                                               List<BundleKeyEntity> followedBundleKeys) {
 
 //        UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
 //        if(lastNotificationEntity != null)
@@ -107,7 +105,8 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
 
         UtteranceEntity utteranceEntity = new UtteranceEntity();
-        utteranceEntity.setUtteranceId(Helper.getUtteranceId(PackageName,newNotificationEntity.getID()));
+        utteranceEntity.setUtteranceId(Helper.getUtteranceId(newNotificationEntity.getPackageName()
+                ,newNotificationEntity.getID()));
 
         logger.d(TAG,"========for1========");
         for(BundleKeyEntity followedEntity:followedBundleKeys) {
