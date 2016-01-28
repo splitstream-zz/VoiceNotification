@@ -43,6 +43,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
         public LinearLayout mTextLayout;
         public TextView mLabelTextView;
         public TextView mTimestampTextView;
+        public TextView mNotificationID;
         public CheckBox mCbx;
         public NotificationEntity mNotificationEntity;
 
@@ -50,6 +51,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
         public ViewHolder(View v) {
             super(v);
             mTextLayout = (LinearLayout) v.findViewById(R.id.history_text_layout);
+            mNotificationID = (TextView) v.findViewById(R.id.history_notification_sbn_id);
             mLabelTextView = (TextView) v.findViewById(R.id.history_app_name);
             mTimestampTextView = (TextView) v.findViewById(R.id.history_app_timestamp);
             mCbx = (CheckBox) v.findViewById(R.id.history_app_add);
@@ -57,9 +59,8 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
         public void Initialize(NotificationEntity entity)
         {
             mNotificationEntity = entity;
-            StringBuilder builder = new StringBuilder(entity.getApplicationLabel());
-            builder.append("[" + getAdapterPosition() + "]");
-            mLabelTextView.setText(builder.toString());
+            mNotificationID.setText(String.valueOf(entity.getSbnId()));
+            mLabelTextView.setText(entity.getApplicationLabel());
             mTimestampTextView.setText(Helper.convertTime(entity.getOccurrenceTime()));
             mCbx.setChecked(entity.isFollowed());
 

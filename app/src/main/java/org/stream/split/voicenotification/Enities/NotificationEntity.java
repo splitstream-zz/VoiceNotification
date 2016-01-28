@@ -10,7 +10,7 @@ import java.util.List;
 public class NotificationEntity extends AppInfoEntity
 {
         long mId;
-        long mSbnId;
+        long mSbnId = -1;
         long mOccurrenceTime;
         String mTinkerText;
 

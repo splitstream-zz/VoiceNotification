@@ -59,12 +59,14 @@ public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
         errorReport.append(Build.VERSION.INCREMENTAL);
         errorReport.append(LINE_SEPARATOR);
 
-        Logger.d(TAG, errorReport.toString());
-        Intent intent = new Intent(mContext, mContext.getClass());
-        intent.putExtra("error", errorReport.toString());
-        mContext.startActivity(intent);
 
-        android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(10);
+        Logger.e(TAG, errorReport.toString(),ex);
+        //TODO on production uncomment
+//        Intent intent = new Intent(mContext, mContext.getClass());
+//        intent.putExtra("error", errorReport.toString());
+//        mContext.startActivity(intent);
+//
+//        android.os.Process.killProcess(android.os.Process.myPid());
+//        System.exit(10);
     }
 }

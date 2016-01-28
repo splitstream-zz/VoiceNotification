@@ -11,8 +11,8 @@ import org.stream.split.voicenotification.Helpers.Helper;
 public class NotificationBradcastReceiverTest {
 
     @Test
-    public void getUtterance_getCorrectDiferance()
+    public void getUtterance_getCorrectDifference()
     {
-        NotificationEntity newNotification = Helper.
+
     }
 }

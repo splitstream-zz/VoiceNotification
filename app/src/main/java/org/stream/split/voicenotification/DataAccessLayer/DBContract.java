@@ -8,13 +8,13 @@ import android.provider.BaseColumns;
 public final class DBContract {
 
     public final static String DB_Name = "VoiceNotification.db";
-    public final static int DB_Version = 47;
-    public final static int HistoryQuantityLimit = 51;
+    public final static int DB_Version = 51;
+    public final static int HistoryQuantityLimit = 50;
 
     DBContract(){}
 
-    public static abstract class AppFeed implements BaseColumns {
-        public static final String TABLE_NAME = "App";
+    public static abstract class FollowedAppFeed implements BaseColumns {
+        public static final String TABLE_NAME = "FollowedApp";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
         public static final String COLUMN_NAME_APPLICATION_LABEL = "Label";
 
@@ -25,14 +25,25 @@ public final class DBContract {
         public static final String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
+    public static abstract class FollowedNotificationsFeed implements BaseColumns{
+        public static final String TABLE_NAME = "FollowedNotifications";
+        public static final String COLUMN_NAME_ID = "id";
+        public static final String COLUMN_NAME_SBN_ID = "SbnId";
+        public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
+
+        public static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + "( "+
+                COLUMN_NAME_PACKAGE_NAME + " TEXT "
+    }
+
     /**
      * Table should be used for setting purposes. It stores Keys for Notification.extras
      * bundle values that should be uttered in speech module.
      */
-    public static abstract class BundleKeysFeed implements BaseColumns
+    public static abstract class FollowedBundleKeysFeed implements BaseColumns
     {
-        public static final String TABLE_NAME = "BundleKeys";
+        public static final String TABLE_NAME = "FollowedBundleKeys";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
+        public static final String COLUMN_NAME_SBN_ID = "SbnId";
         public static final String COLUMN_NAME_BUNDLE_KEY = "BundleKey";
         public static final String COLUMN_NAME_PRIORITY = "BundleKeyPriority";
         public static final String COLUMN_NAME_SHOW_ALWAYS = "ShowAlways";
@@ -40,17 +51,18 @@ public final class DBContract {
         public static final String SQL_CREATE_TABLE =
                 "CREATE TABLE " + TABLE_NAME + "( "+
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
+                        COLUMN_NAME_SBN_ID + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_PRIORITY + " INTEGER NOT NULL, " +
                         COLUMN_NAME_SHOW_ALWAYS + " INTEGER DEFAULT 0, " +
                         "PRIMARY KEY("+COLUMN_NAME_PACKAGE_NAME+", "+ COLUMN_NAME_BUNDLE_KEY +"), " +
-                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " + AppFeed.TABLE_NAME + "(" + AppFeed.COLUMN_NAME_PACKAGE_NAME +
+                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " + FollowedAppFeed.TABLE_NAME + "(" + FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME +
                         ") ON DELETE CASCADE);";
 
         public static final String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
-    public static abstract class NotificationHistoryFeed implements BaseColumns {
+    public static abstract class HistoryNotificationFeed implements BaseColumns {
         public static final String TABLE_NAME = "NotificationHistory";
         public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_SBN_ID = "SbnId";
@@ -78,7 +90,7 @@ public final class DBContract {
                         " END;";
     }
 
-    public static abstract class BundlesHistoryFeed implements BaseColumns
+    public static abstract class HistoryBundlesKeysFeed implements BaseColumns
     {
         public static final String TABLE_NAME = "BundlesHistory";
         public static final String COLUMN_NAME_ID = "id";
@@ -98,7 +110,7 @@ public final class DBContract {
                         COLUMN_NAME_BUNDLE_VALUE + " TEXT NOT NULL, " +
 
                         "FOREIGN KEY(" + COLUMN_NAME_NOTIFICATION_ID + ") REFERENCES " +
-                        NotificationHistoryFeed.TABLE_NAME + "(" + NotificationHistoryFeed.COLUMN_NAME_ID +
+                        HistoryNotificationFeed.TABLE_NAME + "(" + HistoryNotificationFeed.COLUMN_NAME_ID +
                         ") ON DELETE CASCADE);";
 
         public static final String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
@@ -120,12 +132,4 @@ public final class DBContract {
         public static final String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
-    public static abstract class LogFeed implements BaseColumns{
-        public static final String TABLE_NAME = "Logs";
-        public static final String COLUMN_NAME_MESSAGE = "Message";
-        public static final String COLUMN_NAME_MESSAGE_TYPE = "MessageType";
-        public static final String COLUMN_NAME_CREATION_DATE = "CreationDate";
-        public static final String COLUMN_NAME_EXCEPTION = "Exception";
-        public static final String COLUMN_NAME_STACK_TRACE = "StackTrace";
-    }
 }

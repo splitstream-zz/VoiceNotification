@@ -30,6 +30,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Switch;
 
+import org.stream.split.voicenotification.DataAccessLayer.DBContract;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Fragments.BaseFragment;
@@ -40,6 +41,7 @@ import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.Logging.BaseLogger;
+import org.stream.split.voicenotification.Logging.LogToDB;
 
 //TODO make some nice splash screen
 //TODO dodać do poszczególnych fragmentów tytuły
@@ -90,9 +92,13 @@ public class VoiceNotificationActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //this.deleteDatabase(DBContract.DB_Name);
+        logger.addExcludedTag(DBHelper.TAG);
+        LogToDB log = new LogToDB(LogToDB.PRIORITY_E);
+        logger.addLogger(log);
 
-        //Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
-        //logger.addExcludedTag(DBHelper.TAG);
+        Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
+
         Resources res = this.getResources();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         initializeActivity(mSharedPreferences, res);
@@ -120,8 +126,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
                     .addToBackStack("history fragment")
                     .commit();
         }
-        //creating persistent notification for purposes of informing user of running up
+
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+        //creating persistent notification
         checkNotificationAccess();
 
         //setting background from splash screen back to color

@@ -21,6 +21,7 @@ import com.google.gson.Gson;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 
@@ -79,7 +80,7 @@ public class NotificationService extends NotificationListenerService implements 
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
-        //Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this.getBaseContext()));
+        Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
         registerVoiceReceivers();
         Resources res = this.getResources();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -228,7 +229,7 @@ public class NotificationService extends NotificationListenerService implements 
             IntentFilter intentFilter = new IntentFilter();
             intentFilter.addAction(ACTION_NOTIFICATION_POSTED);
             intentFilter.addAction(ACTION_NOTIFICATION_REMOVED);
-            registerReceiver(mVoiceGenerator, intentFilter);
+            super.registerReceiver(mVoiceGenerator, intentFilter);
         }
         else
             Logger.d(TAG, "mVoiceGenerator != null");
@@ -241,7 +242,7 @@ public class NotificationService extends NotificationListenerService implements 
         if(mVoiceGenerator != null) {
             mVoiceGenerator.stop();
             try {
-                unregisterReceiver(mVoiceGenerator);
+                super.unregisterReceiver(mVoiceGenerator);
                 Logger.d(TAG, "mVoiceGenerator is being unregistered");
             } catch (IllegalArgumentException arg) {
                 Log.e(TAG, "mVoiceGenerator is not registered!!!!!");

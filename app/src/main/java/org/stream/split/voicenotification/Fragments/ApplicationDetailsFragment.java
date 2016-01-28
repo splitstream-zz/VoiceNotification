@@ -17,8 +17,8 @@ import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.Adapters.ApplicationDetailsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
@@ -34,11 +34,12 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
 public class ApplicationDetailsFragment extends BaseFragment implements OnStartDragListener {
 
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
-    private AppInfoEntity mEntity;
+    private NotificationEntity mEntity;
     private ItemTouchHelper mItemTouchHelper;
 
     private TextView mLabelTextView;
     private TextView mPackageNameTextView;
+    private TextView mNotificationSbnID;
     private CheckBox mAddDeleteCbx;
 
     /**
@@ -75,7 +76,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
 
         if (getArguments() != null) {
             String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
-            mEntity = new Gson().fromJson(gsonToJson, AppInfoEntity.class);
+            mEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
         }
 
         mAdapter = new ApplicationDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
@@ -103,6 +104,14 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
         mLayoutManager = new LinearLayoutManager(view.getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
+
+        mNotificationSbnID = (TextView) view.findViewById(R.id.notification_sbn_id_text);
+
+        if(mEntity.getSbnId() != -1)
+        {
+            mNotificationSbnID.setText(String.valueOf(mEntity.getSbnId()));
+            mNotificationSbnID.setVisibility(View.VISIBLE);
+        }
 
         mLabelTextView = (TextView) view.findViewById(R.id.label_text);
         mLabelTextView.setText(mEntity.getApplicationLabel());
