@@ -14,9 +14,9 @@ import java.io.StringWriter;
 /**
  * Created by split on 2016-01-25.
  */
-public class LogToDB extends ILogDb  {
+public class DbToLog extends ILogDb  {
 
-    public LogToDB(Context context) {
+    public DbToLog(Context context) {
         super(context,LogDBContract.DB_NAME,null,LogDBContract.DB_VERSION);
     }
 

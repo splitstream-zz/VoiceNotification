@@ -1,13 +1,12 @@
 package org.stream.split.voicenotification.Logging;
 
 import android.content.Context;
-
-import java.lang.reflect.Type;
+import android.database.sqlite.SQLiteOpenHelper;
 
 /**
  * Created by split on 2016-01-28.
  */
-public class DbLogger<T extends ILogDb> implements ILog{
+public class DbLogger<T extends SQLiteOpenHelper & ILogDb> implements ILog{
     public static int PRIORITY_V = 0;
     public static int PRIORITY_D = 1;
     public static int PRIORITY_I = 2;
@@ -95,13 +94,17 @@ public class DbLogger<T extends ILogDb> implements ILog{
     }
     private void Log(int priority, String tag, String message,long timestamp)
     {
-        ILogDb db = new LogToDB(mContext);
+        ILogDb db = new DbToLog(mContext);
         db.Log(priority,tag,message,timestamp);
         db.close();
     }
     private void Log(int priority, String tag, String message,Throwable throwable, long timestamp)
     {
-        ILogDb db = mDbType.newInstance()
+        Class[] args = new Class[1];
+        args[0] = Context.class;
+        try {
+            ILogDb db = mDbType.getDeclaredConstructor(args).newInstance(mContext);
+        }
         db.Log(priority,tag,message,throwable,timestamp);
         db.close();
     }

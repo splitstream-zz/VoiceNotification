@@ -30,7 +30,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Switch;
 
-import org.stream.split.voicenotification.DataAccessLayer.DBContract;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Fragments.BaseFragment;
@@ -41,7 +40,8 @@ import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.Logging.BaseLogger;
-import org.stream.split.voicenotification.Logging.LogToDB;
+import org.stream.split.voicenotification.Logging.DbLogger;
+import org.stream.split.voicenotification.Logging.DbToLog;
 
 //TODO make some nice splash screen
 //TODO dodać do poszczególnych fragmentów tytuły
@@ -94,7 +94,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         //this.deleteDatabase(DBContract.DB_Name);
         logger.addExcludedTag(DBHelper.TAG);
-        LogToDB log = new LogToDB(LogToDB.PRIORITY_E);
+        DbLogger<DbToLog> log = new DbLogger<>(DbLogger.PRIORITY_E,this.getBaseContext(),DbToLog.class);
         logger.addLogger(log);
 
         Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
