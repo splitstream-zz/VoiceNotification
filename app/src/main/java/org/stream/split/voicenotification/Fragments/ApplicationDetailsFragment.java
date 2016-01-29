@@ -182,7 +182,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
         if(mEntity.isFollowed())
         {
             if(!isFallowed) {
-                db.addApp(mEntity);
+                db.addFollowedApp(mEntity);
                 snackBarText.append("has been added");
             }
             else
@@ -191,7 +191,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
             for(BundleKeyEntity entity:mAdapter.getModifiedItems()) {
 
                     if(entity.isFollowed())
-                        db.addUpdateBundleKey(entity);
+                        db.addUpdateFollowedBundleKey(entity);
                     else
                         db.deleteFollowedBundleKey(entity);
             }
@@ -199,7 +199,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
         else
         {
             if (isFallowed) {
-                db.deleteApp(mEntity, true);
+                db.deleteFollowedApp(mEntity, true);
                 snackBarText.append("has been deleted");
             }
         }

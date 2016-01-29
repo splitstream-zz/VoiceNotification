@@ -19,7 +19,6 @@ import android.widget.ProgressBar;
 import org.stream.split.voicenotification.Adapters.InstalledAppAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
-import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
@@ -158,7 +157,7 @@ public class InstalledAppFragment extends BaseFragment {
         List<AppInfoEntity> apps = mAdapter.getSelectedItems();
         if (!apps.isEmpty()) {
             DBHelper db = new DBHelper(getActivity());
-            db.addApps(apps);
+            db.addFollowedApps(apps);
             db.close();
         }
     }

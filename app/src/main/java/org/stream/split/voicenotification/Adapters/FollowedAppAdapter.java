@@ -126,7 +126,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             catch(PackageManager.NameNotFoundException ex)
             {
                 DBHelper db = new DBHelper(mContext);
-                db.deleteApp(entity,true);
+                db.deleteFollowedApp(entity, true);
                 db.close();
                 StringBuilder builder = new StringBuilder(entity.getApplicationLabel());
                 builder.append(" was removed");

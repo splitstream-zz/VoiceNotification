@@ -23,7 +23,7 @@ import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.NotificationService;
-import org.stream.split.voicenotification.Adapters.NotificationsHistoryAdapter;
+import org.stream.split.voicenotification.Adapters.HistoryNotificationsAdapter;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
@@ -39,13 +39,13 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class NotificationsHistoryFragment extends BaseFragment {
+public class HistoryNotificationsFragment extends BaseFragment {
 
-    private final static String TAG = "NotificationsHistoryFragment";
+    private final static String TAG = "HistoryNotificationsFragment";
     private final int mTestingNotificationID = 6879;
 
     private RecyclerView mRecyclerView;
-    private NotificationsHistoryAdapter mAdapter;
+    private HistoryNotificationsAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private NotifyBroadcastReceiver mReceiver;
     private OnFragmentInteractionListener mListener;
@@ -53,7 +53,7 @@ public class NotificationsHistoryFragment extends BaseFragment {
     private NotificationManager mNotificationManager;
 
 
-    public NotificationsHistoryFragment() {
+    public HistoryNotificationsFragment() {
     }
 
     @Override
@@ -76,9 +76,9 @@ public class NotificationsHistoryFragment extends BaseFragment {
 
         mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
         DBHelper db = new DBHelper(getActivity());
-        List<NotificationEntity> entities = db.getAllNotification(false);
+        List<NotificationEntity> entities = db.getAllHistoryNotification(false);
         db.close();
-        mAdapter = new NotificationsHistoryAdapter(entities,getActivity());
+        mAdapter = new HistoryNotificationsAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
 

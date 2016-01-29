@@ -34,7 +34,7 @@ import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Fragments.BaseFragment;
 import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
-import org.stream.split.voicenotification.Fragments.NotificationsHistoryFragment;
+import org.stream.split.voicenotification.Fragments.HistoryNotificationsFragment;
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
@@ -43,16 +43,10 @@ import org.stream.split.voicenotification.Logging.BaseLogger;
 import org.stream.split.voicenotification.Logging.DbLogger;
 import org.stream.split.voicenotification.Logging.DbToLog;
 
-//TODO make some nice splash screen
 //TODO dodać do poszczególnych fragmentów tytuły
-//TODO extend fragment menager and make things more comprehensible
 //TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
 //TODO there is warning about notification access even when it is allowed.
-//TODO add setting to turn off persistent notification.
-//TODO turn off persistent notification after turning off switch
 //TODO Make proper logging class not only to output but db as well
-//TODO change persistent notification accordingly to app setting
-//TODO settings should store data to initialize application e.g. state of the voice utterences (on/of switch)
 public class VoiceNotificationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -94,7 +88,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         //this.deleteDatabase(DBContract.DB_Name);
         logger.addExcludedTag(DBHelper.TAG);
-        DbLogger<DbToLog> log = new DbLogger<>(DbLogger.PRIORITY_E,this.getBaseContext(),DbToLog.class);
+        DbLogger<DbToLog> log = new DbLogger<>(DbLogger.PRIORITY_D,this.getBaseContext(),DbToLog.class);
         logger.addLogger(log);
 
         Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
@@ -120,7 +114,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         mFragmentManager = getFragmentManager();
         if(savedInstanceState == null) {
-            NotificationsHistoryFragment fragment = new NotificationsHistoryFragment();
+            HistoryNotificationsFragment fragment = new HistoryNotificationsFragment();
             mFragmentManager.beginTransaction()
                     .add(R.id.frame_content, fragment)
                     .addToBackStack("history fragment")
@@ -203,7 +197,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
                     }).show();
             return;
         }
-        if(CURRENT_FRAGMENT instanceof NotificationsHistoryFragment) {
+        if(CURRENT_FRAGMENT instanceof HistoryNotificationsFragment) {
             if (System.currentTimeMillis() - mExitBackKeyTimestamp < mExitBackKeyInterval) {
                 Log.d(TAG, String.valueOf(System.currentTimeMillis() - mExitBackKeyTimestamp));
                 finish();
@@ -270,7 +264,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
                 fragment = new FollowedAppFragment();
                 break;
             case R.id.history:
-                fragment = new NotificationsHistoryFragment();
+                fragment = new HistoryNotificationsFragment();
                 break;
             case R.id.nav_share:
                 break;

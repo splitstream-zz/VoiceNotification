@@ -1,6 +1,5 @@
 package org.stream.split.voicenotification.Fragments;
 
-import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
@@ -142,7 +141,7 @@ public class FollowedAppFragment extends BaseFragment {
         List<AppInfoEntity> apps = mAdapter.getSelectedItems();
         if (!apps.isEmpty()) {
             DBHelper db = new DBHelper(getActivity());
-            db.deleteApps(apps,true);
+            db.deleteFollowedApps(apps, true);
             db.close();
         }
     }

@@ -27,12 +27,20 @@ public final class DBContract {
 
     public static abstract class FollowedNotificationsFeed implements BaseColumns{
         public static final String TABLE_NAME = "FollowedNotifications";
-        public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_SBN_ID = "SbnId";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
+        public static final String COLUMN_NAME_POLICY = "Policy";
+
 
         public static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + "( "+
-                COLUMN_NAME_PACKAGE_NAME + " TEXT "
+                COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
+                COLUMN_NAME_SBN_ID + " TEXT NOT NULL, " +
+                COLUMN_NAME_POLICY + " TEXT NOT NULL, " +
+                "PRIMARY KEY(" + COLUMN_NAME_PACKAGE_NAME + ", " + COLUMN_NAME_SBN_ID+"), " +
+                "FOREIGN KEY("+COLUMN_NAME_PACKAGE_NAME +") REFERENCES "+
+                FollowedAppFeed.TABLE_NAME+ "(" + FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME+") " +
+                "ON DELETE CASCADE);";
+        public static String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
     /**

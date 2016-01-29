@@ -4,9 +4,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.provider.BaseColumns;
-
-import org.stream.split.voicenotification.DataAccessLayer.DBContract;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -14,10 +11,14 @@ import java.io.StringWriter;
 /**
  * Created by split on 2016-01-25.
  */
-public class DbToLog extends ILogDb  {
+public class DbToLog extends SQLiteOpenHelper implements ILogDb  {
 
     public DbToLog(Context context) {
         super(context,LogDBContract.DB_NAME,null,LogDBContract.DB_VERSION);
+    }
+
+    public DbToLog(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+        super(context, name, factory, version);
     }
 
     @Override
@@ -60,31 +61,4 @@ public class DbToLog extends ILogDb  {
         getWritableDatabase().insert(LogDBContract.LogFeed.TABLE_NAME,null,values);
     }
 
-    private abstract class LogDBContract
-    {
-        public static final String DB_NAME = "LOG.db";
-        public static final int DB_VERSION = 1;
-
-        public abstract class LogFeed implements BaseColumns {
-            public static final String TABLE_NAME = "Logs";
-            public static final String COLUMN_NAME_TAG = "Tag";
-            public static final String COLUMN_NAME_ID = "id";
-            public static final String COLUMN_NAME_MESSAGE_PRIORITY = "MessagePriority";
-            public static final String COLUMN_NAME_MESSAGE = "Message";
-            public static final String COLUMN_NAME_CREATION_DATE = "CreationDate";
-            public static final String COLUMN_NAME_EXCEPTION = "Exception";
-            public static final String COLUMN_NAME_STACK_TRACE = "StackTrace";
-
-            public static final String SQL_CREATE_TABLE = "CREATE TABLE "+ TABLE_NAME + "( "+
-                    COLUMN_NAME_ID + " INTEGER PRIMARY KEY, "+
-                    COLUMN_NAME_TAG + " TEXT NOT NULL, " +
-                    COLUMN_NAME_MESSAGE_PRIORITY + " INTEGER NOT NULL, "+
-                    COLUMN_NAME_MESSAGE + " TEXT NOT NULL, "+
-                    COLUMN_NAME_CREATION_DATE + " INTEGER NOT NULL, "+
-                    COLUMN_NAME_EXCEPTION + " TEXT, "+
-                    COLUMN_NAME_STACK_TRACE + " TEXT);";
-
-            public static final String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
-        }
-    }
 }

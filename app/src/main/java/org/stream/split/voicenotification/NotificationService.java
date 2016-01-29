@@ -265,8 +265,8 @@ public class NotificationService extends NotificationListenerService implements 
             NotificationEntity temp = createNotification(sbn);
 
             //first added to db and then load to get all needed data from db
-            long rowId = db.addNotification(temp);
-            NotificationEntity newNotificationEntity = db.getNotification(rowId, true);
+            long rowId = db.addHistoryNotification(temp);
+            NotificationEntity newNotificationEntity = db.getHistoryNotification(rowId, true);
 
             db.close();
 

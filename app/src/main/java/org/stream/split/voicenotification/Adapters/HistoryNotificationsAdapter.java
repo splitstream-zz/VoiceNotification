@@ -28,9 +28,9 @@ import java.util.List;
 /**
  * Created by split on 2015-10-20.
  */
-public class NotificationsHistoryAdapter extends RecyclerView.Adapter<NotificationsHistoryAdapter.ViewHolder> {
+public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNotificationsAdapter.ViewHolder> {
 
-    static final public String TAG = "NotificationsHistoryAdapter";
+    static final public String TAG = "HistoryNotificationsAdapter";
     private Context mContext;
     private List<NotificationEntity> mDataset;
     private boolean mAnimationFlag = false;
@@ -73,7 +73,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
             if(mContext instanceof Activity)
             {
                 DBHelper db = new DBHelper(mContext);
-                mNotificationEntity.setBundleKeys(db.getBundleKeys(mNotificationEntity.getID()));
+                mNotificationEntity.setBundleKeys(db.getHistoryBundleKeys(mNotificationEntity.getID()));
                 db.close();
                 Fragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(mNotificationEntity));
                 FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
@@ -91,9 +91,9 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
             if(isChecked !=mNotificationEntity.isFollowed()) {
                 mNotificationEntity.setIsFollowed(isChecked);
                 if (isChecked)
-                    db.addApp(mNotificationEntity);
+                    db.addFollowedApp(mNotificationEntity);
                 else
-                    db.deleteApp(mNotificationEntity,true);
+                    db.deleteFollowedApp(mNotificationEntity, true);
 
                 refresh();
             }
@@ -101,14 +101,14 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public NotificationsHistoryAdapter(List<NotificationEntity> notificationHistory, Context context) {
+    public HistoryNotificationsAdapter(List<NotificationEntity> notificationHistory, Context context) {
         mDataset = notificationHistory;
         mContext = context;
     }
 
     // Create new views (invoked by the layout manager)
     @Override
-    public NotificationsHistoryAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public HistoryNotificationsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
         View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.fragment_history_list_item, parent, false);
@@ -157,7 +157,7 @@ public class NotificationsHistoryAdapter extends RecyclerView.Adapter<Notificati
     {
         mDataset.clear();
         DBHelper db = new DBHelper(mContext);
-        mDataset.addAll(db.getAllNotification(false));
+        mDataset.addAll(db.getAllHistoryNotification(false));
         db.close();
         this.notifyDataSetChanged();
     }

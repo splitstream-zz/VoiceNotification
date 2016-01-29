@@ -1,7 +1,10 @@
 package org.stream.split.voicenotification.Logging;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import java.lang.reflect.Constructor;
 
 /**
  * Created by split on 2016-01-28.
@@ -12,7 +15,9 @@ public class DbLogger<T extends SQLiteOpenHelper & ILogDb> implements ILog{
     public static int PRIORITY_I = 2;
     public static int PRIORITY_W = 3;
     public static int PRIORITY_E = 4;
+    public static String TAG = "DbLogger";
 
+    BaseLogger Logger = BaseLogger.getInstance();
     int mPriorityThreshold;
     Context mContext;
     Class<T> mDbType;
@@ -27,7 +32,7 @@ public class DbLogger<T extends SQLiteOpenHelper & ILogDb> implements ILog{
     @Override
     public void v(String TAG, String message) {
         if (mPriorityThreshold <= PRIORITY_V)
-            Log(PRIORITY_V, TAG, message, System.currentTimeMillis());
+            Log(PRIORITY_V, TAG, message, null, System.currentTimeMillis());
     }
 
     @Override
@@ -40,7 +45,7 @@ public class DbLogger<T extends SQLiteOpenHelper & ILogDb> implements ILog{
     @Override
     public void d(String TAG, String message) {
         if (mPriorityThreshold <= PRIORITY_D) {
-            Log(PRIORITY_D, TAG, message, System.currentTimeMillis());
+            Log(PRIORITY_D, TAG, message, null, System.currentTimeMillis());
         }
     }
 
@@ -54,7 +59,7 @@ public class DbLogger<T extends SQLiteOpenHelper & ILogDb> implements ILog{
     @Override
     public void i(String TAG, String message) {
         if (mPriorityThreshold <= PRIORITY_I) {
-            Log(PRIORITY_I, TAG, message, System.currentTimeMillis());
+            Log(PRIORITY_I, TAG, message, null, System.currentTimeMillis());
         }
     }
 
@@ -68,7 +73,7 @@ public class DbLogger<T extends SQLiteOpenHelper & ILogDb> implements ILog{
     @Override
     public void w(String TAG, String message) {
         if (mPriorityThreshold <= PRIORITY_W) {
-            Log(PRIORITY_W, TAG, message, System.currentTimeMillis());
+            Log(PRIORITY_W, TAG, message, null, System.currentTimeMillis());
         }
     }
 
@@ -82,7 +87,7 @@ public class DbLogger<T extends SQLiteOpenHelper & ILogDb> implements ILog{
     @Override
     public void e(String TAG, String message) {
         if (mPriorityThreshold <= PRIORITY_E) {
-            Log(PRIORITY_E, TAG, message, System.currentTimeMillis());
+            Log(PRIORITY_E, TAG, message, null, System.currentTimeMillis());
         }
     }
 
@@ -94,18 +99,36 @@ public class DbLogger<T extends SQLiteOpenHelper & ILogDb> implements ILog{
     }
     private void Log(int priority, String tag, String message,long timestamp)
     {
-        ILogDb db = new DbToLog(mContext);
-        db.Log(priority,tag,message,timestamp);
-        db.close();
-    }
-    private void Log(int priority, String tag, String message,Throwable throwable, long timestamp)
-    {
         Class[] args = new Class[1];
         args[0] = Context.class;
         try {
-            ILogDb db = mDbType.getDeclaredConstructor(args).newInstance(mContext);
+            Constructor<T> ct = mDbType.getDeclaredConstructor(args);
+            T db = ct.newInstance(mContext);
+            db.Log(priority,tag,message,timestamp);
+            db.close();
         }
-        db.Log(priority,tag,message,throwable,timestamp);
-        db.close();
+        catch(Exception ex)
+        {
+            Logger.e(TAG, ex.getMessage(), ex);
+        }
+    }
+    private void Log(int priority, String tag, String message,Throwable throwable, long timestamp)
+    {
+        Class[] args = new Class[4];
+        args[0] = Context.class;
+        args[1] = String.class;
+        args[2] = SQLiteDatabase.CursorFactory.class;
+        args[3] = int.class;
+
+        try {
+            Constructor<T> ct = mDbType.getDeclaredConstructor(args);
+            T db = ct.newInstance(mContext,LogDBContract.DB_NAME, null, LogDBContract.DB_VERSION);
+            db.Log(priority,tag,message,throwable,timestamp);
+            db.close();
+        }
+        catch(Exception ex)
+        {
+            Logger.e(TAG, ex.getMessage(), ex);
+        }
     }
 }

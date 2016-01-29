@@ -81,7 +81,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     {
         DBHelper db = new DBHelper(mContext);
         List<BundleKeyEntity> followedBundleKeys = db.getSortedFollowedBundleKeys(newNotificationEntity.getPackageName());
-        NotificationEntity lastNotificationEntity = db.getLastNotification(newNotificationEntity.getID(), true);
+        NotificationEntity lastNotificationEntity = db.getLastHistoryNotification(newNotificationEntity.getID(), true);
         logger.d(TAG, "lasnotification.getID: " + lastNotificationEntity.getID());
         db.close();
         logger.d(TAG, "addUtterance()");
@@ -101,7 +101,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
 //        UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
 //        if(lastNotificationEntity != null)
-//            lastUtteranceEntity.addMessages(lastNotificationEntity.getBundleKeys(true));
+//            lastUtteranceEntity.addMessages(lastNotificationEntity.getHistoryBundleKeys(true));
 //        String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
         logger.d(TAG, "getUtteranceEntity()");
 
