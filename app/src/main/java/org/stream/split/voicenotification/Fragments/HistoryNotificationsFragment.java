@@ -19,7 +19,7 @@ import android.view.ViewGroup;
 import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.NotificationService;
@@ -76,7 +76,7 @@ public class HistoryNotificationsFragment extends BaseFragment {
 
         mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
         DBHelper db = new DBHelper(getActivity());
-        List<NotificationEntity> entities = db.getAllHistoryNotification(false);
+        List<HistoryNotificationEntity> entities = db.getAllHistoryNotification(false);
         db.close();
         mAdapter = new HistoryNotificationsAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
@@ -196,8 +196,8 @@ public class HistoryNotificationsFragment extends BaseFragment {
             String gsonToJson;
             if(extras != null) {
                 gsonToJson = extras.getString(NotificationService.NEW_NOTIFICATION_OBJECT);
-                NotificationEntity notificationEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
-                mAdapter.addItem(notificationEntity);
+                HistoryNotificationEntity historyNotificationEntity = new Gson().fromJson(gsonToJson, HistoryNotificationEntity.class);
+                mAdapter.addItem(historyNotificationEntity);
                 mAdapter.refresh();
             }
         }

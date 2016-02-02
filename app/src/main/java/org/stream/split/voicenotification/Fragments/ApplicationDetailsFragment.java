@@ -18,7 +18,7 @@ import com.google.gson.Gson;
 import org.stream.split.voicenotification.Adapters.ApplicationDetailsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
@@ -34,7 +34,7 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
 public class ApplicationDetailsFragment extends BaseFragment implements OnStartDragListener {
 
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
-    private NotificationEntity mEntity;
+    private HistoryNotificationEntity mEntity;
     private ItemTouchHelper mItemTouchHelper;
 
     private TextView mLabelTextView;
@@ -76,7 +76,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements OnStartD
 
         if (getArguments() != null) {
             String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
-            mEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
+            mEntity = new Gson().fromJson(gsonToJson, HistoryNotificationEntity.class);
         }
 
         mAdapter = new ApplicationDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());

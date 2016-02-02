@@ -5,14 +5,12 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.os.Bundle;
-import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.R;
 
 import java.lang.reflect.Field;
@@ -194,7 +192,7 @@ public class Helper {
         return builder;
     }
 
-    public static StringBuilder LogNotificationEntity(NotificationEntity entity)
+    public static StringBuilder LogNotificationEntity(HistoryNotificationEntity entity)
     {
         StringBuilder builder = new StringBuilder();
         builder.append(entity.getApplicationLabel());

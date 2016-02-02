@@ -18,7 +18,7 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Fragments.ApplicationDetailsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
@@ -32,7 +32,7 @@ public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNot
 
     static final public String TAG = "HistoryNotificationsAdapter";
     private Context mContext;
-    private List<NotificationEntity> mDataset;
+    private List<HistoryNotificationEntity> mDataset;
     private boolean mAnimationFlag = false;
 
     // Provide a reference to the views for each data item
@@ -45,7 +45,7 @@ public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNot
         public TextView mTimestampTextView;
         public TextView mNotificationID;
         public CheckBox mCbx;
-        public NotificationEntity mNotificationEntity;
+        public HistoryNotificationEntity mHistoryNotificationEntity;
 
 
         public ViewHolder(View v) {
@@ -56,9 +56,9 @@ public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNot
             mTimestampTextView = (TextView) v.findViewById(R.id.history_app_timestamp);
             mCbx = (CheckBox) v.findViewById(R.id.history_app_add);
         }
-        public void Initialize(NotificationEntity entity)
+        public void Initialize(HistoryNotificationEntity entity)
         {
-            mNotificationEntity = entity;
+            mHistoryNotificationEntity = entity;
             mNotificationID.setText(String.valueOf(entity.getSbnId()));
             mLabelTextView.setText(entity.getApplicationLabel());
             mTimestampTextView.setText(Helper.convertTime(entity.getOccurrenceTime()));
@@ -73,13 +73,13 @@ public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNot
             if(mContext instanceof Activity)
             {
                 DBHelper db = new DBHelper(mContext);
-                mNotificationEntity.setBundleKeys(db.getHistoryBundleKeys(mNotificationEntity.getID()));
+                mHistoryNotificationEntity.setBundleKeys(db.getHistoryBundleKeys(mHistoryNotificationEntity.getID()));
                 db.close();
-                Fragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(mNotificationEntity));
+                Fragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(mHistoryNotificationEntity));
                 FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
                 fragmentManager.beginTransaction()
                         .replace(R.id.frame_content, fragment)
-                        .addToBackStack("notification details"+ mNotificationEntity.getID())
+                        .addToBackStack("notification details"+ mHistoryNotificationEntity.getID())
                 .commit();
             }
         }
@@ -88,12 +88,12 @@ public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNot
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             DBHelper db = new DBHelper(buttonView.getContext());
 
-            if(isChecked !=mNotificationEntity.isFollowed()) {
-                mNotificationEntity.setIsFollowed(isChecked);
+            if(isChecked != mHistoryNotificationEntity.isFollowed()) {
+                mHistoryNotificationEntity.setIsFollowed(isChecked);
                 if (isChecked)
-                    db.addFollowedApp(mNotificationEntity);
+                    db.addFollowedApp(mHistoryNotificationEntity);
                 else
-                    db.deleteFollowedApp(mNotificationEntity, true);
+                    db.deleteFollowedApp(mHistoryNotificationEntity, true);
 
                 refresh();
             }
@@ -101,7 +101,7 @@ public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNot
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public HistoryNotificationsAdapter(List<NotificationEntity> notificationHistory, Context context) {
+    public HistoryNotificationsAdapter(List<HistoryNotificationEntity> notificationHistory, Context context) {
         mDataset = notificationHistory;
         mContext = context;
     }
@@ -120,7 +120,7 @@ public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNot
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-        NotificationEntity entity = mDataset.get(position);
+        HistoryNotificationEntity entity = mDataset.get(position);
         holder.Initialize(entity);
         setAnimation(holder.itemView, position);
     }
@@ -145,7 +145,7 @@ public class HistoryNotificationsAdapter extends RecyclerView.Adapter<HistoryNot
         return mDataset.size();
     }
 
-    public void addItem(NotificationEntity entity)
+    public void addItem(HistoryNotificationEntity entity)
     {
         if(mDataset.size() > 50)
             mDataset.remove(mDataset.size()-1);

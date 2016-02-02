@@ -5,6 +5,7 @@ package org.stream.split.voicenotification.Enities;
  */
 public class BundleKeyEntity implements Comparable {
     String mPackageName;
+    int mSbnId = -1;
     String mKey;
     String mValue;
     int mPriority;
@@ -13,9 +14,10 @@ public class BundleKeyEntity implements Comparable {
     boolean mIsShowAlways = false;
 
 
-    public BundleKeyEntity(String packageName, String key, String value)
+    public BundleKeyEntity(String packageName,int sbnId, String key, String value)
     {
         this(packageName,key);
+        mSbnId = sbnId;
         mValue = value;
     }
 
@@ -23,6 +25,12 @@ public class BundleKeyEntity implements Comparable {
     {
         this(packageName,key,priority);
         mIsShowAlways = isShowAlways;
+    }
+    public BundleKeyEntity(String packageName,int snbId, String key, int priority,boolean isShowAlways)
+    {
+        this(packageName,key,priority);
+        mIsShowAlways = isShowAlways;
+        mSbnId = snbId;
     }
 
     public BundleKeyEntity(String packageName, String key, int priority) {
@@ -104,5 +112,9 @@ public class BundleKeyEntity implements Comparable {
                 result = -1;
         }
         return result;
+    }
+
+    public int getSbnId() {
+        return mSbnId;
     }
 }

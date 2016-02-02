@@ -1,22 +1,17 @@
 package org.stream.split.voicenotification;
 
-import android.app.Notification;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
 import android.speech.tts.TextToSpeech;
 
-import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Enities.UtteranceEntity;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 

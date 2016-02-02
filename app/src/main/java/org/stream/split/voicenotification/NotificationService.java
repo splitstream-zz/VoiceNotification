@@ -20,7 +20,7 @@ import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
@@ -262,21 +262,21 @@ public class NotificationService extends NotificationListenerService implements 
 
             DBHelper db = new DBHelper(this);
 
-            NotificationEntity temp = createNotification(sbn);
+            HistoryNotificationEntity temp = createNotification(sbn);
 
             //first added to db and then load to get all needed data from db
             long rowId = db.addHistoryNotification(temp);
-            NotificationEntity newNotificationEntity = db.getHistoryNotification(rowId, true);
+            HistoryNotificationEntity newHistoryNotificationEntity = db.getHistoryNotification(rowId, true);
 
             db.close();
 
-            StringBuilder builder = Helper.LogNotificationEntity(newNotificationEntity);
+            StringBuilder builder = Helper.LogNotificationEntity(newHistoryNotificationEntity);
             Log.d(TAG, builder.toString());
-            Log.d(TAG, "Newly inserted notification Id: " + newNotificationEntity.getID());
+            Log.d(TAG, "Newly inserted notification Id: " + newHistoryNotificationEntity.getID());
 
             Intent intent = new Intent();
             intent.setAction(ACTION_NOTIFICATION_POSTED);
-            intent.putExtra(NEW_NOTIFICATION_OBJECT, new Gson().toJson(newNotificationEntity));
+            intent.putExtra(NEW_NOTIFICATION_OBJECT, new Gson().toJson(newHistoryNotificationEntity));
             sendBroadcast(intent);
         }
         else
@@ -295,25 +295,25 @@ public class NotificationService extends NotificationListenerService implements 
             Logger.d(TAG, "mReceivers().size = " + mReceivers.size() + " mIsVoiceActive = " + mIsVoiceActive);
 
     }
-    private NotificationEntity createNotification(StatusBarNotification sbn)
+    private HistoryNotificationEntity createNotification(StatusBarNotification sbn)
     {
 
         String label = Helper.getApplicationLabel(sbn.getPackageName(),this);
 
-        NotificationEntity newNotificationEntity = new NotificationEntity(sbn.getId(),
+        HistoryNotificationEntity newHistoryNotificationEntity = new HistoryNotificationEntity(sbn.getId(),
                 sbn.getPackageName(),
                 label,
                 sbn.getPostTime());
 
         List<BundleKeyEntity> bundles = Helper.IterateBundleExtras(sbn.getNotification().extras, sbn.getPackageName());
 
-        newNotificationEntity.setBundleKeys(bundles);
+        newHistoryNotificationEntity.setBundleKeys(bundles);
         if (sbn.getNotification().tickerText != null) {
-            newNotificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
-            newNotificationEntity.addBundleKey("custom.tickerText", sbn.getNotification().tickerText.toString());
+            newHistoryNotificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
+            newHistoryNotificationEntity.addBundleKey("custom.tickerText", sbn.getNotification().tickerText.toString());
         }
 
-        return newNotificationEntity;
+        return newHistoryNotificationEntity;
     }
 
     /**

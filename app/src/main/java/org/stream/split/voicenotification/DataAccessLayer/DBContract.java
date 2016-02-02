@@ -34,21 +34,21 @@ public final class DBContract {
 
         public static final String SQL_CREATE_TABLE = "CREATE TABLE " + TABLE_NAME + "( "+
                 COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
-                COLUMN_NAME_SBN_ID + " TEXT NOT NULL, " +
+                COLUMN_NAME_SBN_ID + " INTEGER NOT NULL, " +
                 COLUMN_NAME_POLICY + " TEXT NOT NULL, " +
-                "PRIMARY KEY(" + COLUMN_NAME_PACKAGE_NAME + ", " + COLUMN_NAME_SBN_ID+"), " +
-                "FOREIGN KEY("+COLUMN_NAME_PACKAGE_NAME +") REFERENCES "+
-                FollowedAppFeed.TABLE_NAME+ "(" + FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME+") " +
-                "ON DELETE CASCADE);";
+                "PRIMARY KEY(" + COLUMN_NAME_PACKAGE_NAME + ", " + COLUMN_NAME_SBN_ID+"), "+
+        "FOREIGN KEY("+COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " +
+                FollowedAppFeed.TABLE_NAME + "("+FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME+"));";
+
         public static String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
+    //TODO PackageName and sbn_id might not be needed - only one way relationship is required? form followedApp/followedNotification
     /**
      * Table should be used for setting purposes. It stores Keys for Notification.extras
      * bundle values that should be uttered in speech module.
      */
-    public static abstract class FollowedBundleKeysFeed implements BaseColumns
-    {
+    public static abstract class FollowedBundleKeysFeed implements BaseColumns {
         public static final String TABLE_NAME = "FollowedBundleKeys";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
         public static final String COLUMN_NAME_SBN_ID = "SbnId";
@@ -57,15 +57,18 @@ public final class DBContract {
         public static final String COLUMN_NAME_SHOW_ALWAYS = "ShowAlways";
 
         public static final String SQL_CREATE_TABLE =
-                "CREATE TABLE " + TABLE_NAME + "( "+
+                "CREATE TABLE " + TABLE_NAME + "( " +
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
-                        COLUMN_NAME_SBN_ID + " TEXT NOT NULL, " +
+                        COLUMN_NAME_SBN_ID + " INTEGER DEFAULT -1, " +
                         COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_PRIORITY + " INTEGER NOT NULL, " +
-                        COLUMN_NAME_SHOW_ALWAYS + " INTEGER DEFAULT 0, " +
-                        "PRIMARY KEY("+COLUMN_NAME_PACKAGE_NAME+", "+ COLUMN_NAME_BUNDLE_KEY +"), " +
-                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " + FollowedAppFeed.TABLE_NAME + "(" + FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME +
-                        ") ON DELETE CASCADE);";
+                        COLUMN_NAME_SHOW_ALWAYS + " INTEGER DEFAULT 0," +
+                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + "," + COLUMN_NAME_SBN_ID + ") REFERENCES + " +
+                        FollowedNotificationsFeed.TABLE_NAME + "(" + FollowedNotificationsFeed.COLUMN_NAME_PACKAGE_NAME + "," + FollowedNotificationsFeed.COLUMN_NAME_SBN_ID + ") " +
+                        "ON DELETE CASCADE, " +
+                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES + " +
+                        FollowedAppFeed.TABLE_NAME + "(" + FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME + ") " +
+                        "ON DELETE CASCADE);";
 
         public static final String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
