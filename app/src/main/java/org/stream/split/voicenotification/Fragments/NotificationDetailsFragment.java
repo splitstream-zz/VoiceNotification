@@ -15,11 +15,10 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Adapters.ApplicationDetailsAdapter;
+import org.stream.split.voicenotification.Adapters.BundleKeysAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
@@ -32,10 +31,10 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
  * with a GridView.
 
  */
-public class ApplicationDetailsFragment extends BaseFragment {
+public class NotificationDetailsFragment extends BaseFragment implements OnStartDragListener {
 
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
-    private AppInfoEntity mEntity;
+    private NotificationEntity mEntity;
     private ItemTouchHelper mItemTouchHelper;
 
     private TextView mLabelTextView;
@@ -52,11 +51,11 @@ public class ApplicationDetailsFragment extends BaseFragment {
      * The Adapter which will be used to populate the ListView/GridView with
      * Views.
      */
-    private ApplicationDetailsAdapter mAdapter;
+    private BundleKeysAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
-    public static ApplicationDetailsFragment newInstance(String gsonNotificationEntity) {
-        ApplicationDetailsFragment fragment = new ApplicationDetailsFragment();
+    public static NotificationDetailsFragment newInstance(String gsonNotificationEntity) {
+        NotificationDetailsFragment fragment = new NotificationDetailsFragment();
         Bundle args = new Bundle();
         args.putString(ARG_NOTIFICATION_GSON_OBJECT, gsonNotificationEntity);
         fragment.setArguments(args);
@@ -67,7 +66,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
      */
-    public ApplicationDetailsFragment() {
+    public NotificationDetailsFragment() {
     }
 
     @Override
@@ -77,10 +76,10 @@ public class ApplicationDetailsFragment extends BaseFragment {
 
         if (getArguments() != null) {
             String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
-            mEntity = new Gson().fromJson(gsonToJson, AppInfoEntity.class);
+            mEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
         }
 
-        mAdapter = new ApplicationDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
+        mAdapter = new BundleKeysAdapter(mEntity.getBundleKeys(),this,getActivity());
         setTitle(mEntity.getApplicationLabel());
     }
     @Override
@@ -175,7 +174,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
     private String updateDatabase()
     {
         DBHelper db = new DBHelper(getActivity());
-        boolean isFallowed = db.isAppFollowed(mEntity.getPackageName());
+        boolean isFallowed = db.isFollowed(mEntity);
         StringBuilder snackBarText = new StringBuilder();
 
         snackBarText.append(mEntity.getApplicationLabel());

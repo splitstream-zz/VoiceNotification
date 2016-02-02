@@ -5,7 +5,7 @@ package org.stream.split.voicenotification.Enities;
  */
 public class NotificationEntity extends AppInfoEntity {
     int mSbnId = -1;
-    public long getSbnId() {
+    public int getSbnId() {
         return mSbnId;
     }
     public void setSbnId(int sbnId) {
