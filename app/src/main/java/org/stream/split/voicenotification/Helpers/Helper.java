@@ -8,14 +8,14 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
-import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BaseEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
+import org.stream.split.voicenotification.Logging.BaseLogger;
 import org.stream.split.voicenotification.R;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -34,6 +34,7 @@ import java.util.Set;
  */
 public class Helper {
     public static final String TAG = "HELPERS";
+    public static final BaseLogger logger = BaseLogger.getInstance();
 
     public static void LogBundleExtras(Bundle bundle)
     {
@@ -280,16 +281,46 @@ public class Helper {
         }
     }
 
-    public static <T extends BundleKeyEntity> List<T> getAllNotificationBundleKeys(String packageName, List<T> bundleKeys)
+    public static <T extends BundleKeyEntity> List<T> getAllNotificationBundleKeys(String packageName, List<T> bundleKeys, Type bundleKeyType)
     {
         List<T> bundleKeyEntities = new ArrayList<>();
         String [] keys = classStaticFieldNames(Notification.class,String.class, "EXTRA_");
         for(String key:keys)
         {
-            T entity = new BundleKeyEntity(packageName,key);
-            bundleKeyEntities.add(entity);
+            boolean absent = true;
+            for(T entity:bundleKeys) {
+                if(entity.getKey().equals(key)) {
+                    bundleKeyEntities.add(entity);
+                    absent= false;
+                }
+            }
+
+            if(absent)
+            {
+                T newEntity = createBundleCopy(bundleKeyType);
+                newEntity.setKey(key);
+                bundleKeys.add(newEntity);
+            }
         }
         return bundleKeyEntities;
+    }
+
+    private static <T extends BundleKeyEntity> T createBundleCopy(Type objectToCopy)
+    {
+        T newEntity = null;
+
+        Class[] args = new Class[1];
+        args[0] = type;
+
+        try {
+            //using copy constructor  T constructor(T)
+            Constructor<T> constructor = type.getDeclaredConstructor(args);
+            newEntity = constructor.newInstance(entity);
+        } catch (Exception ex)
+        {
+            logger.e(TAG,"exception during instatinating generic type during generating Notification Bundles",ex);
+        }
+        return newEntity;
     }
 
     public static String[] classStaticFieldNames(Class c,Type fieldType, String nameContains)
@@ -322,6 +353,18 @@ public class Helper {
             }
         }
         return isModified;
+    }
+    public static boolean isAnyItemSelected(List<? extends BaseEntity> entities)
+    {
+        boolean isSelected= false;
+        for(BaseEntity entity:entities)
+        {
+            if(entity.isSelected()) {
+                isSelected = true;
+                break;
+            }
+        }
+        return isSelected;
     }
     public static String convertTime(long time){
         Date date = new Date(time);

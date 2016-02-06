@@ -14,7 +14,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.stream.split.voicenotification.Controls.ImageCheckBox;
+import org.stream.split.voicenotification.DataAccessLayer.DBContract;
+import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
+import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperAdapter;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperViewHolder;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
@@ -29,11 +34,11 @@ import java.util.List;
 /**
  * Created by split on 2015-10-20.
  */
-public class BundleKeysAdapter extends RecyclerView.Adapter<BundleKeysAdapter.ViewHolder> implements ItemTouchHelperAdapter {
+public class BundleKeysAdapter<T extends AppBundleKeyEntity> extends RecyclerView.Adapter<BundleKeysAdapter.ViewHolder> implements ItemTouchHelperAdapter {
 
     final public String TAG = this.getClass().getSimpleName();
     private Context mContext;
-    private List<BundleKeyEntity> mDataset;
+    private List<T> mDataset;
     private final OnStartDragListener mDragStartListener;
 
     // Provide a reference to the views for each data item
@@ -46,7 +51,7 @@ public class BundleKeysAdapter extends RecyclerView.Adapter<BundleKeysAdapter.Vi
         public TextView mValueTextView;
         public CheckBox mCheckBox;
         public ImageCheckBox mShowAlwaysCheckBox;
-        public BundleKeyEntity mBundleKeyEntity;
+        public T mBundleKeyEntity;
 
 
         public ViewHolder(View v) {
@@ -58,17 +63,21 @@ public class BundleKeysAdapter extends RecyclerView.Adapter<BundleKeysAdapter.Vi
             mShowAlwaysCheckBox = (ImageCheckBox) v.findViewById(R.id.bundlekey_show_always_cbx);
         }
 
-        public void Initialize(BundleKeyEntity bundleKeyEntity) {
+        public void Initialize(T bundleKeyEntity) {
             mBundleKeyEntity = bundleKeyEntity;
             StringBuilder builder = new StringBuilder(bundleKeyEntity.getKey() + " [" + mBundleKeyEntity.getPriority() + "]");
 
             mKeyTextView.setText(builder.toString());
-            if (bundleKeyEntity.getValue() == null || bundleKeyEntity.getValue().isEmpty())
-                mValueTextView.setVisibility(View.GONE);
-            else {
-                mValueTextView.setText(bundleKeyEntity.getValue());
-                mValueTextView.setVisibility(View.VISIBLE);
+
+            if(bundleKeyEntity instanceof HistoryBundleKeyEntity &&
+                    !((HistoryBundleKeyEntity) bundleKeyEntity).getValue().isEmpty()) {
+
+                    String value = ((HistoryBundleKeyEntity) bundleKeyEntity).getValue();
+                    mValueTextView.setText(value);
+                    mValueTextView.setVisibility(View.VISIBLE);
             }
+            else
+                mValueTextView.setVisibility(View.GONE);
 
             mCheckBox.setChecked(bundleKeyEntity.isFollowed());
             mCheckBox.setOnClickListener(this);
@@ -128,14 +137,14 @@ public class BundleKeysAdapter extends RecyclerView.Adapter<BundleKeysAdapter.Vi
     }
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    public BundleKeysAdapter(List<BundleKeyEntity> bundleKeys, OnStartDragListener onStartDragListener, Context context) {
+    public BundleKeysAdapter(List<T> bundleKeys, OnStartDragListener onStartDragListener, Context context) {
         Collections.sort(bundleKeys, Collections.reverseOrder());
         mDataset = bundleKeys;
         mContext = context;
         mDragStartListener = onStartDragListener;
     }
 
-    public List<BundleKeyEntity> getItems() {
+    public List<T> getItems() {
         return mDataset;
     }
 
@@ -153,7 +162,7 @@ public class BundleKeysAdapter extends RecyclerView.Adapter<BundleKeysAdapter.Vi
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
-        BundleKeyEntity entity = mDataset.get(position);
+        T entity = mDataset.get(position);
         holder.Initialize(entity);
 
     }
@@ -164,9 +173,9 @@ public class BundleKeysAdapter extends RecyclerView.Adapter<BundleKeysAdapter.Vi
         return mDataset.size();
     }
 
-    public List<BundleKeyEntity> getModifiedItems() {
-        List<BundleKeyEntity> bundleKeys = new ArrayList<>();
-        for (BundleKeyEntity entity : mDataset) {
+    public List<T> getModifiedItems() {
+        List<T> bundleKeys = new ArrayList<>();
+        for (T entity : mDataset) {
             if (entity.isModified()) {
                 bundleKeys.add(entity);
             }
@@ -176,8 +185,8 @@ public class BundleKeysAdapter extends RecyclerView.Adapter<BundleKeysAdapter.Vi
 
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
-        BundleKeyEntity fromPositionEntity = mDataset.get(fromPosition);
-        BundleKeyEntity toPositionEntity = mDataset.get(toPosition);
+        T fromPositionEntity = mDataset.get(fromPosition);
+        T toPositionEntity = mDataset.get(toPosition);
 
         //log(fromPosition,toPosition);
         if (fromPositionEntity.isFollowed() && toPositionEntity.isFollowed()) {
@@ -202,7 +211,7 @@ public class BundleKeysAdapter extends RecyclerView.Adapter<BundleKeysAdapter.Vi
         //TODO implemetn function
     }
 
-    public void refresh(List<BundleKeyEntity> entities) {
+    public void refresh(List<T> entities) {
         mDataset.clear();
         mDataset.addAll(entities);
 

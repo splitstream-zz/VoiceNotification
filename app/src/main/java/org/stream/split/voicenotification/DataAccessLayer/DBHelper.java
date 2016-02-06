@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
-import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
@@ -103,7 +102,7 @@ public class DBHelper extends SQLiteOpenHelper {
         if(getNotifications)
             app.setNotifications(getFollowedNotification(packageName, getBundleKeys));
         if (getBundleKeys)
-            app.setBundleKeys(getSortedFollowedBundleKeys(app));
+            app.setBundleKeys(getBundleKeys(app));
 
         return app;
     }
@@ -225,7 +224,7 @@ public class DBHelper extends SQLiteOpenHelper {
         NotificationEntity entity = new NotificationEntity(sbnId,packageName, policy);
         entity.setIsFollowed(true);
         if(getBundleKeys)
-            entity.setBundleKeys(getSortedFollowedBundleKeys(entity));
+            entity.setBundleKeys(getBundleKeys(entity));
         return entity;
     }
 
@@ -244,26 +243,26 @@ public class DBHelper extends SQLiteOpenHelper {
                 new String[]{entity.getPackageName(), String.valueOf(entity.getSbnId())});
     }
 
-
-    public List<NotificationBundleKeyEntity> getSortedFollowedBundleKeys(NotificationEntity followedNotificationEntity) {
-        List<NotificationBundleKeyEntity> result = null;
-        if(followedNotificationEntity != null)
-        {
-            result = getSortedFollowedBundleKeys(followedNotificationEntity.getPackageName(), followedNotificationEntity.getSbnId());
-        }
-        return result;
-    }
-    public List<AppBundleKeyEntity> getSortedFollowedBundleKeys(AppInfoEntity appInfoEntity)
+    /**
+     * retirve sorted by priority bundle keys belongs to appinfoentity
+     * @param appInfoEntity
+     * @return
+     */
+    public List<AppBundleKeyEntity> getBundleKeys(AppInfoEntity appInfoEntity)
     {
         List<AppBundleKeyEntity> result = null;
         if(appInfoEntity != null)
         {
-            result = getSortedFollowedBundleKeys(appInfoEntity.getPackageName());
+            result = getBundleKeys(appInfoEntity.getPackageName());
         }
         return result;
     }
-
-    private List<NotificationBundleKeyEntity> getSortedFollowedBundleKeys(String packageName, long sbnId) {
+    /**
+     * retirve sorted by priority bundle keys belongs to notificationEntity
+     * @param followedNotificationEntity
+     * @return
+     */
+    public List<NotificationBundleKeyEntity> getBundleKeys(NotificationEntity followedNotificationEntity) {
         List<NotificationBundleKeyEntity> bundleKeys = new ArrayList<>();
 
         String sql_where = DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME +" = ? AND "+
@@ -273,7 +272,7 @@ public class DBHelper extends SQLiteOpenHelper {
         Cursor cursor = getReadableDatabase().query(DBContract.NotificationBundleKeysFeed.TABLE_NAME,
                 null,
                 sql_where,
-                new String[]{packageName,String.valueOf(sbnId)},
+                new String[]{followedNotificationEntity.getPackageName(),String.valueOf(followedNotificationEntity.getSbnId())},
                 null,null,
                 sql_orderBy);
 
@@ -286,7 +285,8 @@ public class DBHelper extends SQLiteOpenHelper {
         cursor.close();
         return bundleKeys;
     }
-    private List<AppBundleKeyEntity> getSortedFollowedBundleKeys(String packageName) {
+
+    private List<AppBundleKeyEntity> getBundleKeys(String packageName) {
         List<AppBundleKeyEntity> bundleKeys = new ArrayList<>();
 
 
@@ -320,6 +320,7 @@ public class DBHelper extends SQLiteOpenHelper {
         logger.d(TAG, "bundle Key: " + entity.getKey() + "\tPriority: " + entity.getPriority() + "\t showAways: " + entity.isShowAlways());
         return entity;
     }
+
     private AppBundleKeyEntity getAppBundleKey(Cursor cursor) {
         String bundleKey = cursor.getString(cursor.getColumnIndex(DBContract.AppBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY));
         int priority = cursor.getInt(cursor.getColumnIndex(DBContract.AppBundleKeysFeed.COLUMN_NAME_PRIORITY));
@@ -567,7 +568,7 @@ public class DBHelper extends SQLiteOpenHelper {
         historyNotificationEntity.setIsFollowed(isFollowed(historyNotificationEntity));
 
         if (getBundleKeys)
-            historyNotificationEntity.setBundleKeys(getHistoryBundleKeys(notificationId));
+            historyNotificationEntity.setBundleKeys(getBundleKeys(historyNotificationEntity));
         return historyNotificationEntity;
     }
 
@@ -604,18 +605,21 @@ public class DBHelper extends SQLiteOpenHelper {
         return entity;
     }
 
-    public List<HistoryBundleKeyEntity> getHistoryBundleKeys(long notificationId) {
-        String sql_select_id = "SELECT * FROM " + DBContract.HistoryBundlesKeysFeed.TABLE_NAME +
-                " INNER JOIN " + DBContract.HistoryNotificationFeed.TABLE_NAME +
-                " ON " + DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_NOTIFICATION_ID + " = " + DBContract.HistoryNotificationFeed.COLUMN_NAME_ID +
-                " WHERE " + DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_NOTIFICATION_ID + " = " + notificationId + ";";
-        Cursor cursor = getReadableDatabase().rawQuery(sql_select_id, null);
+    public List<HistoryBundleKeyEntity> getBundleKeys(HistoryNotificationEntity entity) {
+
+        String sql_where = DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_NOTIFICATION_ID + " = ?";
+
+        Cursor cursor = getReadableDatabase().query(DBContract.HistoryBundlesKeysFeed.TABLE_NAME,
+                null,
+                sql_where,
+                new String[]{String.valueOf(entity.getID())},
+                null,null,null);
 
         List<HistoryBundleKeyEntity> bundlekeys = new ArrayList<>();
         if (cursor.moveToFirst()) {
             do {
-                HistoryBundleKeyEntity entity = getHistoryBundleKey(cursor);
-                bundlekeys.add(entity);
+                HistoryBundleKeyEntity bundleKey = getHistoryBundleKey(cursor);
+                bundlekeys.add(bundleKey);
             } while (cursor.moveToNext());
         }
         return bundlekeys;

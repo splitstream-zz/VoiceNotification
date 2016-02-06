@@ -15,13 +15,10 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Adapters.ApplicationDetailsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
-import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 

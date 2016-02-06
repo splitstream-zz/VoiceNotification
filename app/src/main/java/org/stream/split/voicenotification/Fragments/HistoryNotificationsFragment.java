@@ -23,7 +23,7 @@ import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.NotificationService;
-import org.stream.split.voicenotification.Adapters.HistoryNotificationsAdapter;
+import org.stream.split.voicenotification.Adapters.NotificationsAdapter;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
@@ -45,7 +45,7 @@ public class HistoryNotificationsFragment extends BaseFragment {
     private final int mTestingNotificationID = 6879;
 
     private RecyclerView mRecyclerView;
-    private HistoryNotificationsAdapter mAdapter;
+    private NotificationsAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private NotifyBroadcastReceiver mReceiver;
     private OnFragmentInteractionListener mListener;
@@ -78,7 +78,7 @@ public class HistoryNotificationsFragment extends BaseFragment {
         DBHelper db = new DBHelper(getActivity());
         List<HistoryNotificationEntity> entities = db.getAllHistoryNotification(false);
         db.close();
-        mAdapter = new HistoryNotificationsAdapter(entities,getActivity());
+        mAdapter = new NotificationsAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
 

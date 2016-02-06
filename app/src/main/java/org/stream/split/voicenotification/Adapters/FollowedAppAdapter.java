@@ -74,22 +74,12 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
     {
         mDataset.addAll(apps);
     }
-    public List<AppInfoEntity> getSelectedItems()
-    {
-        List<AppInfoEntity> selectedApps = new ArrayList<>();
-        for(AppInfoEntity entity:mDataset)
-        {
-            if(entity.isModified())
-                selectedApps.add(entity);
-        }
-        return selectedApps;
-    }
 
     public void onCreateMenu(Menu menu)
     {
         mDeleteMenuItem = menu.findItem(R.id.delete_app_menu_item);
         boolean visibility = false;
-        if(Helper.isAnyItemModified(mDataset))
+        if(Helper.isAnyItemSelected(mDataset))
             visibility = true;
         mDeleteMenuItem.setVisible(visibility);
     }
@@ -97,7 +87,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
     {
         mDataset.clear();
         DBHelper db = new DBHelper(mContext);
-        mDataset = db.getAllFollowedApps(true);
+        mDataset = db.getAllFollowedApps(true,true);
         db.close();
         notifyDataSetChanged();
     }
@@ -121,7 +111,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             try{
                 icon = mContext.getPackageManager().getApplicationIcon(entity.getPackageName());
                 cbx.initialize(icon);
-                cbx.setChecked(entity.isModified());
+                cbx.setChecked(entity.isSelected());
                 cbx.setOnCheckedChangeListener(this);
             }
             catch(PackageManager.NameNotFoundException ex)
@@ -141,16 +131,16 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            entity.setIsModified(isChecked);
-            mDeleteMenuItem.setVisible(Helper.isAnyItemModified(mDataset));
+            entity.setIsSelected(isChecked);
+            mDeleteMenuItem.setVisible(Helper.isAnyItemSelected(mDataset));
         }
 
         @Override
         public void onClick(View v) {
 
 
-            List<AppBundleKeyEntity> bundlekeys = fillBundleKeys(entity.getBundleKeys());
-            entity.setBundleKeys(bundlekeys);
+            List<AppBundleKeyEntity> bundleKeys = Helper.getAllNotificationBundleKeys(entity.getPackageName(),entity.getBundleKeys());
+            entity.setBundleKeys(bundleKeys);
 
             ApplicationDetailsFragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(entity));
             ((Activity)mContext).getFragmentManager().beginTransaction()
@@ -159,17 +149,5 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
                     .commit();
         }
 
-        private List<AppBundleKeyEntity> fillBundleKeys(List<AppBundleKeyEntity> entities)
-        {
-            List<AppBundleKeyEntity> list = Helper.getAllNotificationBundleKeys(entity.getPackageName());
-            for(AppBundleKeyEntity e1:list)
-            {
-                for(AppBundleKeyEntity e2:entities)
-                    if(e1.getKey().equals(e2.getKey())) {
-                        e1.setIsShowAlways(e2.isShowAlways());
-                        e1.setIsFollowed(e2.isFollowed());
-                    }
-            }
-        }
     }
 }
