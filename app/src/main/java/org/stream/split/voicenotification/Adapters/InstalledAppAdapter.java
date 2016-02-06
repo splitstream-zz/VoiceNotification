@@ -79,7 +79,7 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
     public void onCreateMenu(Menu menu) {
 
         mAddAppBtn = menu.findItem(R.id.add_app_menu_item);
-        mAddAppBtn.setVisible(Helper.isAnyItemSelected(mDataset));
+        mAddAppBtn.setVisible(Helper.isAnyItemModified(mDataset));
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener
@@ -114,7 +114,7 @@ public class InstalledAppAdapter extends RecyclerView.Adapter<InstalledAppAdapte
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             entity.setIsModified(isChecked);
-            mAddAppBtn.setVisible(Helper.isAnyItemSelected(mDataset));
+            mAddAppBtn.setVisible(Helper.isAnyItemModified(mDataset));
         }
     }
 }

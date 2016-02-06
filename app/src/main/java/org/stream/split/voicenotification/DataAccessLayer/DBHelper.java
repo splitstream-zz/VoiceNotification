@@ -6,12 +6,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
+import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Enums.NotificationPolicy;
 import org.stream.split.voicenotification.Logging.BaseLogger;
-import org.stream.split.voicenotification.NotificationService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +39,7 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL(DBContract.FollowedNotificationsFeed.SQL_CREATE_TABLE);
         db.execSQL(DBContract.HistoryNotificationFeed.SQL_CREATE_TABLE);
         db.execSQL(DBContract.HistoryNotificationFeed.SQL_INSERTION_TRIGGER);
-        db.execSQL(DBContract.FollowedBundleKeysFeed.SQL_CREATE_TABLE);
+        db.execSQL(DBContract.AppBundleKeysFeed.SQL_CREATE_TABLE);
         db.execSQL(DBContract.HistoryBundlesKeysFeed.SQL_CREATE_TABLE);
         db.execSQL(DBContract.SettingFeed.SQL_CREATE_TABLE);
     }
@@ -46,7 +49,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
         db.execSQL(DBContract.HistoryBundlesKeysFeed.SQL_DELETE_TABLE);
         db.execSQL(DBContract.HistoryNotificationFeed.SQL_DELETE_TABLE);
-        db.execSQL(DBContract.FollowedBundleKeysFeed.SQL_DELETE_TABLE);
+        db.execSQL(DBContract.AppBundleKeysFeed.SQL_DELETE_TABLE);
         db.execSQL(DBContract.FollowedNotificationsFeed.SQL_CREATE_TABLE);
         db.execSQL(DBContract.FollowedAppFeed.SQL_DELETE_TABLE);
         db.execSQL(DBContract.HistoryBundlesKeysFeed.SQL_DELETE_TABLE);
@@ -60,16 +63,14 @@ public class DBHelper extends SQLiteOpenHelper {
         db.setForeignKeyConstraintsEnabled(true);
     }
 
-    public List<AppInfoEntity> getAllFollowedApps(boolean getBundleKeys) {
+    public List<AppInfoEntity> getAllFollowedApps(boolean getNotifications, boolean getBundleKeys) {
         List<AppInfoEntity> apps = new ArrayList<>();
-        String sqlQuery = "Select * from " + DBContract.FollowedAppFeed.TABLE_NAME;
-        logger.d(TAG, sqlQuery);
 
-        Cursor cursor = this.getReadableDatabase().rawQuery(sqlQuery, null);
+        Cursor cursor = this.getReadableDatabase().query(DBContract.FollowedAppFeed.TABLE_NAME,null,null,null,null,null,null);
 
         if (cursor.moveToFirst()) {
             do {
-                AppInfoEntity entity = getFollowedApp(cursor, getBundleKeys);
+                AppInfoEntity entity = getFollowedApp(cursor,getNotifications, getBundleKeys);
                 apps.add(entity);
             } while (cursor.moveToNext());
         }
@@ -77,26 +78,33 @@ public class DBHelper extends SQLiteOpenHelper {
         return apps;
     }
 
-    public AppInfoEntity getFollowedApp(String packageName, boolean getBundleKeys) {
-        String sqlQuery = "Select * from " + DBContract.FollowedAppFeed.TABLE_NAME +
-                " WHERE " + DBContract.FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME + " = " + packageName + ";";
-        logger.d(TAG, sqlQuery);
+    public AppInfoEntity getFollowedApp(String packageName, boolean getNotifications, boolean getBundleKeys) {
 
-        Cursor cursor = this.getReadableDatabase().rawQuery(sqlQuery, null);
+        String sql_where = DBContract.FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME + " = ?";
+        Cursor cursor = getReadableDatabase().query(DBContract.FollowedAppFeed.TABLE_NAME,
+                null,
+                sql_where,
+                new String[]{packageName},
+                null,null,null);
+
         AppInfoEntity entity = null;
         if (cursor.moveToFirst())
-            entity = getFollowedApp(cursor, getBundleKeys);
+            entity = getFollowedApp(cursor,getNotifications, getBundleKeys);
         cursor.close();
         return entity;
     }
 
-    private AppInfoEntity getFollowedApp(Cursor cursor, boolean getBundleKeys) {
+    private AppInfoEntity getFollowedApp(Cursor cursor,boolean getNotifications, boolean getBundleKeys) {
         String packageName = cursor.getString(cursor.getColumnIndex(DBContract.FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME));
         String label = cursor.getString(cursor.getColumnIndex(DBContract.FollowedAppFeed.COLUMN_NAME_APPLICATION_LABEL));
         AppInfoEntity app = new AppInfoEntity(packageName, label);
         app.setIsFollowed(true);
+
+        if(getNotifications)
+            app.setNotifications(getFollowedNotification(packageName, getBundleKeys));
         if (getBundleKeys)
             app.setBundleKeys(getSortedFollowedBundleKeys(app));
+
         return app;
     }
 
@@ -122,11 +130,16 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
     public boolean isFollowed(String PackageName) {
-        String sqlQuery = "Select * from " + DBContract.FollowedAppFeed.TABLE_NAME +
-                " where " + DBContract.FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + PackageName + "'";
+
+        String sql_where = DBContract.FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME + " = ?";
         boolean result = false;
-        logger.d(TAG, sqlQuery);
-        Cursor cursor = this.getReadableDatabase().rawQuery(sqlQuery, null);
+
+        Cursor cursor = this.getReadableDatabase().query(DBContract.FollowedAppFeed.TABLE_NAME,
+                null,
+                sql_where,
+                new String[]{PackageName},
+                null,null,null);
+
         if (cursor.moveToFirst()) {
             logger.d(TAG, "cursor getcount() = " + new StringBuilder().append(cursor.getCount()).toString());
             result = true;
@@ -135,13 +148,13 @@ public class DBHelper extends SQLiteOpenHelper {
         return result;
     }
     //todo deletebundlekeys might be not needed
-    public void deleteFollowedApps(List<AppInfoEntity> apps, boolean deleteBundleKeys) {
+    public void deleteFollowedApps(List<AppInfoEntity> apps) {
         for (AppInfoEntity entity : apps) {
-            deleteFollowedApp(entity, deleteBundleKeys);
+            deleteFollowedApp(entity);
         }
     }
 
-    public void deleteFollowedApp(AppInfoEntity app, boolean deleteBundleKeys) {
+    public void deleteFollowedApp(AppInfoEntity app) {
         SQLiteDatabase db = this.getWritableDatabase();
         //TODO CHECK IF BUNDLE KEYS ARE DELETED AUTOMATICALLY
 //        if (deleteBundleKeys) {
@@ -163,11 +176,32 @@ public class DBHelper extends SQLiteOpenHelper {
         Cursor cursor = getReadableDatabase().rawQuery(sql_query, null);
         if (cursor.moveToFirst())
             do {
-                NotificationEntity notificationEntity = getFollowedNotification(cursor,getBundleKeys);
-                result.add(notificationEntity);
+                NotificationEntity followedNotificationEntity = getFollowedNotification(cursor,getBundleKeys);
+                result.add(followedNotificationEntity);
             } while (cursor.moveToNext());
         return result;
     }
+    public List<NotificationEntity> getFollowedNotification(String packageName, boolean getBundleKeys)
+    {
+        List<NotificationEntity> entities = new ArrayList<>();
+
+        String sql_query = DBContract.FollowedNotificationsFeed.COLUMN_NAME_PACKAGE_NAME + " = ?";
+
+        Cursor cursor = getReadableDatabase().query(DBContract.FollowedNotificationsFeed.TABLE_NAME,
+                null,
+                sql_query,
+                new String[]{packageName},
+                null, null, null);
+
+        if(cursor.moveToFirst())
+            do {
+                NotificationEntity entity = getFollowedNotification(cursor, getBundleKeys);
+                entities.add(entity);
+            }while(cursor.moveToNext());
+
+        return entities;
+    }
+
     public NotificationEntity getFollowedNotification(String packageName, int sbnId, boolean getBundleKeys)
     {
         NotificationEntity entity = null;
@@ -186,8 +220,10 @@ public class DBHelper extends SQLiteOpenHelper {
     {
         String packageName = cursor.getString(cursor.getColumnIndex(DBContract.FollowedNotificationsFeed.COLUMN_NAME_PACKAGE_NAME));
         int sbnId = cursor.getInt(cursor.getColumnIndex(DBContract.FollowedNotificationsFeed.COLUMN_NAME_SBN_ID));
-        String applicationLabel = getFollowedApp(packageName, false).getApplicationLabel();
-        NotificationEntity entity = new NotificationEntity(sbnId,packageName,applicationLabel);
+        String policyName = cursor.getString(cursor.getColumnIndex(DBContract.FollowedNotificationsFeed.COLUMN_NAME_POLICY));
+        NotificationPolicy policy = NotificationPolicy.valueOf(policyName);
+        NotificationEntity entity = new NotificationEntity(sbnId,packageName, policy);
+        entity.setIsFollowed(true);
         if(getBundleKeys)
             entity.setBundleKeys(getSortedFollowedBundleKeys(entity));
         return entity;
@@ -197,6 +233,7 @@ public class DBHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(DBContract.FollowedNotificationsFeed.COLUMN_NAME_PACKAGE_NAME, entity.getPackageName());
         values.put(DBContract.FollowedNotificationsFeed.COLUMN_NAME_SBN_ID, entity.getSbnId());
+        values.put(DBContract.FollowedNotificationsFeed.COLUMN_NAME_POLICY, entity.getPolicy().name());
         return getWritableDatabase().insert(DBContract.FollowedNotificationsFeed.TABLE_NAME, null, values);
     }
 
@@ -208,123 +245,229 @@ public class DBHelper extends SQLiteOpenHelper {
     }
 
 
-    public List<BundleKeyEntity> getSortedFollowedBundleKeys(NotificationEntity notificationEntity) {
-        List<BundleKeyEntity> result = null;
-        if(notificationEntity != null)
+    public List<NotificationBundleKeyEntity> getSortedFollowedBundleKeys(NotificationEntity followedNotificationEntity) {
+        List<NotificationBundleKeyEntity> result = null;
+        if(followedNotificationEntity != null)
         {
-            result = getSortedFollowedBundleKeys(notificationEntity.getPackageName(),notificationEntity.getSbnId());
+            result = getSortedFollowedBundleKeys(followedNotificationEntity.getPackageName(), followedNotificationEntity.getSbnId());
         }
         return result;
     }
-    public List<BundleKeyEntity> getSortedFollowedBundleKeys(AppInfoEntity appInfoEntity)
+    public List<AppBundleKeyEntity> getSortedFollowedBundleKeys(AppInfoEntity appInfoEntity)
     {
-        List<BundleKeyEntity> result = null;
+        List<AppBundleKeyEntity> result = null;
         if(appInfoEntity != null)
         {
-            result = getSortedFollowedBundleKeys(appInfoEntity.getPackageName(),-1);
+            result = getSortedFollowedBundleKeys(appInfoEntity.getPackageName());
         }
         return result;
     }
 
-    public List<BundleKeyEntity> getSortedFollowedBundleKeys(String packageName, long sbnId) {
-        List<BundleKeyEntity> bundleKeys = new ArrayList<>();
+    private List<NotificationBundleKeyEntity> getSortedFollowedBundleKeys(String packageName, long sbnId) {
+        List<NotificationBundleKeyEntity> bundleKeys = new ArrayList<>();
 
-        String sql_select_bundlekeys = "SELECT * FROM " + DBContract.FollowedBundleKeysFeed.TABLE_NAME +
-                " WHERE " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName + "'" +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SBN_ID + " = " + sbnId +
-                " ORDER BY " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PRIORITY + " ASC;";
-        logger.d(TAG, sql_select_bundlekeys);
+        String sql_where = DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME +" = ? AND "+
+                DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SBN_ID + " = ?";
+        String sql_orderBy = DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PRIORITY + " DESC";
 
-        Cursor cursor = getReadableDatabase().rawQuery(sql_select_bundlekeys, null);
+        Cursor cursor = getReadableDatabase().query(DBContract.NotificationBundleKeysFeed.TABLE_NAME,
+                null,
+                sql_where,
+                new String[]{packageName,String.valueOf(sbnId)},
+                null,null,
+                sql_orderBy);
+
         if (cursor.moveToFirst()) {
             do {
-                BundleKeyEntity entity = getFollowedBundleKey(cursor);
+                NotificationBundleKeyEntity entity = getNotificationBundleKey(cursor);
                 bundleKeys.add(entity);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return bundleKeys;
+    }
+    private List<AppBundleKeyEntity> getSortedFollowedBundleKeys(String packageName) {
+        List<AppBundleKeyEntity> bundleKeys = new ArrayList<>();
 
 
+        String sql_where = DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME +" = ?";
+        String sql_orderBy = DBContract.AppBundleKeysFeed.COLUMN_NAME_PRIORITY + " DESC";
+
+        Cursor cursor = getReadableDatabase().query(DBContract.AppBundleKeysFeed.TABLE_NAME,
+                null,
+                sql_where,
+                new String[]{packageName},
+                null, null,
+                sql_orderBy);
+
+        if (cursor.moveToFirst()) {
+            do {
+                AppBundleKeyEntity entity = getAppBundleKey(cursor);
+                bundleKeys.add(entity);
             } while (cursor.moveToNext());
         }
         cursor.close();
         return bundleKeys;
     }
 
-    private BundleKeyEntity getFollowedBundleKey(Cursor cursor) {
-        String bundleKey = cursor.getString(cursor.getColumnIndex(DBContract.FollowedBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY));
-        int priority = cursor.getInt(cursor.getColumnIndex(DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PRIORITY));
-        String packageName = cursor.getString(cursor.getColumnIndex(DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME));
-        int showAlwaysINT = cursor.getInt(cursor.getColumnIndex(DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS));
-        int sbnId = cursor.getInt(cursor.getColumnIndex(DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SBN_ID));
-        BundleKeyEntity entity = new BundleKeyEntity(packageName,sbnId, bundleKey, priority, intToBoolean(showAlwaysINT));
+    private NotificationBundleKeyEntity getNotificationBundleKey(Cursor cursor) {
+        String bundleKey = cursor.getString(cursor.getColumnIndex(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY));
+        int priority = cursor.getInt(cursor.getColumnIndex(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PRIORITY));
+        String packageName = cursor.getString(cursor.getColumnIndex(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME));
+        int showAlwaysINT = cursor.getInt(cursor.getColumnIndex(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS));
+        int sbnId = cursor.getInt(cursor.getColumnIndex(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SBN_ID));
+        NotificationBundleKeyEntity entity = new NotificationBundleKeyEntity(packageName,sbnId, bundleKey, priority, intToBoolean(showAlwaysINT));
+        logger.d(TAG, "bundle Key: " + entity.getKey() + "\tPriority: " + entity.getPriority() + "\t showAways: " + entity.isShowAlways());
+        return entity;
+    }
+    private AppBundleKeyEntity getAppBundleKey(Cursor cursor) {
+        String bundleKey = cursor.getString(cursor.getColumnIndex(DBContract.AppBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY));
+        int priority = cursor.getInt(cursor.getColumnIndex(DBContract.AppBundleKeysFeed.COLUMN_NAME_PRIORITY));
+        String packageName = cursor.getString(cursor.getColumnIndex(DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME));
+        int showAlwaysINT = cursor.getInt(cursor.getColumnIndex(DBContract.AppBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS));
+        AppBundleKeyEntity entity = new AppBundleKeyEntity(packageName, bundleKey, priority, intToBoolean(showAlwaysINT));
         logger.d(TAG, "bundle Key: " + entity.getKey() + "\tPriority: " + entity.getPriority() + "\t showAways: " + entity.isShowAlways());
         return entity;
     }
 
-    public void addUpdateFollowedBundleKey(BundleKeyEntity bundleKeyEntity) {
+    public void updateOrInsertFollowedBundleKey(AppBundleKeyEntity appBundleKeyEntity) {
 
-        String sql_insert_or_update = "INSERT OR REPLACE INTO " + DBContract.FollowedBundleKeysFeed.TABLE_NAME + " ("
-                + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME +
-                ", " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SBN_ID +
-                ", " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY +
-                ", " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PRIORITY +
-                ", " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS + ")" +
-                "  VALUES ('" + bundleKeyEntity.getPackageName() + "'" +
-                ", " + bundleKeyEntity.getSbnId() +
-                ", '" + bundleKeyEntity.getKey() + "'" +
-                ", " + bundleKeyEntity.getPriority() +
-                ", " + booleanToInt(bundleKeyEntity.isShowAlways()) + ");";
-        logger.d(TAG, sql_insert_or_update);
-        getWritableDatabase().execSQL(sql_insert_or_update);
+        ContentValues values = new ContentValues();
+        values.put(DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME, appBundleKeyEntity.getPackageName());
+        values.put(DBContract.AppBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY, appBundleKeyEntity.getKey());
+        values.put(DBContract.AppBundleKeysFeed.COLUMN_NAME_PRIORITY, appBundleKeyEntity.getPriority());
+        values.put(DBContract.AppBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS, appBundleKeyEntity.isShowAlways());
+
+        String sql_where_clausle = DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = ? AND " +
+                DBContract.AppBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = ?";
+
+        SQLiteDatabase db= getWritableDatabase();
+        int rowsAffected = db.update(DBContract.AppBundleKeysFeed.TABLE_NAME,
+                values,
+                sql_where_clausle,
+                new String[]{appBundleKeyEntity.getPackageName(),appBundleKeyEntity.getKey()});
+        if(rowsAffected == 0)
+        {
+            db.insert(DBContract.AppBundleKeysFeed.TABLE_NAME,null,values);
+        }
+
     }
 
-    public boolean isShowAlways(BundleKeyEntity entity) {
-        String sql_query = "SELECT * FROM " + DBContract.FollowedBundleKeysFeed.TABLE_NAME +
-                " WHERE " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SBN_ID + " = " + entity.getSbnId() +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "' " +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS + " = " + booleanToInt(true) + ";";
+    public void updateOrInsertFollowedBundleKey(NotificationBundleKeyEntity notificationBundleKeyEntity) {
+
+        ContentValues values = new ContentValues();
+        values.put(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME, notificationBundleKeyEntity.getPackageName());
+        values.put(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY, notificationBundleKeyEntity.getKey());
+        values.put(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SBN_ID, notificationBundleKeyEntity.getSbnId());
+        values.put(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PRIORITY, notificationBundleKeyEntity.getPriority());
+        values.put(DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS, notificationBundleKeyEntity.isShowAlways());
+        String sql_where_clausle = DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = ? AND " +
+                DBContract.NotificationBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = ?";
+        SQLiteDatabase db= getWritableDatabase();
+        int rowsAffected = db.update(DBContract.NotificationBundleKeysFeed.TABLE_NAME,
+                values,
+                sql_where_clausle,
+                new String[]{notificationBundleKeyEntity.getPackageName(),notificationBundleKeyEntity.getKey()});
+        if(rowsAffected == 0)
+        {
+            db.insert(DBContract.NotificationBundleKeysFeed.TABLE_NAME,null,values);
+        }
+    }
+
+
+    public boolean isShowAlways(AppBundleKeyEntity entity) {
+        String sql_query = "SELECT * FROM " + DBContract.AppBundleKeysFeed.TABLE_NAME +
+                " WHERE " + DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
+                " AND " + DBContract.AppBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "' " +
+                " AND " + DBContract.AppBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS + " = " + booleanToInt(true) + ";";
         Cursor cursor = getReadableDatabase().rawQuery(sql_query, null);
         boolean isShownAlways = cursor.moveToFirst();
         cursor.close();
         return isShownAlways;
     }
 
-    public boolean isFollowed(BundleKeyEntity entity) {
-        String sql_query = "SELECT * FROM " + DBContract.FollowedBundleKeysFeed.TABLE_NAME +
-                " WHERE " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SBN_ID + " = " + entity.getSbnId() +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "';";
+    public boolean isShowAlways(NotificationBundleKeyEntity entity) {
+        String sql_query = "SELECT * FROM " + DBContract.NotificationBundleKeysFeed.TABLE_NAME +
+                " WHERE " + DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
+                " AND " + DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SBN_ID + " = " + entity.getSbnId() +
+                " AND " + DBContract.NotificationBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "' " +
+                " AND " + DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SHOW_ALWAYS + " = " + booleanToInt(true) + ";";
+        Cursor cursor = getReadableDatabase().rawQuery(sql_query, null);
+        boolean isShownAlways = cursor.moveToFirst();
+        cursor.close();
+        return isShownAlways;
+    }
+
+    public boolean isFollowed(AppBundleKeyEntity entity) {
+        String sql_query = "SELECT * FROM " + DBContract.AppBundleKeysFeed.TABLE_NAME +
+                " WHERE " + DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
+                " AND " + DBContract.AppBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "';";
+        Cursor cursor = getReadableDatabase().rawQuery(sql_query, null);
+        boolean isFollowed = cursor.moveToFirst();
+        cursor.close();
+        return isFollowed;
+    }
+    public boolean isFollowed(NotificationBundleKeyEntity entity) {
+        String sql_query = "SELECT * FROM " + DBContract.NotificationBundleKeysFeed.TABLE_NAME +
+                " WHERE " + DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
+                " AND " + DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SBN_ID + " = " + entity.getSbnId() +
+                " AND " + DBContract.NotificationBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "';";
         Cursor cursor = getReadableDatabase().rawQuery(sql_query, null);
         boolean isFollowed = cursor.moveToFirst();
         cursor.close();
         return isFollowed;
     }
 
-    public int getFollowedBundleKeyPriority(BundleKeyEntity entity) {
+    public int getBundleKeyPriority(AppBundleKeyEntity entity) {
         int result = 0;
-        String sql_query = "SELECT " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PRIORITY + " FROM " + DBContract.FollowedBundleKeysFeed.TABLE_NAME +
-                " WHERE " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
-                " WHERE " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SBN_ID + " = " + entity.getSbnId() +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "';";
+        String sql_query = "SELECT " + DBContract.AppBundleKeysFeed.COLUMN_NAME_PRIORITY + " FROM " + DBContract.AppBundleKeysFeed.TABLE_NAME +
+                " WHERE " + DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
+                " AND " + DBContract.AppBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "';";
         Cursor cursor = getReadableDatabase().rawQuery(sql_query, null);
         if (cursor.moveToFirst())
-            result = cursor.getInt(cursor.getColumnIndex(DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PRIORITY));
+            result = cursor.getInt(cursor.getColumnIndex(DBContract.AppBundleKeysFeed.COLUMN_NAME_PRIORITY));
         cursor.close();
         return result;
     }
 
-    public void deleteFollowedBundleKeys(String packageName) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(DBContract.FollowedBundleKeysFeed.TABLE_NAME,
-                DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = ?",
-                new String[]{packageName});
+    public int getBundleKeyPriority(NotificationBundleKeyEntity entity) {
+        int result = 0;
+
+        String sql_where = DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = ? AND " +
+                DBContract.NotificationBundleKeysFeed.COLUMN_NAME_SBN_ID + " = ? AND " +
+                DBContract.NotificationBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = ?";
+
+        Cursor cursor = getReadableDatabase().query(DBContract.NotificationBundleKeysFeed.TABLE_NAME,
+                null,
+                sql_where,
+                new String []{entity.getPackageName(), String.valueOf(entity.getSbnId()), entity.getKey()},
+                null,null,null);
+
+        if (cursor.moveToFirst())
+            result = cursor.getInt(cursor.getColumnIndex(DBContract.AppBundleKeysFeed.COLUMN_NAME_PRIORITY));
+
+        cursor.close();
+        return result;
     }
 
-    public void deleteFollowedBundleKey(BundleKeyEntity entity) {
-        String sql_query = "DELETE FROM " + DBContract.FollowedBundleKeysFeed.TABLE_NAME +
-                " WHERE " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + entity.getPackageName() + "'" +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_SBN_ID + " = " + entity.getSbnId() +
-                " AND " + DBContract.FollowedBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entity.getKey() + "';";
-        getWritableDatabase().execSQL(sql_query);
+//    public void deleteFollowedBundleKeys(String packageName) {
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        db.delete(DBContract.AppBundleKeysFeed.TABLE_NAME,
+//                DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = ?",
+//                new String[]{packageName});
+//    }
+
+    public void deleteFollowedBundleKey(AppBundleKeyEntity entity) {
+        String sql_where =  DBContract.AppBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = ? AND " +
+                " AND " + DBContract.AppBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = ?";
+        getWritableDatabase().delete(DBContract.AppBundleKeysFeed.TABLE_NAME, sql_where,
+                new String[]{entity.getPackageName(), entity.getKey()});
+    }
+    public void deleteFollowedBundleKey(NotificationBundleKeyEntity entity) {
+        String sql_where =  DBContract.NotificationBundleKeysFeed.COLUMN_NAME_PACKAGE_NAME + " = ? AND " +
+                " AND " + DBContract.NotificationBundleKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = ?";
+        getWritableDatabase().delete(DBContract.NotificationBundleKeysFeed.TABLE_NAME, sql_where,
+                new String[]{entity.getPackageName(), entity.getKey()});
     }
 
     public long addHistoryNotification(HistoryNotificationEntity historyNotificationEntity) {
@@ -342,14 +485,13 @@ public class DBHelper extends SQLiteOpenHelper {
         values.put(DBContract.HistoryNotificationFeed.COLUMN_NAME_SBN_ID, historyNotificationEntity.getSbnId());
         values.put(DBContract.HistoryNotificationFeed.COLUMN_NAME_PACKAGE_NAME, historyNotificationEntity.getPackageName());
         values.put(DBContract.HistoryNotificationFeed.COLUMN_NAME_INSERTION_TIMESTAMP, historyNotificationEntity.getOccurrenceTime());
-        values.put(DBContract.HistoryNotificationFeed.COLUMN_NAME_APPLICATION_LABEL, historyNotificationEntity.getApplicationLabel());
         return getWritableDatabase().insert(DBContract.HistoryNotificationFeed.TABLE_NAME, null, values);
     }
 
     private List<Long> addNotificationBundleHistoryEntries(HistoryNotificationEntity historyNotificationEntity, long notificationId) {
         List<Long> rowIds = new ArrayList<>();
 
-        for (BundleKeyEntity entry : historyNotificationEntity.getBundleKeys()) {
+        for (HistoryBundleKeyEntity entry : historyNotificationEntity.getBundleKeys()) {
             ContentValues values = new ContentValues();
             values.put(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_NOTIFICATION_ID, notificationId);
             values.put(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_BUNDLE_KEY, entry.getKey());
@@ -360,49 +502,14 @@ public class DBHelper extends SQLiteOpenHelper {
         return rowIds;
     }
 
-    public List<Long> updateNotification(HistoryNotificationEntity historyNotificationEntity, boolean updateNotificationMessages) {
-        List<Long> affectedRows = new ArrayList<>();
-        affectedRows.add(updateNotificationHistoryEntry(historyNotificationEntity));
-        if (updateNotificationMessages) {
-            affectedRows.add(updateNotificationMessagesValues(historyNotificationEntity));
-        }
-        return affectedRows;
-    }
-
-    /**
-     * @param historyNotificationEntity
-     * @return numbers of rows affected
-     */
-    private long updateNotificationHistoryEntry(HistoryNotificationEntity historyNotificationEntity) {
-        ContentValues values = new ContentValues();
-        values.put(DBContract.HistoryNotificationFeed.COLUMN_NAME_PACKAGE_NAME, historyNotificationEntity.getPackageName());
-        values.put(DBContract.HistoryNotificationFeed.COLUMN_NAME_INSERTION_TIMESTAMP, historyNotificationEntity.getOccurrenceTime());
-        values.put(DBContract.HistoryNotificationFeed.COLUMN_NAME_APPLICATION_LABEL, historyNotificationEntity.getApplicationLabel());
-        return getWritableDatabase().update(DBContract.HistoryNotificationFeed.TABLE_NAME,
-                values,
-                DBContract.HistoryNotificationFeed.COLUMN_NAME_ID + " = " + historyNotificationEntity.getID(), null);
-    }
-
-    //TODO trzeba koniecznie przetestować przed użyciem
-    private long updateNotificationMessagesValues(HistoryNotificationEntity historyNotificationEntity) {
-        long affectedRows = 0;
-        ContentValues values = new ContentValues();
-        for (BundleKeyEntity entry : historyNotificationEntity.getBundleKeys()) {
-            values.put(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_BUNDLE_VALUE, entry.getValue());
-            affectedRows += getWritableDatabase().update(DBContract.HistoryBundlesKeysFeed.TABLE_NAME,
-                    values,
-                    DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_NOTIFICATION_ID + " = " + historyNotificationEntity.getID() + " AND " +
-                            DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_BUNDLE_KEY + " = '" + entry.getKey() + "'",
-                    null);
-        }
-        return affectedRows;
-    }
-
     public List<HistoryNotificationEntity> getAllHistoryNotification(boolean getBundleKeys) {
         List<HistoryNotificationEntity> notifications = new ArrayList<>();
-        String sql_select_all = "SELECT * FROM " + DBContract.HistoryNotificationFeed.TABLE_NAME +
-                " ORDER BY " + DBContract.HistoryNotificationFeed.COLUMN_NAME_INSERTION_TIMESTAMP + " DESC ;";
-        Cursor cursor = getReadableDatabase().rawQuery(sql_select_all, null);
+        String sql_orderBy = DBContract.HistoryNotificationFeed.COLUMN_NAME_INSERTION_TIMESTAMP + " DESC";
+
+        Cursor cursor = getReadableDatabase().query(DBContract.HistoryNotificationFeed.TABLE_NAME,
+                null,null,null,null,null,
+                sql_orderBy);
+
         if (cursor.moveToFirst()) {
             do {
                 notifications.add(getHistoryNotification(cursor, getBundleKeys));
@@ -412,12 +519,17 @@ public class DBHelper extends SQLiteOpenHelper {
         return notifications;
     }
 
-    public HistoryNotificationEntity getHistoryNotification(long sbnId, String packageName, boolean getBundleKeys) {
+    public HistoryNotificationEntity getHistoryNotification(int id, boolean getBundleKeys) {
         HistoryNotificationEntity notification = null;
-        String sql_select = "SELECT * FROM " + DBContract.HistoryNotificationFeed.TABLE_NAME + " WHERE " +
-                DBContract.HistoryNotificationFeed.COLUMN_NAME_PACKAGE_NAME + " = '" + packageName + "' AND " +
-                DBContract.HistoryNotificationFeed.COLUMN_NAME_SBN_ID + " = " + sbnId + ";";
-        Cursor cursor = getReadableDatabase().rawQuery(sql_select, null);
+        String sql_where = DBContract.HistoryNotificationFeed.COLUMN_NAME_ID + " = ?";
+
+        Cursor cursor = getReadableDatabase().query(DBContract.HistoryNotificationFeed.TABLE_NAME,
+                null,
+                sql_where,
+                new String[]{String.valueOf(id)},
+                null,null,null
+                );
+
         if (cursor.moveToFirst()) {
             notification = getHistoryNotification(cursor, getBundleKeys);
         }
@@ -427,13 +539,18 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public HistoryNotificationEntity getHistoryNotification(long rowId, boolean getBundleKeys) {
         HistoryNotificationEntity notification = null;
-        String sql_select = "SELECT * FROM " + DBContract.HistoryNotificationFeed.TABLE_NAME + " WHERE " +
-                DBContract.HistoryNotificationFeed.COLUMN_NAME_ID + " = " + rowId + ";";
-        Cursor cursor = getReadableDatabase().rawQuery(sql_select, null);
+        String sql_where = DBContract.HistoryNotificationFeed.COLUMN_NAME_ID + " = ?";
+
+        Cursor cursor = getReadableDatabase().query(DBContract.HistoryNotificationFeed.TABLE_NAME,
+                null,
+                sql_where,
+                new String[]{String.valueOf(rowId)},
+                null, null, null
+        );
+
         if (cursor.moveToFirst()) {
             notification = getHistoryNotification(cursor, getBundleKeys);
-        } else
-            logger.d(TAG, "notification = null");
+        }
         cursor.close();
         return notification;
     }
@@ -441,14 +558,13 @@ public class DBHelper extends SQLiteOpenHelper {
     private HistoryNotificationEntity getHistoryNotification(Cursor cursor, boolean getBundleKeys) {
         long notificationId = cursor.getLong(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_ID));
         String packageName = cursor.getString(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_PACKAGE_NAME));
-        String applicationLabel = cursor.getString(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_APPLICATION_LABEL));
         int sbnId = cursor.getInt(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_SBN_ID));
         long occurrenceTime = cursor.getLong(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_INSERTION_TIMESTAMP));
 
-        HistoryNotificationEntity historyNotificationEntity = new HistoryNotificationEntity(sbnId, packageName, applicationLabel, occurrenceTime);
+        HistoryNotificationEntity historyNotificationEntity = new HistoryNotificationEntity(packageName,sbnId, occurrenceTime);
         historyNotificationEntity.setID(notificationId);
         historyNotificationEntity.setTinkerText(cursor.getString(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_TINKER_TEXT)));
-        historyNotificationEntity.setIsFollowed(isAppFollowed(historyNotificationEntity.getPackageName()));
+        historyNotificationEntity.setIsFollowed(isFollowed(historyNotificationEntity));
 
         if (getBundleKeys)
             historyNotificationEntity.setBundleKeys(getHistoryBundleKeys(notificationId));
@@ -488,35 +604,35 @@ public class DBHelper extends SQLiteOpenHelper {
         return entity;
     }
 
-    public List<BundleKeyEntity> getHistoryBundleKeys(long notificationId) {
+    public List<HistoryBundleKeyEntity> getHistoryBundleKeys(long notificationId) {
         String sql_select_id = "SELECT * FROM " + DBContract.HistoryBundlesKeysFeed.TABLE_NAME +
                 " INNER JOIN " + DBContract.HistoryNotificationFeed.TABLE_NAME +
                 " ON " + DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_NOTIFICATION_ID + " = " + DBContract.HistoryNotificationFeed.COLUMN_NAME_ID +
                 " WHERE " + DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_NOTIFICATION_ID + " = " + notificationId + ";";
         Cursor cursor = getReadableDatabase().rawQuery(sql_select_id, null);
 
-        List<BundleKeyEntity> bundlekeys = new ArrayList<>();
+        List<HistoryBundleKeyEntity> bundlekeys = new ArrayList<>();
         if (cursor.moveToFirst()) {
             do {
-                BundleKeyEntity entity = getHistoryBundleKey(cursor);
+                HistoryBundleKeyEntity entity = getHistoryBundleKey(cursor);
                 bundlekeys.add(entity);
             } while (cursor.moveToNext());
         }
         return bundlekeys;
     }
 
-    private BundleKeyEntity getHistoryBundleKey(Cursor cursor) {
+    private HistoryBundleKeyEntity getHistoryBundleKey(Cursor cursor) {
         String key = cursor.getString(cursor.getColumnIndex(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_BUNDLE_KEY));
         String value = cursor.getString(cursor.getColumnIndex(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_BUNDLE_VALUE));
         String packageName = cursor.getString(cursor.getColumnIndex(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_PACKAGE_NAME));
         int sbnId = cursor.getInt(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_SBN_ID));
 
-        BundleKeyEntity entity = new BundleKeyEntity(packageName,sbnId, key, value);
+        HistoryBundleKeyEntity entity = new HistoryBundleKeyEntity(packageName,sbnId, key, value);
         boolean isFollowed = isFollowed(entity);
         if (isFollowed) {
             boolean isShowAlways = isShowAlways(entity);
             entity.setIsShowAlways(isShowAlways);
-            entity.setPriority(getFollowedBundleKeyPriority(entity));
+            entity.setPriority(getBundleKeyPriority(entity));
         }
         entity.setIsFollowed(isFollowed);
         return entity;

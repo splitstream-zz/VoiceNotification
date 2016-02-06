@@ -18,6 +18,7 @@ import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.Controls.ImageCheckBox;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Fragments.ApplicationDetailsFragment;
@@ -88,7 +89,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
     {
         mDeleteMenuItem = menu.findItem(R.id.delete_app_menu_item);
         boolean visibility = false;
-        if(Helper.isAnyItemSelected(mDataset))
+        if(Helper.isAnyItemModified(mDataset))
             visibility = true;
         mDeleteMenuItem.setVisible(visibility);
     }
@@ -126,7 +127,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             catch(PackageManager.NameNotFoundException ex)
             {
                 DBHelper db = new DBHelper(mContext);
-                db.deleteFollowedApp(entity, true);
+                db.deleteFollowedApp(entity);
                 db.close();
                 StringBuilder builder = new StringBuilder(entity.getApplicationLabel());
                 builder.append(" was removed");
@@ -141,30 +142,34 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             entity.setIsModified(isChecked);
-            mDeleteMenuItem.setVisible(Helper.isAnyItemSelected(mDataset));
+            mDeleteMenuItem.setVisible(Helper.isAnyItemModified(mDataset));
         }
 
         @Override
         public void onClick(View v) {
 
-            List<BundleKeyEntity> list = Helper.getAllNotificationBundleKeys(entity.getPackageName());
-            DBHelper db = new DBHelper(mContext);
-            for(BundleKeyEntity e1:list)
-            {
-                for(BundleKeyEntity e2:entity.getBundleKeys())
-                    if(e1.getKey().equals(e2.getKey())) {
-                        e1.setIsShowAlways(e2.isShowAlways());
-                        e1.setIsFollowed(e2.isFollowed());
-                    }
-            }
-            db.close();
-            entity.setBundleKeys(list);
+
+            List<AppBundleKeyEntity> bundlekeys = fillBundleKeys(entity.getBundleKeys());
+            entity.setBundleKeys(bundlekeys);
 
             ApplicationDetailsFragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(entity));
             ((Activity)mContext).getFragmentManager().beginTransaction()
                     .replace(R.id.frame_content,fragment)
                     .addToBackStack("app details")
                     .commit();
+        }
+
+        private List<AppBundleKeyEntity> fillBundleKeys(List<AppBundleKeyEntity> entities)
+        {
+            List<AppBundleKeyEntity> list = Helper.getAllNotificationBundleKeys(entity.getPackageName());
+            for(AppBundleKeyEntity e1:list)
+            {
+                for(AppBundleKeyEntity e2:entities)
+                    if(e1.getKey().equals(e2.getKey())) {
+                        e1.setIsShowAlways(e2.isShowAlways());
+                        e1.setIsFollowed(e2.isFollowed());
+                    }
+            }
         }
     }
 }

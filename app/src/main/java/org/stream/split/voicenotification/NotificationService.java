@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Helpers.Helper;
@@ -297,20 +298,17 @@ public class NotificationService extends NotificationListenerService implements 
     }
     private HistoryNotificationEntity createNotification(StatusBarNotification sbn)
     {
-
-        String label = Helper.getApplicationLabel(sbn.getPackageName(),this);
-
         HistoryNotificationEntity newHistoryNotificationEntity = new HistoryNotificationEntity(sbn.getId(),
                 sbn.getPackageName(),
-                label,
                 sbn.getPostTime());
 
-        List<BundleKeyEntity> bundles = Helper.IterateBundleExtras(sbn.getNotification().extras, sbn.getPackageName());
+        List<HistoryBundleKeyEntity> bundles = Helper.IterateBundleExtras(sbn.getNotification().extras, newHistoryNotificationEntity);
 
         newHistoryNotificationEntity.setBundleKeys(bundles);
         if (sbn.getNotification().tickerText != null) {
             newHistoryNotificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
-            newHistoryNotificationEntity.addBundleKey("custom.tickerText", sbn.getNotification().tickerText.toString());
+            HistoryBundleKeyEntity entity = new HistoryBundleKeyEntity(newHistoryNotificationEntity,"custom.tickerText", sbn.getNotification().tickerText.toString());
+            newHistoryNotificationEntity.addBundleKey(entity);
         }
 
         return newHistoryNotificationEntity;

@@ -6,13 +6,11 @@ import java.util.List;
 /**
  * Created by split on 2015-11-01.
  */
-public class AppInfoEntity {
+public class AppInfoEntity extends BundleKeysOwner<AppBundleKeyEntity> {
 
-    private boolean mIsModified = false;
-    private boolean mIsFollowed = false;
     private String mPackageName;
     private String mApplicationLabel;
-    private List<BundleKeyEntity> mBundleKeys = new ArrayList<>();
+    private List<NotificationEntity> mNotifications = new ArrayList<>();
 
     public String getApplicationLabel() {
         return mApplicationLabel;
@@ -22,57 +20,13 @@ public class AppInfoEntity {
         this.mApplicationLabel = ApplicationName;
     }
 
-
-
-    public void setBundleKeys(List<BundleKeyEntity> bundleKeys) {
-        this.mBundleKeys = bundleKeys;
+    public List<NotificationEntity> getNotifications()
+    {
+        return mNotifications;
     }
 
-    public String getBundleKeyValue(String key) {
-        StringBuilder value = new StringBuilder();
-        for (BundleKeyEntity entity : mBundleKeys) {
-            if (!entity.getValue().isEmpty() && entity.getKey().equals(key)) {
-                value.append(entity.getValue());
-                value.append(". ");
-            }
-        }
-        return value.toString();
-    }
-    public List<BundleKeyEntity> getBundleKeys() {
-        return getBundleKeys(false);
-    }
-    public List<BundleKeyEntity> getBundleKeys(boolean onlyFollowed) {
-        List<BundleKeyEntity> result = mBundleKeys;
-        if(onlyFollowed) {
-            result = new ArrayList<>();
-            for(BundleKeyEntity entity:mBundleKeys)
-                if(entity.isFollowed())
-                    result.add(entity);
-        }
-        return result;
-    }
-    public List<BundleKeyEntity> getBundleKeys(String key) {
-        List<BundleKeyEntity> result = new ArrayList<>();
-        for (BundleKeyEntity entity : mBundleKeys) {
-            if (entity.getKey().equals(key)) {
-                result.add(entity);
-            }
-        }
-        return result;
-    }
-
-
-    public void addBundleKey(String key, String value) {
-        mBundleKeys.add(new BundleKeyEntity(mPackageName, key, value));
-    }
-
-
-    public boolean isFollowed() {
-        return mIsFollowed;
-    }
-
-    public void setIsFollowed(boolean isFollowed) {
-        this.mIsFollowed = isFollowed;
+    public void setNotifications(List<NotificationEntity> followedNotification) {
+        mNotifications = followedNotification;
     }
 
     public void setPackageName(String mPackageName) {
@@ -83,20 +37,10 @@ public class AppInfoEntity {
         return mPackageName;
     }
 
-    public boolean isModified() {
-        return mIsModified;
-    }
-
-    public void setIsModified(Boolean bool) {
-        mIsModified = bool;
-    }
-
     public AppInfoEntity(String packageName, String applicationLabel) {
         mApplicationLabel = applicationLabel;
         mPackageName = packageName;
     }
 
-    protected AppInfoEntity() {
-    }
 
 }

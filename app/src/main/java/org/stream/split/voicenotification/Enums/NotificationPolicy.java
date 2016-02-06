@@ -5,5 +5,6 @@ package org.stream.split.voicenotification.Enums;
  * Created by split on 2016-01-30.
  */
 public enum NotificationPolicy {
-    IGNORE
+    IGNORE,
+    NONE
 }

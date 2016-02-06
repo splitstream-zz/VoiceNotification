@@ -1,19 +1,47 @@
 package org.stream.split.voicenotification.Enities;
 
+import org.stream.split.voicenotification.Enums.NotificationPolicy;
+
 /**
  * Created by split on 2016-01-30.
  */
-public class NotificationEntity extends AppInfoEntity {
-    int mSbnId = -1;
+public class NotificationEntity<T extends NotificationBundleKeyEntity> extends BundleKeysOwner<T> {
+    private String mPackageName;
+    private int mSbnId;
+    private NotificationPolicy mPolicy;
+
+
     public int getSbnId() {
         return mSbnId;
     }
-    public void setSbnId(int sbnId) {
-        this.mSbnId = sbnId;
+
+    public void setPackageName(String mPackageName) {
+        this.mPackageName = mPackageName;
     }
-    public NotificationEntity(int sbnId, String packageName, String applicationLabel)
+    public String getPackageName() {
+        return mPackageName;
+    }
+
+    public NotificationPolicy getPolicy()
     {
-        super(packageName,applicationLabel);
+        if(mPolicy == null)
+            return NotificationPolicy.NONE;
+        else
+            return mPolicy;
+    }
+    public void setPolicy(NotificationPolicy policy)
+    {
+        mPolicy = policy;
+    }
+
+    public NotificationEntity(int sbnId, String packageName, NotificationPolicy policy)
+    {
+        this(sbnId,packageName);
+        mPolicy = policy;
+    }
+    public NotificationEntity(int sbnId, String packageName)
+    {
+        mPackageName = packageName;
         mSbnId = sbnId;
     }
 

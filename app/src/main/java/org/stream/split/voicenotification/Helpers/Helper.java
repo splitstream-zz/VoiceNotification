@@ -8,8 +8,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 
+import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
+import org.stream.split.voicenotification.Enities.BaseEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.R;
 
@@ -76,14 +79,16 @@ public class Helper {
             Log.d(TAG, builder.toString());
         }
     }
-    public static List<BundleKeyEntity>  IterateBundleExtras(Bundle bundle, String packageName)
+    public static List<HistoryBundleKeyEntity>  IterateBundleExtras(Bundle bundle, HistoryNotificationEntity historyNotificationEntity)
     {
-        List<BundleKeyEntity> bundlekeys = new ArrayList<>();
+        List<HistoryBundleKeyEntity> bundlekeys = new ArrayList<>();
         String [] keys = classStaticFieldNames(Notification.class,String.class, "EXTRA_");
 
         for(String key:keys)
         {
             Object value = bundle.get(key);
+            HistoryBundleKeyEntity historyBundleKeyEntity = null;
+
             StringBuilder logBuilder = new StringBuilder();
             logBuilder.append("key: ");
             logBuilder.append(key);
@@ -106,7 +111,7 @@ public class Helper {
                         builder.append("\n");
                     }
 
-                    bundlekeys.add(new BundleKeyEntity(packageName, key, builder.toString()));
+                    historyBundleKeyEntity = new HistoryBundleKeyEntity(historyNotificationEntity, key, builder.toString());
 
                     logBuilder.append("====== \"Charsequence[]======\n");
                 }
@@ -114,7 +119,7 @@ public class Helper {
                     logBuilder.append("value: ");
                     logBuilder.append(value);
                     logBuilder.append("\t");
-                    bundlekeys.add(new BundleKeyEntity(packageName, key, new StringBuilder().append(value).toString()));
+                    historyBundleKeyEntity = new HistoryBundleKeyEntity(historyNotificationEntity, key, new StringBuilder().append(value).toString());
                 }
 
                 logBuilder.append("value class: ");
@@ -123,8 +128,11 @@ public class Helper {
             else
             {
                 logBuilder.append("value: null");
-                bundlekeys.add(new BundleKeyEntity(packageName, key, ""));
+                historyBundleKeyEntity = new HistoryBundleKeyEntity(historyNotificationEntity, key, "");
             }
+
+            if(historyBundleKeyEntity != null)
+                bundlekeys.add(historyBundleKeyEntity);
 
             Log.d(TAG, logBuilder.toString());
         }
@@ -195,14 +203,14 @@ public class Helper {
     public static StringBuilder LogNotificationEntity(HistoryNotificationEntity entity)
     {
         StringBuilder builder = new StringBuilder();
-        builder.append(entity.getApplicationLabel());
+        builder.append(entity.getPackageName());
         builder.append("\n");
-        List<BundleKeyEntity> list = entity.getBundleKeys();
+        List<HistoryBundleKeyEntity> list = entity.getBundleKeys();
         builder.append("bundlekeys: \n");
         if(list != null || list.isEmpty())
         {
 
-            for(BundleKeyEntity e:list)
+            for(HistoryBundleKeyEntity e:list)
             {
                 builder.append("key: ");
                 builder.append(e.getKey());
@@ -272,13 +280,13 @@ public class Helper {
         }
     }
 
-    public static List<BundleKeyEntity> getAllNotificationBundleKeys(String packageName)
+    public static <T extends BundleKeyEntity> List<T> getAllNotificationBundleKeys(String packageName, List<T> bundleKeys)
     {
-        List<BundleKeyEntity> bundleKeyEntities = new ArrayList<>();
+        List<T> bundleKeyEntities = new ArrayList<>();
         String [] keys = classStaticFieldNames(Notification.class,String.class, "EXTRA_");
         for(String key:keys)
         {
-            BundleKeyEntity entity = new BundleKeyEntity(packageName,key);
+            T entity = new BundleKeyEntity(packageName,key);
             bundleKeyEntities.add(entity);
         }
         return bundleKeyEntities;
@@ -303,17 +311,17 @@ public class Helper {
         }
         return list.toArray(new String[list.size()]);
     }
-    public static boolean isAnyItemSelected(List<AppInfoEntity> entities)
+    public static boolean isAnyItemModified(List<? extends BaseEntity> entities)
     {
-        boolean isSelected= false;
-        for(AppInfoEntity entity:entities)
+        boolean isModified= false;
+        for(BaseEntity entity:entities)
         {
             if(entity.isModified()) {
-                isSelected = true;
+                isModified = true;
                 break;
             }
         }
-        return isSelected;
+        return isModified;
     }
     public static String convertTime(long time){
         Date date = new Date(time);
