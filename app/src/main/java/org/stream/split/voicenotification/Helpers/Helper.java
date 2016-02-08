@@ -10,12 +10,12 @@ import android.util.Log;
 
 import org.stream.split.voicenotification.Enities.BaseEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Enities.BundleKeysOwner;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 import org.stream.split.voicenotification.R;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
@@ -83,7 +83,7 @@ public class Helper {
     public static List<HistoryBundleKeyEntity>  IterateBundleExtras(Bundle bundle, HistoryNotificationEntity historyNotificationEntity)
     {
         List<HistoryBundleKeyEntity> bundlekeys = new ArrayList<>();
-        String [] keys = classStaticFieldNames(Notification.class,String.class, "EXTRA_");
+        String [] keys = getClassStaticFieldNames(Notification.class, String.class, "EXTRA_");
 
         for(String key:keys)
         {
@@ -281,49 +281,29 @@ public class Helper {
         }
     }
 
-    public static <T extends BundleKeyEntity> List<T> getAllNotificationBundleKeys(String packageName, List<T> bundleKeys, Type bundleKeyType)
+    public static <T extends BundleKeysOwner> T getAllNotificationBundleKeys(T bundleKeyOwner)
     {
-        List<T> bundleKeyEntities = new ArrayList<>();
-        String [] keys = classStaticFieldNames(Notification.class,String.class, "EXTRA_");
+        String [] keys = getClassStaticFieldNames(Notification.class, String.class, "EXTRA_");
+        List<BundleKeyEntity> bundleKeys = bundleKeyOwner.getBundleKeys();
         for(String key:keys)
         {
             boolean absent = true;
-            for(T entity:bundleKeys) {
+            for(BundleKeyEntity entity:bundleKeys) {
                 if(entity.getKey().equals(key)) {
-                    bundleKeyEntities.add(entity);
                     absent= false;
+                    break;
                 }
             }
 
             if(absent)
             {
-                T newEntity = createBundleCopy(bundleKeyType);
-                newEntity.setKey(key);
-                bundleKeys.add(newEntity);
+                bundleKeyOwner.addBundleKey(new BundleKeyEntity(key));
             }
         }
-        return bundleKeyEntities;
+        return bundleKeyOwner;
     }
 
-    private static <T extends BundleKeyEntity> T createBundleCopy(Type objectToCopy)
-    {
-        T newEntity = null;
-
-        Class[] args = new Class[1];
-        args[0] = type;
-
-        try {
-            //using copy constructor  T constructor(T)
-            Constructor<T> constructor = type.getDeclaredConstructor(args);
-            newEntity = constructor.newInstance(entity);
-        } catch (Exception ex)
-        {
-            logger.e(TAG,"exception during instatinating generic type during generating Notification Bundles",ex);
-        }
-        return newEntity;
-    }
-
-    public static String[] classStaticFieldNames(Class c,Type fieldType, String nameContains)
+    public static String[] getClassStaticFieldNames(Class c, Type fieldType, String nameContains)
     {
         Field[] fields = c.getDeclaredFields();
         List<String> list = new ArrayList<>();

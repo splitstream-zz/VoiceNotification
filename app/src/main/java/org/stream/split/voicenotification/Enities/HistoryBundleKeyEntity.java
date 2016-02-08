@@ -17,28 +17,24 @@ public class HistoryBundleKeyEntity extends NotificationBundleKeyEntity {
         return mValue;
     }
 
-    public HistoryBundleKeyEntity(HistoryNotificationEntity notificationEntity, String key, String value, int priority, boolean isShownAlways)
+    public HistoryBundleKeyEntity(String packageName, int sbnId, String value, String key, int priority, boolean isShownAlways)
     {
-        super(notificationEntity,key,priority,isShownAlways);
-        mValue = value;
-    }
-    public HistoryBundleKeyEntity(HistoryNotificationEntity notificationEntity, String key, String value)
-    {
-        super(notificationEntity,key);
+        super(packageName,sbnId,key,priority,isShownAlways);
         mValue = value;
     }
 
-    public HistoryBundleKeyEntity(String packageName, int sbnId, String key, String value) {
+    public HistoryBundleKeyEntity(String packageName, int sbnId, String value, String key) {
         super(packageName, sbnId, key);
         mValue = value;
     }
 
     /**
-     * constructor to copy: key, packagename, sbnId
+     * constructor with bundlekey entity
      * @param entity
      */
-    public HistoryBundleKeyEntity(HistoryBundleKeyEntity entity)
+    public HistoryBundleKeyEntity(String packageName, int sbnId, String value, BundleKeyEntity entity)
     {
-        super(entity);
+        super(packageName,sbnId,entity);
+        mValue = value;
     }
 }

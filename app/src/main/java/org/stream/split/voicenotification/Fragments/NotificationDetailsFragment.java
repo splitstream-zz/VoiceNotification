@@ -17,13 +17,18 @@ import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.Adapters.BundleKeysAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.FollowedNotificationEntity;
+import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
+
+import java.lang.reflect.Type;
+import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -32,10 +37,14 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
  * with a GridView.
 
  */
-public class NotificationDetailsFragment extends BaseFragment implements OnStartDragListener {
+public class NotificationDetailsFragment<T extends NotificationEntity> extends BaseFragment implements OnStartDragListener {
+
+    public static String TAG = NotificationDetailsFragment.class.getSimpleName();
 
     private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
-    private NotificationEntity mEntity;
+    private static final String ARG_NOTIFICATION_GSON_TYPE = "NotificationType";
+
+    private T mEntity;
     private ItemTouchHelper mItemTouchHelper;
 
     private TextView mLabelTextView;
@@ -43,22 +52,15 @@ public class NotificationDetailsFragment extends BaseFragment implements OnStart
     private TextView mNotificationSbnID;
     private CheckBox mAddDeleteCbx;
 
-    /**
-     * The fragment's ListView/GridView.
-     */
     private RecyclerView mRecyclerView;
-
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
-    private BundleKeysAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
+    private BundleKeysAdapter mAdapter;
 
-    public static NotificationDetailsFragment newInstance(String gsonNotificationEntity) {
+    public static <T extends NotificationEntity> NotificationDetailsFragment newInstance(T notificationEntity) {
         NotificationDetailsFragment fragment = new NotificationDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_NOTIFICATION_GSON_OBJECT, gsonNotificationEntity);
+        args.putString(ARG_NOTIFICATION_GSON_OBJECT, new Gson().toJson(notificationEntity));
+        args.putString(ARG_NOTIFICATION_GSON_TYPE, notificationEntity.getClass().getName());
         fragment.setArguments(args);
         return fragment;
     }
@@ -76,12 +78,20 @@ public class NotificationDetailsFragment extends BaseFragment implements OnStart
 
 
         if (getArguments() != null) {
-            String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
-            mEntity = new Gson().fromJson(gsonToJson, NotificationEntity.class);
+            String className = getArguments().getString(ARG_NOTIFICATION_GSON_TYPE);
+            try {
+                Class x = Class.forName(className);
+                String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
+                mEntity = new Gson().fromJson(gsonToJson, x.getClass());
+            }
+            catch (ClassNotFoundException e) {
+                LOGGER.e(TAG,"Cannot get Class for notification object from string Bundle",e);
+            }
+
         }
 
         mAdapter = new BundleKeysAdapter(mEntity.getBundleKeys(),this,getActivity());
-        setTitle();
+        setTitle(Helper.getApplicationLabel(mEntity.getPackageName(),getActivity()));
     }
     @Override
      public void onStart() {
@@ -108,14 +118,11 @@ public class NotificationDetailsFragment extends BaseFragment implements OnStart
 
         mNotificationSbnID = (TextView) view.findViewById(R.id.notification_sbn_id_text);
 
-        if(mEntity.getSbnId() != -1)
-        {
             mNotificationSbnID.setText(String.valueOf(mEntity.getSbnId()));
             mNotificationSbnID.setVisibility(View.VISIBLE);
-        }
 
         mLabelTextView = (TextView) view.findViewById(R.id.label_text);
-        mLabelTextView.setText(mEntity.getApplicationLabel());
+        mLabelTextView.setText(Helper.getApplicationLabel(mEntity.getPackageName(),getActivity()));
 
         mPackageNameTextView = (TextView) view.findViewById(R.id.packagename_text);
         mPackageNameTextView.setText(mEntity.getPackageName());
@@ -178,21 +185,22 @@ public class NotificationDetailsFragment extends BaseFragment implements OnStart
         boolean isFallowed = db.isFollowed(mEntity);
         StringBuilder snackBarText = new StringBuilder();
 
-        snackBarText.append(mEntity.getApplicationLabel());
+        snackBarText.append(Helper.getApplicationLabel(mEntity.getPackageName(),getActivity()));
         snackBarText.append(" ");
         if(mEntity.isFollowed())
         {
             if(!isFallowed) {
-                db.addFollowedApp(mEntity);
+                db.add(mEntity);
                 snackBarText.append("has been added");
             }
             else
                 snackBarText.append("has been modified");
 
-            for(BundleKeyEntity entity:mAdapter.getModifiedItems()) {
+            List<NotificationBundleKeyEntity> bundleKeyEntities = mAdapter.getModifiedItems();
+            for(NotificationBundleKeyEntity entity:bundleKeyEntities) {
 
                     if(entity.isFollowed())
-                        db.addUpdateFollowedBundleKey(entity);
+                        db.updateOrInsertFollowedBundleKey(entity);
                     else
                         db.deleteFollowedBundleKey(entity);
             }
@@ -200,7 +208,7 @@ public class NotificationDetailsFragment extends BaseFragment implements OnStart
         else
         {
             if (isFallowed) {
-                db.deleteFollowedApp(mEntity, true);
+                db.delete(mEntity);
                 snackBarText.append("has been deleted");
             }
         }

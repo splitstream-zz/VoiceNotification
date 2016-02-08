@@ -84,7 +84,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 null,
                 sql_where,
                 new String[]{packageName},
-                null,null,null);
+                null, null, null);
 
         AppInfoEntity entity = null;
         if (cursor.moveToFirst())
@@ -113,17 +113,17 @@ public class DBHelper extends SQLiteOpenHelper {
      * @param app
      * @return row id of newely inserted AppInfoEntity. -1 if there was error.
      */
-    public long addFollowedApp(AppInfoEntity app) {
+    public long add(AppInfoEntity app) {
         ContentValues values = new ContentValues();
         values.put(DBContract.FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME, app.getPackageName());
         values.put(DBContract.FollowedAppFeed.COLUMN_NAME_APPLICATION_LABEL, app.getApplicationLabel());
         return getWritableDatabase().insert(DBContract.FollowedAppFeed.TABLE_NAME, null, values);
     }
 
-    public List<Long> addFollowedApps(List<AppInfoEntity> apps) {
+    public List<Long> add(List<AppInfoEntity> apps) {
         List<Long> rows = new ArrayList<>();
         for (AppInfoEntity app : apps) {
-            rows.add(addFollowedApp(app));
+            rows.add(add(app));
         }
         return rows;
     }
@@ -147,13 +147,13 @@ public class DBHelper extends SQLiteOpenHelper {
         return result;
     }
     //todo deletebundlekeys might be not needed
-    public void deleteFollowedApps(List<AppInfoEntity> apps) {
+    public void delete(List<AppInfoEntity> apps) {
         for (AppInfoEntity entity : apps) {
-            deleteFollowedApp(entity);
+            delete(entity);
         }
     }
 
-    public void deleteFollowedApp(AppInfoEntity app) {
+    public void delete(AppInfoEntity app) {
         SQLiteDatabase db = this.getWritableDatabase();
         //TODO CHECK IF BUNDLE KEYS ARE DELETED AUTOMATICALLY
 //        if (deleteBundleKeys) {
@@ -228,7 +228,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return entity;
     }
 
-    public long addFollowedNotification(NotificationEntity entity) {
+    public long add(NotificationEntity entity) {
         ContentValues values = new ContentValues();
         values.put(DBContract.FollowedNotificationsFeed.COLUMN_NAME_PACKAGE_NAME, entity.getPackageName());
         values.put(DBContract.FollowedNotificationsFeed.COLUMN_NAME_SBN_ID, entity.getSbnId());
@@ -236,7 +236,7 @@ public class DBHelper extends SQLiteOpenHelper {
         return getWritableDatabase().insert(DBContract.FollowedNotificationsFeed.TABLE_NAME, null, values);
     }
 
-    public int deleteFollowedNotificaiton(NotificationEntity entity) {
+    public int delete(NotificationEntity entity) {
         return getWritableDatabase().delete(DBContract.FollowedNotificationsFeed.TABLE_NAME,
                 DBContract.FollowedNotificationsFeed.COLUMN_NAME_PACKAGE_NAME + " = ? AND "
                         + DBContract.FollowedNotificationsFeed.COLUMN_NAME_SBN_ID + " = ?",
@@ -631,7 +631,7 @@ public class DBHelper extends SQLiteOpenHelper {
         String packageName = cursor.getString(cursor.getColumnIndex(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_PACKAGE_NAME));
         int sbnId = cursor.getInt(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_SBN_ID));
 
-        HistoryBundleKeyEntity entity = new HistoryBundleKeyEntity(packageName,sbnId, key, value);
+        HistoryBundleKeyEntity entity = new HistoryBundleKeyEntity(packageName,sbnId, value, key);
         boolean isFollowed = isFollowed(entity);
         if (isFollowed) {
             boolean isShowAlways = isShowAlways(entity);

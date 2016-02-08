@@ -180,7 +180,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
         if(mEntity.isFollowed())
         {
             if(!isFallowed) {
-                db.addFollowedApp(mEntity);
+                db.add(mEntity);
                 snackBarText.append("has been added");
             }
             else
@@ -197,7 +197,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
         else
         {
             if (isFallowed) {
-                db.deleteFollowedApp(mEntity, true);
+                db.deleteFollowed(mEntity, true);
                 snackBarText.append("has been deleted");
             }
         }

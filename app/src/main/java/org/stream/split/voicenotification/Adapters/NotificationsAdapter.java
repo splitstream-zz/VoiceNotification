@@ -81,7 +81,7 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
                 DBHelper db = new DBHelper(mContext);
                 notificationEntity.setBundleKeys(db.getBundleKeys(notificationEntity));
                 db.close();
-                Fragment fragment = NotificationDetailsFragment.newInstance(new Gson().toJson(notificationEntity));
+                Fragment fragment = NotificationDetailsFragment.newInstance(notificationEntity);
                 FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
                 fragmentManager.beginTransaction()
                         .replace(R.id.frame_content, fragment)
@@ -97,9 +97,9 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
             if(isChecked != notificationEntity.isFollowed()) {
                 notificationEntity.setIsFollowed(isChecked);
                 if (isChecked)
-                    db.addFollowedNotification(notificationEntity);
+                    db.add(notificationEntity);
                 else
-                    db.deleteFollowedNotificaiton(notificationEntity);
+                    db.delete(notificationEntity);
 
                 refresh();
             }

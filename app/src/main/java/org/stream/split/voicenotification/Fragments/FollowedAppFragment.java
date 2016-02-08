@@ -141,7 +141,7 @@ public class FollowedAppFragment extends BaseFragment {
         List<AppInfoEntity> apps = mAdapter.getSelectedItems();
         if (!apps.isEmpty()) {
             DBHelper db = new DBHelper(getActivity());
-            db.deleteFollowedApps(apps);
+            db.delete(apps);
             db.close();
         }
     }

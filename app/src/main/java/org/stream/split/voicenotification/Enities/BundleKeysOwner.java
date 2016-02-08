@@ -9,9 +9,11 @@ import java.util.List;
 public abstract class BundleKeysOwner<T extends BundleKeyEntity> extends BaseEntity {
     private List<T> mBundleKeys = new ArrayList<>();
 
-    public void addBundleKey(T entity) {
-        mBundleKeys.add(entity);
+    protected void add(T bundleKey)
+    {
+        mBundleKeys.add(bundleKey);
     }
+    public abstract void addBundleKey(BundleKeyEntity entity);
 
     public List<T> getBundleKeys() {
         return getBundleKeys(false);

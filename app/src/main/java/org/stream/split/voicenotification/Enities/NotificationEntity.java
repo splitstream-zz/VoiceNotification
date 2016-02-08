@@ -45,4 +45,9 @@ public class NotificationEntity<T extends NotificationBundleKeyEntity> extends B
         mSbnId = sbnId;
     }
 
+    @Override
+    public void addBundleKey(BundleKeyEntity entity) {
+        NotificationBundleKeyEntity notificationBundleKeyEntity = new NotificationBundleKeyEntity(getPackageName(),getSbnId(),entity);
+        add((T)notificationBundleKeyEntity);
+    }
 }

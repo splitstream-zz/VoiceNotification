@@ -53,4 +53,8 @@ public class HistoryNotificationEntity extends NotificationEntity<HistoryBundleK
         mOccurrenceTime = occurrenceTime;
     }
 
+    @Override
+    public void addBundleKey(BundleKeyEntity entity) {
+        super.addBundleKey(entity);
+    }
 }

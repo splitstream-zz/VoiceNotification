@@ -3,25 +3,32 @@ package org.stream.split.voicenotification.Enities;
 /**
  * Created by split on 2015-11-26.
  */
-public abstract class BundleKeyEntity extends BaseEntity implements Comparable {
+public class BundleKeyEntity extends BaseEntity implements Comparable {
 
     String mKey;
     int mPriority;
     boolean mIsShowAlways = false;
 
     /**
-     * Constructor used to to initialize !followed! bundle key
+     * This Constructor should be used to initialize ONLY followed bundle keys
      * @param key
      * @param priority
      */
-    protected BundleKeyEntity(String key, int priority,boolean isShownAlways)
+    public BundleKeyEntity(String key, int priority,boolean isShownAlways)
     {
         mKey = key;
         mPriority = priority;
         mIsShowAlways = isShownAlways;
         setIsFollowed(true);
     }
-    protected BundleKeyEntity(String key)
+    protected BundleKeyEntity(BundleKeyEntity entity)
+    {
+        mKey = entity.mKey;
+        mPriority = entity.mPriority;
+        mIsShowAlways = entity.mIsShowAlways;
+        setIsFollowed(entity.isFollowed());
+    }
+    public BundleKeyEntity(String key)
     {
         mKey = key;
     }

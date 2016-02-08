@@ -20,12 +20,10 @@ import org.stream.split.voicenotification.Controls.ImageCheckBox;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
-import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Fragments.ApplicationDetailsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -117,7 +115,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
             catch(PackageManager.NameNotFoundException ex)
             {
                 DBHelper db = new DBHelper(mContext);
-                db.deleteFollowedApp(entity);
+                db.delete(entity);
                 db.close();
                 StringBuilder builder = new StringBuilder(entity.getApplicationLabel());
                 builder.append(" was removed");
