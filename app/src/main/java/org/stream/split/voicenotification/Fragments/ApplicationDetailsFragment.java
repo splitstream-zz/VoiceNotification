@@ -3,6 +3,7 @@ package org.stream.split.voicenotification.Fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.ViewPager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -15,6 +16,8 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
+import org.stream.split.voicenotification.Adapters.BundleKeysAdapter;
+import org.stream.split.voicenotification.Adapters.NotificationsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
@@ -31,31 +34,21 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
  */
 public class ApplicationDetailsFragment extends BaseFragment {
 
-    private static final String ARG_NOTIFICATION_GSON_OBJECT = "NotificationObject";
+    private static final String ARG_APP_GSON_OBJECT = "NotificationObject";
     private AppInfoEntity mEntity;
-    private ItemTouchHelper mItemTouchHelper;
 
+    private ViewPager mViewPager;
+    private BundleKeysAdapter mBundleKeysAdapter;
+    private NotificationsAdapter mNotificationAdapter;
     private TextView mLabelTextView;
     private TextView mPackageNameTextView;
-    private TextView mNotificationSbnID;
     private CheckBox mAddDeleteCbx;
 
-    /**
-     * The fragment's ListView/GridView.
-     */
-    private RecyclerView mRecyclerView;
-
-    /**
-     * The Adapter which will be used to populate the ListView/GridView with
-     * Views.
-     */
-    private ApplicationDetailsAdapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
 
     public static ApplicationDetailsFragment newInstance(String gsonNotificationEntity) {
         ApplicationDetailsFragment fragment = new ApplicationDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_NOTIFICATION_GSON_OBJECT, gsonNotificationEntity);
+        args.putString(ARG_APP_GSON_OBJECT, gsonNotificationEntity);
         fragment.setArguments(args);
         return fragment;
     }
@@ -73,11 +66,10 @@ public class ApplicationDetailsFragment extends BaseFragment {
 
 
         if (getArguments() != null) {
-            String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
+            String gsonToJson = getArguments().getString(ARG_APP_GSON_OBJECT);
             mEntity = new Gson().fromJson(gsonToJson, AppInfoEntity.class);
         }
 
-        mAdapter = new ApplicationDetailsAdapter(mEntity.getBundleKeys(),this,getActivity());
         setTitle(mEntity.getApplicationLabel());
     }
     @Override
@@ -89,58 +81,30 @@ public class ApplicationDetailsFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_notification_details, container, false);
-
-
-        // Set the adapter
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.list_budlekeys);
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mRecyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
-        mLayoutManager = new LinearLayoutManager(view.getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mRecyclerView.setAdapter(mAdapter);
-
-        mNotificationSbnID = (TextView) view.findViewById(R.id.notification_sbn_id_text);
-
-        if(mEntity.getSbnId() != -1)
-        {
-            mNotificationSbnID.setText(String.valueOf(mEntity.getSbnId()));
-            mNotificationSbnID.setVisibility(View.VISIBLE);
-        }
+        View view = inflater.inflate(R.layout.fragment_app_details, container, false);
 
         mLabelTextView = (TextView) view.findViewById(R.id.label_text);
-        mLabelTextView.setText(mEntity.getApplicationLabel());
-
         mPackageNameTextView = (TextView) view.findViewById(R.id.packagename_text);
-        mPackageNameTextView.setText(mEntity.getPackageName());
-
         mAddDeleteCbx = (CheckBox) view.findViewById(R.id.add_delete_ImgBtn);
-        mAddDeleteCbx.setChecked(mEntity.isFollowed());
+        mViewPager = (ViewPager) view.findViewById(R.id.pager);
+
+        initialize(mEntity);
+        setUpFab();
+        return view;
+    }
+    private void initialize(final AppInfoEntity entity)
+    {
+        mLabelTextView.setText(entity.getApplicationLabel());
+        mPackageNameTextView.setText(entity.getPackageName());
+        mAddDeleteCbx.setChecked(entity.isFollowed());
         mAddDeleteCbx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mEntity.setIsModified(true);
-                mEntity.setIsFollowed(isChecked);
-                if (isChecked)
-                    mRecyclerView.setVisibility(View.VISIBLE);
-                else
-                    mRecyclerView.setVisibility(View.INVISIBLE);
+                entity.setIsModified(true);
+                entity.setIsFollowed(isChecked);
             }
         });
-
-        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
-
-        mItemTouchHelper = new ItemTouchHelper(callback);
-        mItemTouchHelper.attachToRecyclerView(mRecyclerView);
-        if(mEntity.isFollowed())
-            mRecyclerView.setVisibility(View.VISIBLE);
-        else
-            mRecyclerView.setVisibility(View.INVISIBLE);
-        setUpFab();
-        return view;
+        mViewPager.
     }
 
     @Override
@@ -162,7 +126,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
             @Override
             public void onClick(View v) {
 
-                String result  = updateDatabase();
+                String result = updateDatabase();
                 Snackbar.make(v, result, Snackbar.LENGTH_SHORT).show();
                 getFragmentManager().popBackStack();
             }
@@ -172,7 +136,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
     private String updateDatabase()
     {
         DBHelper db = new DBHelper(getActivity());
-        boolean isFallowed = db.isAppFollowed(mEntity.getPackageName());
+        boolean isFallowed = db.isFollowed(mEntity.getPackageName());
         StringBuilder snackBarText = new StringBuilder();
 
         snackBarText.append(mEntity.getApplicationLabel());
@@ -186,28 +150,16 @@ public class ApplicationDetailsFragment extends BaseFragment {
             else
                 snackBarText.append("has been modified");
 
-            for(BundleKeyEntity entity:mAdapter.getModifiedItems()) {
-
-                    if(entity.isFollowed())
-                        db.addUpdateFollowedBundleKey(entity);
-                    else
-                        db.deleteFollowedBundleKey(entity);
-            }
         }
         else
         {
             if (isFallowed) {
-                db.deleteFollowed(mEntity, true);
+                db.delete(mEntity);
                 snackBarText.append("has been deleted");
             }
         }
         db.close();
         return snackBarText.toString();
-    }
-
-    @Override
-    public void onStartDrag(RecyclerView.ViewHolder viewHolder) {
-        mItemTouchHelper.startDrag(viewHolder);
     }
 
     @Override

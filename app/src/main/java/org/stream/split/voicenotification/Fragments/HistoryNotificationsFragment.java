@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
@@ -28,6 +29,8 @@ import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListen
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,71 +42,28 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class HistoryNotificationsFragment extends BaseFragment {
+public class HistoryNotificationsFragment extends NotificationsFragment {
 
     private final static String TAG = "HistoryNotificationsFragment";
-    private final int mTestingNotificationID = 6879;
-
-    private RecyclerView mRecyclerView;
-    private NotificationsAdapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
     private NotifyBroadcastReceiver mReceiver;
-    private OnFragmentInteractionListener mListener;
     private NotificationServiceConnection mConnection;
-    private NotificationManager mNotificationManager;
-
 
     public HistoryNotificationsFragment() {
     }
+
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         activity.setTitle(getTitle());
-
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
-
-        mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
-        DBHelper db = new DBHelper(getActivity());
-        List<HistoryNotificationEntity> entities = db.getAllHistoryNotification(false);
-        db.close();
-        mAdapter = new NotificationsAdapter(entities,getActivity());
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
-
-    }
-
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_history_list, container, false);
-
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_notification_history);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mRecyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
-        mLayoutManager = new LinearLayoutManager(view.getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
-        mRecyclerView.setAdapter(mAdapter);
-
-        setUpFab();
-        return view;
     }
 
     @Override
@@ -112,8 +72,6 @@ public class HistoryNotificationsFragment extends BaseFragment {
         Log.d(TAG, "onStart()");
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
         mConnection.registerReceiver(mReceiver);
-        mAdapter.refresh();
-
     }
 
     @Override
@@ -139,7 +97,6 @@ public class HistoryNotificationsFragment extends BaseFragment {
     public void onDetach() {
         super.onDetach();
         LOGGER.d(TAG, "onDetach()");
-        mListener = null;
 
     }
 
@@ -151,27 +108,6 @@ public class HistoryNotificationsFragment extends BaseFragment {
 //            mListener.onFragmentInteraction("sda");
 //        }
 //    }
-
-    /***
-     * setting up Floating Action button to issue notification for testing purposes
-     */
-    void setUpFab()
-    {
-
-        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);
-        fab.setImageResource(R.drawable.ic_test_notification);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), VoiceNotificationActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                Notification notification = Helper.createNotification(getActivity(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
-                mNotificationManager.notify(mTestingNotificationID, notification);
-                Snackbar.make(v, "test notification was send ", Snackbar.LENGTH_SHORT).show();
-
-            }
-        });
-    }
 
     /**
      * The default content for this Fragment has a TextView that is shown when
@@ -202,6 +138,4 @@ public class HistoryNotificationsFragment extends BaseFragment {
             }
         }
     }
-
-
 }

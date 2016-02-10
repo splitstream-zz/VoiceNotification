@@ -9,8 +9,11 @@ import android.util.Log;
 import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Enities.UtteranceEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
@@ -80,7 +83,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     private void addUtterance(HistoryNotificationEntity newHistoryNotificationEntity)
     {
         DBHelper db = new DBHelper(mContext);
-        List<BundleKeyEntity> followedBundleKeys = db.getBundleKeys(newHistoryNotificationEntity);
+        List<NotificationBundleKeyEntity> followedBundleKeys = db.getBundleKeys((NotificationEntity)newHistoryNotificationEntity);
         HistoryNotificationEntity lastHistoryNotificationEntity = db.getLastHistoryNotification(newHistoryNotificationEntity.getID(), true);
         logger.d(TAG, "lasnotification.getID: " + lastHistoryNotificationEntity.getID());
         db.close();
@@ -97,7 +100,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
     private UtteranceEntity getUtteranceEntity(HistoryNotificationEntity newHistoryNotificationEntity,
                                                HistoryNotificationEntity lastHistoryNotificationEntity,
-                                               List<BundleKeyEntity> followedBundleKeys) {
+                                               List<NotificationBundleKeyEntity> followedBundleKeys) {
 
 //        UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
 //        if(lastHistoryNotificationEntity != null)
@@ -113,11 +116,11 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         logger.d(TAG,"========for1========");
         for(BundleKeyEntity followedEntity:followedBundleKeys) {
             logger.d(TAG, "key: " + followedEntity.getKey());
-            List<BundleKeyEntity> newBundleKeys = newHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
+            List<HistoryBundleKeyEntity> newBundleKeys = newHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
             UtteranceEntity temp = new UtteranceEntity();
             temp.addMessages(newBundleKeys);
 
-            List<BundleKeyEntity> lastBundleKeys = lastHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
+            List<HistoryBundleKeyEntity> lastBundleKeys = lastHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
             UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
             lastUtteranceEntity.addMessages(lastBundleKeys);
             String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
@@ -130,7 +133,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
             }
             else {
                 logger.d(TAG, "========for2========");
-                for (BundleKeyEntity newEntity : newBundleKeys) {
+                for (HistoryBundleKeyEntity newEntity : newBundleKeys) {
                     String newUtteranceMessage = temp.getFlatMessage().replace(lastUtteranceFlatMessage, "");
                     newEntity.setValue(newUtteranceMessage);
                     utteranceEntity.addMessage(newEntity);

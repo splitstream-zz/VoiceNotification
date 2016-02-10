@@ -15,8 +15,6 @@ import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
-
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
@@ -118,7 +116,7 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
     public NotificationsAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_history_list_item, parent, false);
+                .inflate(R.layout.notification_list_item, parent, false);
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }
@@ -164,9 +162,9 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
     {
         //todo most likely we will need to load data from database but we do not now what kind of object we need to load notificationEntites/historynotificationEntities
         //we can check what kind of object there were in list but what if there is null?
-        mDataset.clear();
-        DBHelper db = new DBHelper(mContext);
-        db.close();
+        //mDataset.clear();
+//        DBHelper db = new DBHelper(mContext);
+//        db.close();
         this.notifyDataSetChanged();
     }
 

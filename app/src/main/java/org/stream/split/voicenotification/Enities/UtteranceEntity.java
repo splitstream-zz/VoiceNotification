@@ -11,15 +11,15 @@ import java.util.List;
 public class UtteranceEntity {
 
     String mUtteranceId;
-    List<BundleKeyEntity> mMessages = new ArrayList<>();
+    List<HistoryBundleKeyEntity> mMessages = new ArrayList<>();
 
-    public List<BundleKeyEntity> getMessages() {
+    public List<HistoryBundleKeyEntity> getMessages() {
         return mMessages;
     }
-    public void addMessage(BundleKeyEntity message) {
+    public void addMessage(HistoryBundleKeyEntity message) {
         this.mMessages.add(message);
     }
-    public void addMessages(List<BundleKeyEntity> messages) {
+    public void addMessages(List<HistoryBundleKeyEntity> messages) {
         this.mMessages.addAll(messages);
     }
 
@@ -39,7 +39,7 @@ public class UtteranceEntity {
     public String getFlatMessage()
     {
         StringBuilder message = new StringBuilder();
-        for(BundleKeyEntity bundle:mMessages) {
+        for(HistoryBundleKeyEntity bundle:mMessages) {
             message.append(bundle.getValue());
             //message.append("\n");
         }
@@ -48,7 +48,7 @@ public class UtteranceEntity {
     public String getFlatMessage(String key)
     {
         StringBuilder message = new StringBuilder();
-        for(BundleKeyEntity bundle:mMessages) {
+        for(HistoryBundleKeyEntity bundle:mMessages) {
             if(bundle.getKey().equals(key))
             message.append(bundle.getValue());
             //message.append("\n");

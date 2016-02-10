@@ -13,8 +13,12 @@ public class HistoryBundleKeyEntity extends NotificationBundleKeyEntity {
     public void setUtteranceId(String utteranceId) {
         this.mUtteranceId = utteranceId;
     }
+
     public String getValue() {
         return mValue;
+    }
+    public void setValue(String value) {
+        this.mValue = value;
     }
 
     public HistoryBundleKeyEntity(String packageName, int sbnId, String value, String key, int priority, boolean isShownAlways)
@@ -37,4 +41,6 @@ public class HistoryBundleKeyEntity extends NotificationBundleKeyEntity {
         super(packageName,sbnId,entity);
         mValue = value;
     }
+
+
 }

@@ -31,6 +31,7 @@ import android.view.View;
 import android.widget.Switch;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Fragments.BaseFragment;
 import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
@@ -42,6 +43,8 @@ import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListen
 import org.stream.split.voicenotification.Logging.BaseLogger;
 import org.stream.split.voicenotification.Logging.DbLogger;
 import org.stream.split.voicenotification.Logging.DbToLog;
+
+import java.util.List;
 
 //TODO dodać do poszczególnych fragmentów tytuły
 //TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
@@ -114,7 +117,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         mFragmentManager = getFragmentManager();
         if(savedInstanceState == null) {
-            HistoryNotificationsFragment fragment = new HistoryNotificationsFragment();
+            DBHelper db = new DBHelper(this);
+            List<HistoryNotificationEntity> entities = db.getAllHistoryNotification(false);
+            db.close();
+
             mFragmentManager.beginTransaction()
                     .add(R.id.frame_content, fragment)
                     .addToBackStack("history fragment")

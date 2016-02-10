@@ -19,6 +19,7 @@ import org.stream.split.voicenotification.Adapters.BundleKeysAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
+import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
@@ -57,7 +58,7 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
     private BundleKeysAdapter mAdapter;
 
     public static <T extends NotificationEntity> NotificationDetailsFragment newInstance(T notificationEntity) {
-        NotificationDetailsFragment fragment = new NotificationDetailsFragment();
+        NotificationDetailsFragment<T> fragment = new NotificationDetailsFragment<>();
         Bundle args = new Bundle();
         args.putString(ARG_NOTIFICATION_GSON_OBJECT, new Gson().toJson(notificationEntity));
         args.putString(ARG_NOTIFICATION_GSON_TYPE, notificationEntity.getClass().getName());
@@ -82,7 +83,7 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
             try {
                 Class x = Class.forName(className);
                 String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
-                mEntity = new Gson().fromJson(gsonToJson, x.getClass());
+                mEntity = (T) new Gson().fromJson(gsonToJson, x);
             }
             catch (ClassNotFoundException e) {
                 LOGGER.e(TAG,"Cannot get Class for notification object from string Bundle",e);
@@ -91,7 +92,7 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
         }
 
         mAdapter = new BundleKeysAdapter(mEntity.getBundleKeys(),this,getActivity());
-        setTitle(Helper.getApplicationLabel(mEntity.getPackageName(),getActivity()));
+        setTitle(Helper.getApplicationLabel(mEntity.getPackageName(), getActivity()));
     }
     @Override
      public void onStart() {
@@ -117,23 +118,31 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
         mRecyclerView.setAdapter(mAdapter);
 
         mNotificationSbnID = (TextView) view.findViewById(R.id.notification_sbn_id_text);
-
-            mNotificationSbnID.setText(String.valueOf(mEntity.getSbnId()));
-            mNotificationSbnID.setVisibility(View.VISIBLE);
-
         mLabelTextView = (TextView) view.findViewById(R.id.label_text);
-        mLabelTextView.setText(Helper.getApplicationLabel(mEntity.getPackageName(),getActivity()));
-
         mPackageNameTextView = (TextView) view.findViewById(R.id.packagename_text);
-        mPackageNameTextView.setText(mEntity.getPackageName());
-
         mAddDeleteCbx = (CheckBox) view.findViewById(R.id.add_delete_ImgBtn);
-        mAddDeleteCbx.setChecked(mEntity.isFollowed());
+
+
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
+        mItemTouchHelper = new ItemTouchHelper(callback);
+        mItemTouchHelper.attachToRecyclerView(mRecyclerView);
+
+        initialize(mEntity);
+        setUpFab();
+        return view;
+    }
+
+    private void initialize(final T entity)
+    {
+        mNotificationSbnID.setText(String.valueOf(entity.getSbnId()));
+        mLabelTextView.setText(Helper.getApplicationLabel(entity.getPackageName(), getActivity()));
+        mPackageNameTextView.setText(entity.getPackageName());
+        mAddDeleteCbx.setChecked(entity.isFollowed());
         mAddDeleteCbx.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                mEntity.setIsModified(true);
-                mEntity.setIsFollowed(isChecked);
+                entity.setIsModified(true);
+                entity.setIsFollowed(isChecked);
                 if (isChecked)
                     mRecyclerView.setVisibility(View.VISIBLE);
                 else
@@ -141,16 +150,11 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
             }
         });
 
-        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
-
-        mItemTouchHelper = new ItemTouchHelper(callback);
-        mItemTouchHelper.attachToRecyclerView(mRecyclerView);
-        if(mEntity.isFollowed())
+        if (entity.isFollowed())
             mRecyclerView.setVisibility(View.VISIBLE);
         else
             mRecyclerView.setVisibility(View.INVISIBLE);
-        setUpFab();
-        return view;
+
     }
 
     @Override
@@ -172,43 +176,43 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
             @Override
             public void onClick(View v) {
 
-                String result  = updateDatabase();
+                String result  = updateDatabase(mEntity);
                 Snackbar.make(v, result, Snackbar.LENGTH_SHORT).show();
                 getFragmentManager().popBackStack();
             }
         });
     }
 
-    private String updateDatabase()
+    private String updateDatabase(T entity)
     {
         DBHelper db = new DBHelper(getActivity());
-        boolean isFallowed = db.isFollowed(mEntity);
+        boolean isFallowed = db.isFollowed(entity);
         StringBuilder snackBarText = new StringBuilder();
 
-        snackBarText.append(Helper.getApplicationLabel(mEntity.getPackageName(),getActivity()));
+        snackBarText.append(Helper.getApplicationLabel(entity.getPackageName(), getActivity()));
         snackBarText.append(" ");
-        if(mEntity.isFollowed())
+        if(entity.isFollowed())
         {
             if(!isFallowed) {
-                db.add(mEntity);
+                db.add(entity);
                 snackBarText.append("has been added");
             }
             else
                 snackBarText.append("has been modified");
 
             List<NotificationBundleKeyEntity> bundleKeyEntities = mAdapter.getModifiedItems();
-            for(NotificationBundleKeyEntity entity:bundleKeyEntities) {
+            for(NotificationBundleKeyEntity entity1:bundleKeyEntities) {
 
                     if(entity.isFollowed())
-                        db.updateOrInsertFollowedBundleKey(entity);
+                        db.updateOrInsertFollowedBundleKey(entity1);
                     else
-                        db.deleteFollowedBundleKey(entity);
+                        db.deleteFollowedBundleKey(entity1);
             }
         }
         else
         {
             if (isFallowed) {
-                db.delete(mEntity);
+                db.delete(entity);
                 snackBarText.append("has been deleted");
             }
         }
