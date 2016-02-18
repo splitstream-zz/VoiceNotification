@@ -1,9 +1,11 @@
 package org.stream.split.voicenotification.Enities;
 
+import java.io.Serializable;
+
 /**
  * Created by split on 2015-11-26.
  */
-public class AppBundleKeyEntity extends BundleKeyEntity {
+public class AppBundleKeyEntity extends BundleKeyEntity implements Serializable {
     String mPackageName;
 
     public String getPackageName() {

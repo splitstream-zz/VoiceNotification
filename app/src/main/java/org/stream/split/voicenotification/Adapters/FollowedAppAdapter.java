@@ -24,6 +24,7 @@ import org.stream.split.voicenotification.Fragments.ApplicationDetailsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,6 +91,16 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         notifyDataSetChanged();
     }
 
+    public List<AppInfoEntity> getSelectedItems() {
+        List<AppInfoEntity> selectedItems = new ArrayList<>();
+        for(AppInfoEntity entity:mDataset)
+        {
+            if(entity.isSelected())
+                selectedItems.add(entity);
+        }
+        return selectedItems;
+    }
+
     protected class ViewHolder extends RecyclerView.ViewHolder implements CompoundButton.OnCheckedChangeListener, View.OnClickListener
     {
         TextView name;
@@ -136,11 +147,10 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         @Override
         public void onClick(View v) {
 
+            //TODO might not be needed test it!
+            Helper.getAllNotificationBundleKeys(entity);
 
-            List<AppBundleKeyEntity> bundleKeys = Helper.getAllNotificationBundleKeys(entity.getPackageName(),entity.getBundleKeys());
-            entity.setBundleKeys(bundleKeys);
-
-            ApplicationDetailsFragment fragment = ApplicationDetailsFragment.newInstance(new Gson().toJson(entity));
+            ApplicationDetailsFragment fragment = ApplicationDetailsFragment.newInstance(entity);
             ((Activity)mContext).getFragmentManager().beginTransaction()
                     .replace(R.id.frame_content,fragment)
                     .addToBackStack("app details")

@@ -1,9 +1,11 @@
 package org.stream.split.voicenotification.Enities;
 
+import java.io.Serializable;
+
 /**
  * Created by split on 2015-11-26.
  */
-public class BundleKeyEntity extends BaseEntity implements Comparable {
+public class BundleKeyEntity extends BaseEntity implements Comparable, Serializable {
 
     String mKey;
     int mPriority;

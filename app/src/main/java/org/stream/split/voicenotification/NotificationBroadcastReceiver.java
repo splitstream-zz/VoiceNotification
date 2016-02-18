@@ -20,7 +20,7 @@ import org.stream.split.voicenotification.Logging.BaseLogger;
 
 import java.util.List;
 
-//todo add condition not to utter when device is in mute or only vibrate mode
+//todo updateOrInsert condition not to utter when device is in mute or only vibrate mode
 // todo if !textlines.isEmpty() do not show text
 /**
  * Created by split on 2015-10-19.

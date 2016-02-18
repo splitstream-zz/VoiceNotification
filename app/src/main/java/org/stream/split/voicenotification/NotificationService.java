@@ -81,7 +81,7 @@ public class NotificationService extends NotificationListenerService implements 
     public void onCreate() {
         super.onCreate();
         Log.d(TAG, "Notification Listener created!");
-        Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
+        //Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
         registerVoiceReceivers();
         Resources res = this.getResources();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -298,8 +298,8 @@ public class NotificationService extends NotificationListenerService implements 
     }
     private HistoryNotificationEntity createNotification(StatusBarNotification sbn)
     {
-        HistoryNotificationEntity newHistoryNotificationEntity = new HistoryNotificationEntity(sbn.getId(),
-                sbn.getPackageName(),
+        HistoryNotificationEntity newHistoryNotificationEntity = new HistoryNotificationEntity(sbn.getPackageName(),
+                sbn.getId(),
                 sbn.getPostTime());
 
         List<HistoryBundleKeyEntity> bundles = Helper.IterateBundleExtras(sbn.getNotification().extras, newHistoryNotificationEntity);
@@ -307,7 +307,12 @@ public class NotificationService extends NotificationListenerService implements 
         newHistoryNotificationEntity.setBundleKeys(bundles);
         if (sbn.getNotification().tickerText != null) {
             newHistoryNotificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
-            HistoryBundleKeyEntity entity = new HistoryBundleKeyEntity(newHistoryNotificationEntity,"custom.tickerText", sbn.getNotification().tickerText.toString());
+
+            HistoryBundleKeyEntity entity = new HistoryBundleKeyEntity(newHistoryNotificationEntity.getPackageName(),
+                    newHistoryNotificationEntity.getSbnId(),
+                    sbn.getNotification().tickerText.toString(),
+                    "custom.tickerText");
+
             newHistoryNotificationEntity.addBundleKey(entity);
         }
 

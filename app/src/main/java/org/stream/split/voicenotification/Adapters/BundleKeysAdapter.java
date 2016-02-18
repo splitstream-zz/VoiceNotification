@@ -14,12 +14,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.stream.split.voicenotification.Controls.ImageCheckBox;
-import org.stream.split.voicenotification.DataAccessLayer.DBContract;
 import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
-import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
-import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperAdapter;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperViewHolder;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
@@ -38,6 +35,7 @@ public class BundleKeysAdapter<T extends AppBundleKeyEntity> extends RecyclerVie
 
     final public String TAG = this.getClass().getSimpleName();
     private Context mContext;
+
     private List<T> mDataset;
     private final OnStartDragListener mDragStartListener;
 
@@ -153,14 +151,14 @@ public class BundleKeysAdapter<T extends AppBundleKeyEntity> extends RecyclerVie
     public BundleKeysAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
         View v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_notification_details_item, parent, false);
+                .inflate(R.layout.fragment_bundlekey_list_item, parent, false);
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onBindViewHolder(BundleKeysAdapter.ViewHolder holder, int position) {
 
         T entity = mDataset.get(position);
         holder.Initialize(entity);

@@ -1,15 +1,16 @@
 package org.stream.split.voicenotification.Enities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by split on 2016-02-03.
  */
-public abstract class BundleKeysOwner<T extends BundleKeyEntity> extends BaseEntity {
+public abstract class BundleKeysOwner<T extends BundleKeyEntity & Serializable> extends BaseEntity implements Serializable {
     private List<T> mBundleKeys = new ArrayList<>();
 
-    protected void add(T bundleKey)
+    public void add(T bundleKey)
     {
         mBundleKeys.add(bundleKey);
     }

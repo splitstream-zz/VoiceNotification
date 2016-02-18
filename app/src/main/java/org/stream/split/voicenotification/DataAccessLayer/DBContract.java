@@ -8,7 +8,7 @@ import android.provider.BaseColumns;
 public final class DBContract {
 
     public final static String DB_Name = "VoiceNotification.db";
-    public final static int DB_Version = 52;
+    public final static int DB_Version = 56;
     public final static int HistoryQuantityLimit = 50;
 
     DBContract(){}
@@ -38,13 +38,14 @@ public final class DBContract {
                 COLUMN_NAME_POLICY + " TEXT NOT NULL, " +
                 "PRIMARY KEY(" + COLUMN_NAME_PACKAGE_NAME + ", " + COLUMN_NAME_SBN_ID+"), "+
         "FOREIGN KEY("+COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " +
-                FollowedAppFeed.TABLE_NAME + "("+FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME+"));";
+                FollowedAppFeed.TABLE_NAME + "("+FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME+") " +
+                "ON DELETE CASCADE);";
 
         public static String SQL_DELETE_TABLE = "DROP TABLE IF EXISTS " + TABLE_NAME;
     }
 
     /**
-     * Table should be used for setting purposes. It stores Keys for Notification.extras
+     * Table should be used for settings. It stores Keys for Notification.extras
      * bundle values that should be uttered in speech module.
      */
     public static abstract class AppBundleKeysFeed implements BaseColumns {
@@ -61,7 +62,7 @@ public final class DBContract {
                         COLUMN_NAME_PRIORITY + " INTEGER NOT NULL, " +
                         COLUMN_NAME_SHOW_ALWAYS + " INTEGER DEFAULT 0," +
                         "PRIMARY KEY(" + COLUMN_NAME_PACKAGE_NAME + "," + COLUMN_NAME_BUNDLE_KEY +"), "+
-                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES + " +
+                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + ") REFERENCES " +
                         FollowedAppFeed.TABLE_NAME + "(" + FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME + ") " +
                         "ON DELETE CASCADE);";
 
@@ -83,7 +84,7 @@ public final class DBContract {
                         COLUMN_NAME_PRIORITY + " INTEGER NOT NULL, " +
                         COLUMN_NAME_SHOW_ALWAYS + " INTEGER DEFAULT 0," +
                         "PRIMARY KEY(" + COLUMN_NAME_PACKAGE_NAME + "," + COLUMN_NAME_SBN_ID + ","+ COLUMN_NAME_BUNDLE_KEY +"), "+
-                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + "," + COLUMN_NAME_SBN_ID + ") REFERENCES + " +
+                        "FOREIGN KEY(" + COLUMN_NAME_PACKAGE_NAME + "," + COLUMN_NAME_SBN_ID + ") REFERENCES " +
                         FollowedNotificationsFeed.TABLE_NAME + "(" + FollowedNotificationsFeed.COLUMN_NAME_PACKAGE_NAME + "," + FollowedNotificationsFeed.COLUMN_NAME_SBN_ID + ") " +
                         "ON DELETE CASCADE);";
 
@@ -122,8 +123,9 @@ public final class DBContract {
         public static final String COLUMN_NAME_ID = "id";
         public static final String COLUMN_NAME_NOTIFICATION_ID = "NotificationId";
         public static final String COLUMN_NAME_UTTERANCE_ID = "UtteranceId";
-        public static final String COLUMN_NAME_BUNDLE_KEY = "BundleKey";
         public static final String COLUMN_NAME_PACKAGE_NAME = "PackageName";
+        public static final String COLUMN_NAME_SBN_ID = "SbnId";
+        public static final String COLUMN_NAME_BUNDLE_KEY = "BundleKey";
         public static final String COLUMN_NAME_BUNDLE_VALUE = "BundleValue";
 
         public static final String SQL_CREATE_TABLE =
@@ -131,6 +133,7 @@ public final class DBContract {
                         COLUMN_NAME_ID + " INTEGER PRIMARY KEY, "+
                         COLUMN_NAME_NOTIFICATION_ID + " INTEGER NOT NULL, " +
                         COLUMN_NAME_PACKAGE_NAME + " TEXT NOT NULL, " +
+                        COLUMN_NAME_SBN_ID + " INTEGER NOT NULL, " +
                         COLUMN_NAME_UTTERANCE_ID + " TEXT, " +
                         COLUMN_NAME_BUNDLE_KEY + " TEXT NOT NULL, " +
                         COLUMN_NAME_BUNDLE_VALUE + " TEXT NOT NULL, " +

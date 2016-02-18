@@ -24,7 +24,7 @@ import org.stream.split.voicenotification.VoiceNotificationActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-//todo add empty listview textview  recommend to add new apps to followed list
+//todo updateOrInsert empty listview textview  recommend to updateOrInsert new apps to followed list
 /**
  * A fragment representing a list of Items.
  * <p/>
@@ -155,7 +155,7 @@ public class FollowedAppFragment extends BaseFragment {
                 FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction();
                 InstalledAppFragment fragment = new InstalledAppFragment();
                 ft.replace(R.id.frame_content, fragment)
-                        .addToBackStack("add App to followed")
+                        .addToBackStack("updateOrInsert App to followed")
                         .commit();
             }
         });

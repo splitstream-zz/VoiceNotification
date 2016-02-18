@@ -42,7 +42,7 @@
         android:layout_height="1dp"
         android:background="@color/limiterLine" />
 
-    <ViewPager
+    <android.support.v4.view.ViewPager
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/pager"
         android:layout_width="match_parent"
@@ -58,5 +58,5 @@
             android:paddingTop="4dp"
             android:paddingBottom="4dp" />
 
-    </ViewPager>
+    </android.support.v4.view.ViewPager>
 </LinearLayout>

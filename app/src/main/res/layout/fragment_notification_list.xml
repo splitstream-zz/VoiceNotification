@@ -2,10 +2,10 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragments.HistoryNotificationsFragment">
+    tools:context=".Fragments.NotificationListFragment">
 
     <android.support.v7.widget.RecyclerView
-        android:id="@+id/recycler_view_notification_history"
+        android:id="@+id/recycler_view_notifications"
         android:scrollbars="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>

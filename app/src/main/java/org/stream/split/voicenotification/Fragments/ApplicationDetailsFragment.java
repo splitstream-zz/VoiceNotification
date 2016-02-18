@@ -4,9 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +15,16 @@ import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.Adapters.BundleKeysAdapter;
 import org.stream.split.voicenotification.Adapters.NotificationsAdapter;
+import org.stream.split.voicenotification.Adapters.SwipeViewsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
+import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -38,17 +39,20 @@ public class ApplicationDetailsFragment extends BaseFragment {
     private AppInfoEntity mEntity;
 
     private ViewPager mViewPager;
-    private BundleKeysAdapter mBundleKeysAdapter;
-    private NotificationsAdapter mNotificationAdapter;
+    private SwipeViewsAdapter mAdapter;
+    BundleKeysAdapter mBundleKeysAdapter;
+    NotificationsAdapter mNotificationAdapter;
+
     private TextView mLabelTextView;
     private TextView mPackageNameTextView;
     private CheckBox mAddDeleteCbx;
 
 
-    public static ApplicationDetailsFragment newInstance(String gsonNotificationEntity) {
+    public static ApplicationDetailsFragment newInstance(AppInfoEntity entity) {
         ApplicationDetailsFragment fragment = new ApplicationDetailsFragment();
         Bundle args = new Bundle();
-        args.putString(ARG_APP_GSON_OBJECT, gsonNotificationEntity);
+        String jsonEntity = new Gson().toJson(entity,AppInfoEntity.class);
+        args.putString(ARG_APP_GSON_OBJECT, jsonEntity);
         fragment.setArguments(args);
         return fragment;
     }
@@ -64,13 +68,27 @@ public class ApplicationDetailsFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
+        AppInfoEntity entity = null;
         if (getArguments() != null) {
-            String gsonToJson = getArguments().getString(ARG_APP_GSON_OBJECT);
-            mEntity = new Gson().fromJson(gsonToJson, AppInfoEntity.class);
+            String json = getArguments().getString(ARG_APP_GSON_OBJECT);
+            entity = new Gson().fromJson(json, AppInfoEntity.class);
         }
 
-        setTitle(mEntity.getApplicationLabel());
+        ArrayList<BundleKeyEntity> bundleKeyEntities = new ArrayList<>();
+        bundleKeyEntities.addAll(entity.getBundleKeys());
+        BundleKeyListFragment bundleKeyListFragment = BundleKeyListFragment.newInstance(bundleKeyEntities);
+        mBundleKeysAdapter = bundleKeyListFragment.getAdapter();
+
+        ArrayList<NotificationEntity> entities = (ArrayList) entity.getNotifications();
+        NotificationListFragment notificationListFragment = NotificationListFragment.newInstance(entities);
+        mNotificationAdapter = notificationListFragment.getAdapter();
+
+        mAdapter = new SwipeViewsAdapter(getChildFragmentManager());
+        mAdapter.AddView(notificationListFragment);
+        mAdapter.AddView(bundleKeyListFragment);
+
+        setTitle(entity.getApplicationLabel());
+        mEntity = entity;
     }
     @Override
      public void onStart() {
@@ -87,6 +105,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
         mPackageNameTextView = (TextView) view.findViewById(R.id.packagename_text);
         mAddDeleteCbx = (CheckBox) view.findViewById(R.id.add_delete_ImgBtn);
         mViewPager = (ViewPager) view.findViewById(R.id.pager);
+        mViewPager.setAdapter(mAdapter);
 
         initialize(mEntity);
         setUpFab();
@@ -104,7 +123,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
                 entity.setIsFollowed(isChecked);
             }
         });
-        mViewPager.
+
     }
 
     @Override
@@ -135,20 +154,21 @@ public class ApplicationDetailsFragment extends BaseFragment {
 
     private String updateDatabase()
     {
+        //TODO updateOrInsert update of adapters in swipe screens
         DBHelper db = new DBHelper(getActivity());
         boolean isFallowed = db.isFollowed(mEntity.getPackageName());
         StringBuilder snackBarText = new StringBuilder();
+        mEntity.setNotifications(mNotificationAdapter.getItems());
+        mEntity.setBundleKeys(mBundleKeysAdapter.getItems());
 
         snackBarText.append(mEntity.getApplicationLabel());
         snackBarText.append(" ");
         if(mEntity.isFollowed())
         {
             if(!isFallowed) {
-                db.add(mEntity);
-                snackBarText.append("has been added");
-            }
-            else
+                db.updateOrInsert(mEntity,true,true);
                 snackBarText.append("has been modified");
+            }
 
         }
         else
@@ -164,12 +184,7 @@ public class ApplicationDetailsFragment extends BaseFragment {
 
     @Override
     public boolean isModified() {
-        boolean isModified = false;
-        if(mEntity.isModified())
-            isModified = true;
-        if(!mAdapter.getModifiedItems().isEmpty())
-            isModified = true;
-        return isModified;
+        return mEntity.isModified() || mAdapter.isModified();
     }
 
     /**

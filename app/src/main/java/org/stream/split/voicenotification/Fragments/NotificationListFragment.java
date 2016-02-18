@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -20,18 +18,15 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.stream.split.voicenotification.Adapters.NotificationsAdapter;
-import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
-import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
-import org.stream.split.voicenotification.NotificationService;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -43,29 +38,32 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class NotificationsFragment extends BaseFragment {
+public class NotificationListFragment extends BaseFragment {
 
-    private final static String TAG = "NotificationsFragment";
+    private final static String TAG = "NotListFrag";
     public final static String ARG_NOTIFICATION_LIST = "NotificationListArg";
 
-    private final int mTestingNotificationID = 6879;
-
     private RecyclerView mRecyclerView;
-    protected NotificationsAdapter mAdapter;
+    private NotificationsAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private NotificationManager mNotificationManager;
 
-
-    public NotificationsFragment() {
+    public NotificationsAdapter getAdapter() {
+        return mAdapter;
     }
 
-    public static <T extends NotificationEntity> NotificationsFragment newInstance(List<T> notificationEntities)
+    public NotificationListFragment() {
+    }
+
+    public static NotificationListFragment newInstance(
+            ArrayList<NotificationEntity> notificationEntities)
     {
-        Type listType = new TypeToken<ArrayList<T>>(){}.getType();
-        String listJson = new Gson().toJson(notificationEntities, listType);
         Bundle bundle = new Bundle();
-        bundle.putString(ARG_NOTIFICATION_LIST,listJson);
-        
+        bundle.putSerializable(ARG_NOTIFICATION_LIST, notificationEntities);
+
+        NotificationListFragment fragment = new NotificationListFragment();
+        fragment.setArguments(bundle);
+
+        return fragment;
     }
 
     @Override
@@ -80,19 +78,21 @@ public class NotificationsFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
 
-        mNotificationManager =(NotificationManager) getActivity().getSystemService(Activity.NOTIFICATION_SERVICE);
+        List entities = new ArrayList();
+        if (getArguments() != null) {
+            entities = (List<NotificationEntity>) getArguments().getSerializable(ARG_NOTIFICATION_LIST);
+        }
 
-        mAdapter = new NotificationsAdapter(entities,getActivity());
-
+        mAdapter = new NotificationsAdapter(entities, getActivity());
     }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_history_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_notification_list, container, false);
 
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_notification_history);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_notifications);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -104,7 +104,6 @@ public class NotificationsFragment extends BaseFragment {
 
         mRecyclerView.setAdapter(mAdapter);
 
-        setUpFab();
         return view;
     }
 
@@ -113,7 +112,7 @@ public class NotificationsFragment extends BaseFragment {
         super.onStart();
         Log.d(TAG, "onStart()");
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
-        mAdapter.refresh();
+        mAdapter.refresh(mAdapter.getItems());
     }
 
     @Override
@@ -150,26 +149,26 @@ public class NotificationsFragment extends BaseFragment {
 //        }
 //    }
 
-    /***
-     * setting up Floating Action button to issue notification for testing purposes
-     */
-    void setUpFab()
-    {
-
-        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);
-        fab.setImageResource(R.drawable.ic_test_notification);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), VoiceNotificationActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-                Notification notification = Helper.createNotification(getActivity(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
-                mNotificationManager.notify(mTestingNotificationID, notification);
-                Snackbar.make(v, "test notification was send ", Snackbar.LENGTH_SHORT).show();
-
-            }
-        });
-    }
+//    /***
+//     * setting up Floating Action button to issue notification for testing purposes
+//     */
+//    void setUpFab()
+//    {
+//
+//        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);
+//        fab.setImageResource(R.drawable.ic_test_notification);
+//        fab.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                Intent intent = new Intent(getActivity(), VoiceNotificationActivity.class);
+//                PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//                Notification notification = Helper.createNotification(getActivity(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
+//                mNotificationManager.notify(mTestingNotificationID, notification);
+//                Snackbar.make(v, "test notification was send ", Snackbar.LENGTH_SHORT).show();
+//
+//            }
+//        });
+//    }
 
     /**
      * The default content for this Fragment has a TextView that is shown when
@@ -183,4 +182,5 @@ public class NotificationsFragment extends BaseFragment {
 //            ((TextView) emptyView).setText(emptyText);
 //        }
     }
+
 }

@@ -17,9 +17,6 @@ import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.Adapters.BundleKeysAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
-import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
@@ -28,7 +25,6 @@ import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
-import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -60,8 +56,8 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
     public static <T extends NotificationEntity> NotificationDetailsFragment newInstance(T notificationEntity) {
         NotificationDetailsFragment<T> fragment = new NotificationDetailsFragment<>();
         Bundle args = new Bundle();
-        args.putString(ARG_NOTIFICATION_GSON_OBJECT, new Gson().toJson(notificationEntity));
-        args.putString(ARG_NOTIFICATION_GSON_TYPE, notificationEntity.getClass().getName());
+        args.putSerializable(ARG_NOTIFICATION_GSON_OBJECT, notificationEntity);
+        //args.putString(ARG_NOTIFICATION_GSON_TYPE, notificationEntity.getClass().getName());
         fragment.setArguments(args);
         return fragment;
     }
@@ -79,18 +75,18 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
 
 
         if (getArguments() != null) {
-            String className = getArguments().getString(ARG_NOTIFICATION_GSON_TYPE);
-            try {
-                Class x = Class.forName(className);
-                String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
-                mEntity = (T) new Gson().fromJson(gsonToJson, x);
-            }
-            catch (ClassNotFoundException e) {
-                LOGGER.e(TAG,"Cannot get Class for notification object from string Bundle",e);
-            }
-
+//            String className = getArguments().getString(ARG_NOTIFICATION_GSON_TYPE);
+//            try {
+//                Class x = Class.forName(className);
+//                String gsonToJson = getArguments().getString(ARG_NOTIFICATION_GSON_OBJECT);
+//                mEntity = (T) new Gson().fromJson(gsonToJson, x);
+//            }
+//            catch (ClassNotFoundException e) {
+//                LOGGER.e(TAG,"Cannot get Class for notification object from string Bundle",e);
+//            }
+            mEntity = (T)getArguments().getSerializable(ARG_NOTIFICATION_GSON_OBJECT);
         }
-
+        Helper.getAllNotificationBundleKeys(mEntity);
         mAdapter = new BundleKeysAdapter(mEntity.getBundleKeys(),this,getActivity());
         setTitle(Helper.getApplicationLabel(mEntity.getPackageName(), getActivity()));
     }
@@ -117,15 +113,14 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
 
+        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
+        mItemTouchHelper = new ItemTouchHelper(callback);
+        mItemTouchHelper.attachToRecyclerView(mRecyclerView);
+
         mNotificationSbnID = (TextView) view.findViewById(R.id.notification_sbn_id_text);
         mLabelTextView = (TextView) view.findViewById(R.id.label_text);
         mPackageNameTextView = (TextView) view.findViewById(R.id.packagename_text);
         mAddDeleteCbx = (CheckBox) view.findViewById(R.id.add_delete_ImgBtn);
-
-
-        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
-        mItemTouchHelper = new ItemTouchHelper(callback);
-        mItemTouchHelper.attachToRecyclerView(mRecyclerView);
 
         initialize(mEntity);
         setUpFab();
@@ -194,7 +189,7 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
         if(entity.isFollowed())
         {
             if(!isFallowed) {
-                db.add(entity);
+                db.updateOrInsert(entity,false);
                 snackBarText.append("has been added");
             }
             else
@@ -204,7 +199,7 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
             for(NotificationBundleKeyEntity entity1:bundleKeyEntities) {
 
                     if(entity.isFollowed())
-                        db.updateOrInsertFollowedBundleKey(entity1);
+                        db.updateOrInsert(entity1);
                     else
                         db.deleteFollowedBundleKey(entity1);
             }

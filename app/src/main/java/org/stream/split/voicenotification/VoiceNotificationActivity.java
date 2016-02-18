@@ -30,12 +30,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Switch;
 
+import com.google.gson.reflect.TypeToken;
+
+import org.stream.split.voicenotification.DataAccessLayer.DBContract;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Fragments.BaseFragment;
 import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
-import org.stream.split.voicenotification.Fragments.HistoryNotificationsFragment;
+import org.stream.split.voicenotification.Fragments.HistoryNotificationListFragment;
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
@@ -44,6 +47,8 @@ import org.stream.split.voicenotification.Logging.BaseLogger;
 import org.stream.split.voicenotification.Logging.DbLogger;
 import org.stream.split.voicenotification.Logging.DbToLog;
 
+import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.List;
 
 //TODO dodać do poszczególnych fragmentów tytuły
@@ -90,11 +95,11 @@ public class VoiceNotificationActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //this.deleteDatabase(DBContract.DB_Name);
-        logger.addExcludedTag(DBHelper.TAG);
-        DbLogger<DbToLog> log = new DbLogger<>(DbLogger.PRIORITY_D,this.getBaseContext(),DbToLog.class);
-        logger.addLogger(log);
+        //logger.addExcludedTag(DBHelper.TAG);
+        //DbLogger<DbToLog> log = new DbLogger<>(DbLogger.PRIORITY_D,this.getBaseContext(),DbToLog.class);
+        //logger.addLogger(log);
 
-        Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
+        //Thread.currentThread().setUncaughtExceptionHandler(new ExceptionHandler(this));
 
         Resources res = this.getResources();
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
@@ -118,8 +123,9 @@ public class VoiceNotificationActivity extends AppCompatActivity
         mFragmentManager = getFragmentManager();
         if(savedInstanceState == null) {
             DBHelper db = new DBHelper(this);
-            List<HistoryNotificationEntity> entities = db.getAllHistoryNotification(false);
+            ArrayList<HistoryNotificationEntity> entities = (ArrayList) db.getAllHistoryNotification(true);
             db.close();
+            HistoryNotificationListFragment fragment = HistoryNotificationListFragment.newInstance(entities);
 
             mFragmentManager.beginTransaction()
                     .add(R.id.frame_content, fragment)
@@ -203,7 +209,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
                     }).show();
             return;
         }
-        if(CURRENT_FRAGMENT instanceof HistoryNotificationsFragment) {
+        if(CURRENT_FRAGMENT instanceof HistoryNotificationListFragment) {
             if (System.currentTimeMillis() - mExitBackKeyTimestamp < mExitBackKeyInterval) {
                 Log.d(TAG, String.valueOf(System.currentTimeMillis() - mExitBackKeyTimestamp));
                 finish();
@@ -270,7 +276,10 @@ public class VoiceNotificationActivity extends AppCompatActivity
                 fragment = new FollowedAppFragment();
                 break;
             case R.id.history:
-                fragment = new HistoryNotificationsFragment();
+                DBHelper db = new DBHelper(this);
+                ArrayList<HistoryNotificationEntity> entities = (ArrayList) db.getAllHistoryNotification(false);
+                db.close();
+                fragment = HistoryNotificationListFragment.newInstance(entities);
                 break;
             case R.id.nav_share:
                 break;

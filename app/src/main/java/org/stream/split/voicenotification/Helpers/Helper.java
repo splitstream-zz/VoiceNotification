@@ -113,7 +113,7 @@ public class Helper {
                     }
 
                     historyBundleKeyEntity = new HistoryBundleKeyEntity(historyNotificationEntity.getPackageName(),
-                            historyNotificationEntity.getSbnId(), key, builder.toString());
+                            historyNotificationEntity.getSbnId(), builder.toString(), key);
 
                     logBuilder.append("====== \"Charsequence[]======\n");
                 }
@@ -122,7 +122,7 @@ public class Helper {
                     logBuilder.append(value);
                     logBuilder.append("\t");
                     historyBundleKeyEntity = new HistoryBundleKeyEntity(historyNotificationEntity.getPackageName(),
-                            historyNotificationEntity.getSbnId(), key, new StringBuilder().append(value).toString());
+                            historyNotificationEntity.getSbnId(), new StringBuilder().append(value).toString(), key);
                 }
 
                 logBuilder.append("value class: ");
@@ -132,7 +132,7 @@ public class Helper {
             {
                 logBuilder.append("value: null");
                 historyBundleKeyEntity = new HistoryBundleKeyEntity(historyNotificationEntity.getPackageName(),
-                        historyNotificationEntity.getSbnId(), key, "");
+                        historyNotificationEntity.getSbnId(), "", key);
             }
 
             if(historyBundleKeyEntity != null)

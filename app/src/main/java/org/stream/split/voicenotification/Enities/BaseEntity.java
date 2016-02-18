@@ -1,12 +1,13 @@
 package org.stream.split.voicenotification.Enities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by split on 2016-02-03.
  */
-public abstract class BaseEntity {
+public abstract class BaseEntity implements Serializable {
 
     private boolean mIsModified = false;
     private boolean mIsFollowed = false;

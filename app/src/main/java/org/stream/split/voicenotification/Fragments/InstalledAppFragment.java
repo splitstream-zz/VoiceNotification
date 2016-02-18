@@ -157,7 +157,7 @@ public class InstalledAppFragment extends BaseFragment {
         List<AppInfoEntity> apps = mAdapter.getSelectedItems();
         if (!apps.isEmpty()) {
             DBHelper db = new DBHelper(getActivity());
-            db.add(apps);
+            db.updateOrInsert(apps,false,false);
             db.close();
         }
     }
@@ -188,7 +188,7 @@ public class InstalledAppFragment extends BaseFragment {
                     packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
 
             DBHelper db = new DBHelper(getActivity());
-            List<AppInfoEntity> followed = db.getAllFollowedApps(false);
+            List<AppInfoEntity> followed = db.getAllFollowedApps(false,false);
             db.close();
 
             for (ApplicationInfo info : installedApplications) {

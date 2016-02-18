@@ -1,12 +1,13 @@
 package org.stream.split.voicenotification.Enities;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by split on 2015-11-01.
  */
-public class AppInfoEntity extends BundleKeysOwner<AppBundleKeyEntity> {
+public class AppInfoEntity extends BundleKeysOwner<AppBundleKeyEntity> implements Serializable {
 
     private String mPackageName;
     private String mApplicationLabel;
@@ -42,5 +43,9 @@ public class AppInfoEntity extends BundleKeysOwner<AppBundleKeyEntity> {
         mPackageName = packageName;
     }
 
-
+    @Override
+    public void addBundleKey(BundleKeyEntity entity) {
+        AppBundleKeyEntity appBundleKeyEntity = new AppBundleKeyEntity(this.getPackageName(),entity);
+        super.add(appBundleKeyEntity);
+    }
 }

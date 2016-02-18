@@ -94,7 +94,7 @@ public class NotificationServiceConnection implements ServiceConnection {
 
     public void sendTestNotification(StatusBarNotification sbn) {
         if(mIsServiceBound)
-            mNotificationServiceConnection.sendTestNotification(sbn);
+            mNotificationService.sendTestNotification(sbn);
     }
 }
 

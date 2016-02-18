@@ -2,10 +2,12 @@ package org.stream.split.voicenotification.Enities;
 
 import org.stream.split.voicenotification.Enums.NotificationPolicy;
 
+import java.io.Serializable;
+
 /**
  * Created by split on 2016-01-30.
  */
-public class NotificationEntity<T extends NotificationBundleKeyEntity> extends BundleKeysOwner<T> {
+public class NotificationEntity<T extends NotificationBundleKeyEntity & Serializable> extends BundleKeysOwner<T> implements Serializable {
     private String mPackageName;
     private int mSbnId;
     private NotificationPolicy mPolicy;
@@ -50,4 +52,5 @@ public class NotificationEntity<T extends NotificationBundleKeyEntity> extends B
         NotificationBundleKeyEntity notificationBundleKeyEntity = new NotificationBundleKeyEntity(getPackageName(),getSbnId(),entity);
         add((T)notificationBundleKeyEntity);
     }
+
 }

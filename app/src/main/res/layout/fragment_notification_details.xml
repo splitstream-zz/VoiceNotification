@@ -51,10 +51,6 @@
         android:layout_height="1dp"
         android:background="@color/limiterLine" />
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/list_budlekeys"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:choiceMode="multipleChoiceModal" />
+    <include layout="@layout/fragment_bundlekey_list" />
 
 </LinearLayout>
