@@ -14,9 +14,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.stream.split.voicenotification.Controls.ImageCheckBox;
+import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
+import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperAdapter;
 import org.stream.split.voicenotification.Interfaces.ItemTouchHelperViewHolder;
 import org.stream.split.voicenotification.Interfaces.OnStartDragListener;
@@ -246,6 +248,19 @@ public class BundleKeysAdapter<T extends AppBundleKeyEntity> extends RecyclerVie
                 maxPriority = e.getPriority();
         }
         return maxPriority;
+    }
+    public void updateDatabase()
+    {
+        DBHelper db = new DBHelper(mContext);
+        List<T> bundleKeys = getModifiedItems();
+        for(T entity:bundleKeys)
+        {
+            if(entity.isFollowed())
+                db.updateOrInsert(entity);
+            else
+                db.delete(entity);
+        }
+        db.close();
     }
 
 }

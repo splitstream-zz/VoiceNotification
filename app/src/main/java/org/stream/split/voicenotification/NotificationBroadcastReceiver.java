@@ -83,12 +83,11 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     private void addUtterance(HistoryNotificationEntity newHistoryNotificationEntity)
     {
         DBHelper db = new DBHelper(mContext);
-        List<NotificationBundleKeyEntity> followedBundleKeys = db.getBundleKeys((NotificationEntity)newHistoryNotificationEntity);
         HistoryNotificationEntity lastHistoryNotificationEntity = db.getLastHistoryNotification(newHistoryNotificationEntity.getID(), true);
         logger.d(TAG, "lasnotification.getID: " + lastHistoryNotificationEntity.getID());
         db.close();
         logger.d(TAG, "addUtterance()");
-        UtteranceEntity utteranceEntity = getUtteranceEntity(newHistoryNotificationEntity, lastHistoryNotificationEntity,followedBundleKeys);
+        UtteranceEntity utteranceEntity = getUtteranceEntity(newHistoryNotificationEntity, lastHistoryNotificationEntity);
         logger.d(TAG, "addUtterance(), getUtterance completed");
         mSpeechModule.addUtterance(utteranceEntity);
     }
@@ -99,8 +98,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     }
 
     private UtteranceEntity getUtteranceEntity(HistoryNotificationEntity newHistoryNotificationEntity,
-                                               HistoryNotificationEntity lastHistoryNotificationEntity,
-                                               List<NotificationBundleKeyEntity> followedBundleKeys) {
+                                               HistoryNotificationEntity lastHistoryNotificationEntity) {
 
 //        UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
 //        if(lastHistoryNotificationEntity != null)
@@ -113,8 +111,9 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         utteranceEntity.setUtteranceId(Helper.getUtteranceId(newHistoryNotificationEntity.getPackageName()
                 , newHistoryNotificationEntity.getID()));
 
+        List<HistoryBundleKeyEntity> followedbundleKeys = newHistoryNotificationEntity.getBundleKeys(true)
         logger.d(TAG,"========for1========");
-        for(BundleKeyEntity followedEntity:followedBundleKeys) {
+        for(NotificationBundleKeyEntity followedEntity:followedBundleKeys) {
             logger.d(TAG, "key: " + followedEntity.getKey());
             List<HistoryBundleKeyEntity> newBundleKeys = newHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
             UtteranceEntity temp = new UtteranceEntity();

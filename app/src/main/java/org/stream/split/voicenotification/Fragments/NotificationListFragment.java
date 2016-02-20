@@ -80,7 +80,7 @@ public class NotificationListFragment extends BaseFragment {
 
         List entities = new ArrayList();
         if (getArguments() != null) {
-            entities = (List<NotificationEntity>) getArguments().getSerializable(ARG_NOTIFICATION_LIST);
+            entities.addAll((List<NotificationEntity>) getArguments().getSerializable(ARG_NOTIFICATION_LIST));
         }
 
         mAdapter = new NotificationsAdapter(entities, getActivity());
@@ -112,7 +112,7 @@ public class NotificationListFragment extends BaseFragment {
         super.onStart();
         Log.d(TAG, "onStart()");
         VoiceNotificationActivity.CURRENT_FRAGMENT = this;
-        mAdapter.refresh(mAdapter.getItems());
+        mAdapter.refresh();
     }
 
     @Override

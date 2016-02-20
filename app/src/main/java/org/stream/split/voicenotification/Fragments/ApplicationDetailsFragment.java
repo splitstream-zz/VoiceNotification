@@ -2,7 +2,9 @@ package org.stream.split.voicenotification.Fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,18 +15,16 @@ import android.widget.TextView;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Adapters.BundleKeysAdapter;
-import org.stream.split.voicenotification.Adapters.NotificationsAdapter;
 import org.stream.split.voicenotification.Adapters.SwipeViewsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
+import org.stream.split.voicenotification.Interfaces.FabOwner;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A fragment representing a list of Items.
@@ -33,15 +33,15 @@ import java.util.List;
  * with a GridView.
 
  */
-public class ApplicationDetailsFragment extends BaseFragment {
+public class ApplicationDetailsFragment extends BaseFragment implements FabOwner {
 
     private static final String ARG_APP_GSON_OBJECT = "NotificationObject";
     private AppInfoEntity mEntity;
 
     private ViewPager mViewPager;
     private SwipeViewsAdapter mAdapter;
-    BundleKeysAdapter mBundleKeysAdapter;
-    NotificationsAdapter mNotificationAdapter;
+    BundleKeyListFragment mBundleKeysFragment;
+    NotificationListFragment mNotificationFragment;
 
     private TextView mLabelTextView;
     private TextView mPackageNameTextView;
@@ -74,18 +74,18 @@ public class ApplicationDetailsFragment extends BaseFragment {
             entity = new Gson().fromJson(json, AppInfoEntity.class);
         }
 
-        ArrayList<BundleKeyEntity> bundleKeyEntities = new ArrayList<>();
-        bundleKeyEntities.addAll(entity.getBundleKeys());
-        BundleKeyListFragment bundleKeyListFragment = BundleKeyListFragment.newInstance(bundleKeyEntities);
-        mBundleKeysAdapter = bundleKeyListFragment.getAdapter();
+        ArrayList<BundleKeyEntity> bundleKeyEntities = (ArrayList) entity.getBundleKeys();
+        mBundleKeysFragment = BundleKeyListFragment.newInstance(bundleKeyEntities);
+        mBundleKeysFragment.setTitle("Bundle Keys");
 
         ArrayList<NotificationEntity> entities = (ArrayList) entity.getNotifications();
-        NotificationListFragment notificationListFragment = NotificationListFragment.newInstance(entities);
-        mNotificationAdapter = notificationListFragment.getAdapter();
+        mNotificationFragment = NotificationListFragment.newInstance(entities);
+        mNotificationFragment.setTitle("Notifications");
 
         mAdapter = new SwipeViewsAdapter(getChildFragmentManager());
-        mAdapter.AddView(notificationListFragment);
-        mAdapter.AddView(bundleKeyListFragment);
+        mAdapter.AddView(mNotificationFragment);
+        mAdapter.AddView(mBundleKeysFragment);
+
 
         setTitle(entity.getApplicationLabel());
         mEntity = entity;
@@ -108,7 +108,6 @@ public class ApplicationDetailsFragment extends BaseFragment {
         mViewPager.setAdapter(mAdapter);
 
         initialize(mEntity);
-        setUpFab();
         return view;
     }
     private void initialize(final AppInfoEntity entity)
@@ -127,19 +126,12 @@ public class ApplicationDetailsFragment extends BaseFragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
     }
 
-    void setUpFab() {
+    public void setUpFab(FloatingActionButton fab) {
 
-        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);
         fab.setImageResource(R.drawable.ic_apply_applications);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,33 +142,25 @@ public class ApplicationDetailsFragment extends BaseFragment {
                 getFragmentManager().popBackStack();
             }
         });
+        fab.show();
     }
 
-    private String updateDatabase()
-    {
+    private String updateDatabase() {
         //TODO updateOrInsert update of adapters in swipe screens
         DBHelper db = new DBHelper(getActivity());
         boolean isFallowed = db.isFollowed(mEntity.getPackageName());
         StringBuilder snackBarText = new StringBuilder();
-        mEntity.setNotifications(mNotificationAdapter.getItems());
-        mEntity.setBundleKeys(mBundleKeysAdapter.getItems());
+        mEntity.setNotifications(mNotificationFragment.getAdapter().getItems());
+        mEntity.setBundleKeys(mBundleKeysFragment.getAdapter().getItems());
 
         snackBarText.append(mEntity.getApplicationLabel());
         snackBarText.append(" ");
-        if(mEntity.isFollowed())
-        {
-            if(!isFallowed) {
-                db.updateOrInsert(mEntity,true,true);
-                snackBarText.append("has been modified");
-            }
-
-        }
-        else
-        {
-            if (isFallowed) {
-                db.delete(mEntity);
-                snackBarText.append("has been deleted");
-            }
+        if (mEntity.isFollowed()) {
+            db.updateOrInsert(mEntity, true, true);
+            snackBarText.append("has been modified");
+        } else {
+            db.delete(mEntity);
+            snackBarText.append("has been deleted");
         }
         db.close();
         return snackBarText.toString();
@@ -185,6 +169,11 @@ public class ApplicationDetailsFragment extends BaseFragment {
     @Override
     public boolean isModified() {
         return mEntity.isModified() || mAdapter.isModified();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
     }
 
     /**

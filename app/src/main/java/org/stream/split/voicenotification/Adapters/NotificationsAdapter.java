@@ -31,6 +31,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observable;
 
 /**
  * Created by split on 2015-10-20.
@@ -43,94 +44,9 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
     private List<T> mDataset;
     private boolean mAnimationFlag = false;
 
-    // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CheckBox.OnCheckedChangeListener {
-
-        public LinearLayout mTextLayout;
-        public TextView mLabelTextView;
-        public TextView mTimestampTextView;
-        public TextView mNotificationID;
-        public CheckBox mCbx;
-        public T notificationEntity;
-
-
-        public ViewHolder(View v) {
-            super(v);
-            mTextLayout = (LinearLayout) v.findViewById(R.id.history_text_layout);
-            mNotificationID = (TextView) v.findViewById(R.id.history_notification_sbn_id);
-            mLabelTextView = (TextView) v.findViewById(R.id.history_app_name);
-            mTimestampTextView = (TextView) v.findViewById(R.id.history_app_timestamp);
-            mCbx = (CheckBox) v.findViewById(R.id.history_app_add);
-        }
-        public void Initialize(T entity)
-        {
-            notificationEntity = entity;
-            mNotificationID.setText(String.valueOf(entity.getSbnId()));
-            mLabelTextView.setText(Helper.getApplicationLabel(entity.getPackageName(), mContext));
-
-            if(entity instanceof HistoryNotificationEntity)
-                mTimestampTextView.setText(Helper.convertTime(((HistoryNotificationEntity)entity).getOccurrenceTime()));
-            else
-                mTimestampTextView.setVisibility(View.GONE);
-
-            mCbx.setChecked(entity.isFollowed());
-
-            mTextLayout.setOnClickListener(this);
-            mCbx.setOnCheckedChangeListener(this);
-        }
-
-        @Override
-        public void onClick(View v) {
-            if(mContext instanceof Activity)
-            {
-                DBHelper db = new DBHelper(mContext);
-                try {
-                    Method method = db.getClass().getMethod("getBundleKeys",notificationEntity.getClass());
-                    method.invoke(db,notificationEntity);
-                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                    Logger.e(TAG, "exception during invoking method to getBundleKeys from the database",e);
-                }
-                db.close();
-
-                Fragment fragment = NotificationDetailsFragment.newInstance(notificationEntity);
-                FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
-                fragmentManager.beginTransaction()
-                        .replace(R.id.frame_content, fragment)
-                        .addToBackStack("notification details")
-                .commit();
-            }
-        }
-
-        @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-            if(isChecked != notificationEntity.isFollowed()) {
-                notificationEntity.setIsFollowed(isChecked);
-                updateDatabase(notificationEntity);
-                refresh(mDataset);
-            }
-        }
-        private void updateDatabase(T entity)
-        {
-            DBHelper db = new DBHelper(mContext);
-            if (entity.isFollowed()) {
-                db.updateOrInsert(new AppInfoEntity(entity.getPackageName(), Helper.getApplicationLabel(entity.getPackageName(), mContext)), false, false);
-                db.updateOrInsert(entity, false);
-            }
-            else
-                db.delete(entity);
-            db.close();
-        }
-    }
-
-
-
-    public NotificationsAdapter(List<T> notificationHistory, Context context) {
-        mDataset = notificationHistory;
+    public NotificationsAdapter(List<T> notifications, Context context) {
+        mDataset = notifications;
         mContext = context;
-
     }
 
     @Override
@@ -177,7 +93,7 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
             mDataset.remove(mDataset.size()-1);
         mDataset.add(0,entity);
         mAnimationFlag = true;
-        refresh(mDataset);
+        refresh();
     }
 
     public List<T> getItems()
@@ -185,21 +101,25 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
         return mDataset;
     }
 
-    public void refresh(List<T> entities)
+    public void refresh()
     {
         //todo most likely we will need to load data from database but we do not now what kind of object we need to load notificationEntites/historynotificationEntities
         //we can check what kind of object there were in list but what if there is null?
         List<T> newEntities = new ArrayList<>();
-        newEntities.addAll(entities);
-        mDataset.clear();
-        for(T entity:newEntities)
+        //newEntities.addAll(mDataset);
+        //mDataset.clear();
+        for(T entity:mDataset)
         {
             try {
-                mDataset.add(getNotificationFromDb(entity,false));
+                T notificationFromDb = getNotificationFromDb(entity,false);
+                if(notificationFromDb != null)
+                    newEntities.add(notificationFromDb);
             } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                Logger.e(TAG, "exception during invoking method to refresh notificaiton list",e);
+                Logger.e(TAG, "exception during invoking method to refresh notification list",e);
             }
         }
+        mDataset.clear();
+        mDataset.addAll(newEntities);
         this.notifyDataSetChanged();
     }
 
@@ -212,4 +132,87 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
         db.close();
         return notificationEntity;
     }
+
+    // Provide a reference to the views for each data item
+    // Complex data items may need more than one view per item, and
+    // you provide access to all the views for a data item in a view holder
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, CheckBox.OnCheckedChangeListener {
+
+        public LinearLayout mTextLayout;
+        public TextView mLabelTextView;
+        public TextView mTimestampTextView;
+        public TextView mNotificationID;
+        public CheckBox mCbx;
+        public T notificationEntity;
+
+
+        public ViewHolder(View v) {
+            super(v);
+            mTextLayout = (LinearLayout) v.findViewById(R.id.history_text_layout);
+            mNotificationID = (TextView) v.findViewById(R.id.history_notification_sbn_id);
+            mLabelTextView = (TextView) v.findViewById(R.id.history_app_name);
+            mTimestampTextView = (TextView) v.findViewById(R.id.history_app_timestamp);
+            mCbx = (CheckBox) v.findViewById(R.id.history_app_add);
+        }
+        public void Initialize(T entity)
+        {
+            notificationEntity = entity;
+            mNotificationID.setText(String.valueOf(entity.getSbnId()));
+            mLabelTextView.setText(Helper.getApplicationLabel(entity.getPackageName(), mContext));
+
+            if(entity instanceof HistoryNotificationEntity)
+                mTimestampTextView.setText(Helper.convertTime(((HistoryNotificationEntity)entity).getOccurrenceTime()));
+            else
+                mTimestampTextView.setVisibility(View.GONE);
+
+            mCbx.setChecked(entity.isFollowed());
+
+            mTextLayout.setOnClickListener(this);
+            mCbx.setOnCheckedChangeListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            if(mContext instanceof Activity)
+            {
+                DBHelper db = new DBHelper(mContext);
+                try {
+                    Method method = db.getClass().getMethod("getBundleKeys",notificationEntity.getClass());
+                    method.invoke(db, notificationEntity);
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                    Logger.e(TAG, "exception during invoking method to getBundleKeys from the database",e);
+                }
+                db.close();
+
+                Fragment fragment = NotificationDetailsFragment.newInstance(notificationEntity);
+                FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
+                fragmentManager.beginTransaction()
+                        .replace(R.id.frame_content, fragment)
+                        .addToBackStack("notification details")
+                        .commit();
+            }
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+
+            if(isChecked != notificationEntity.isFollowed()) {
+                notificationEntity.setIsFollowed(isChecked);
+                updateDatabase(notificationEntity);
+                refresh();
+            }
+        }
+        private void updateDatabase(T entity)
+        {
+            DBHelper db = new DBHelper(mContext);
+            if (entity.isFollowed()) {
+                db.updateOrInsert(new AppInfoEntity(entity.getPackageName(), Helper.getApplicationLabel(entity.getPackageName(), mContext)), false, false);
+                db.updateOrInsert(entity, false);
+            }
+            else
+                db.delete(entity);
+            db.close();
+        }
+    }
+
 }

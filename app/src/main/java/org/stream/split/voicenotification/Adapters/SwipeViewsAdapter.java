@@ -5,6 +5,7 @@ package org.stream.split.voicenotification.Adapters;
 import android.app.FragmentManager;
 import android.app.Fragment;
 import android.support.v13.app.FragmentPagerAdapter;
+import android.support.v4.view.PagerTitleStrip;
 
 import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
@@ -21,6 +22,7 @@ import java.util.List;
 public class SwipeViewsAdapter extends FragmentPagerAdapter {
 
     List<BaseFragment> mFragmentList = new ArrayList<>();
+
 
     public SwipeViewsAdapter(FragmentManager fm)
     {
@@ -40,6 +42,11 @@ public class SwipeViewsAdapter extends FragmentPagerAdapter {
     @Override
     public int getCount() {
         return mFragmentList.size();
+    }
+
+    @Override
+    public CharSequence getPageTitle(int position) {
+        return mFragmentList.get(position).getTitle();
     }
 
     public boolean isModified()

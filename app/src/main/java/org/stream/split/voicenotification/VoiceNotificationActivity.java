@@ -42,6 +42,7 @@ import org.stream.split.voicenotification.Fragments.HistoryNotificationListFragm
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
+import org.stream.split.voicenotification.Interfaces.FabOwner;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 import org.stream.split.voicenotification.Logging.DbLogger;
@@ -186,8 +187,18 @@ public class VoiceNotificationActivity extends AppCompatActivity
     @Override
     public void onAttachFragment(Fragment fragment) {
         super.onAttachFragment(fragment);
-        if(fragment instanceof BaseFragment)
-            setTitle(((BaseFragment) fragment).getTitle());
+//        if(fragment instanceof BaseFragment) {
+//            setTitle(((BaseFragment) fragment).getTitle());
+//        }
+//
+//        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
+//        if(fragment instanceof FabOwner)
+//        {
+//            ((FabOwner) fragment).setUpFab(fab);
+//            fab.show();
+//        }
+//        else
+//            fab.hide();
     }
 
 

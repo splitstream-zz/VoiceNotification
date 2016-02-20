@@ -18,6 +18,7 @@ import org.stream.split.voicenotification.Adapters.FollowedAppAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
+import org.stream.split.voicenotification.Interfaces.FabOwner;
 import org.stream.split.voicenotification.R;
 import org.stream.split.voicenotification.VoiceNotificationActivity;
 
@@ -34,7 +35,7 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class FollowedAppFragment extends BaseFragment {
+public class FollowedAppFragment extends BaseFragment implements FabOwner {
 
     private final String TAG = this.getClass().getSimpleName();
     private RecyclerView mRecyclerView;
@@ -80,9 +81,6 @@ public class FollowedAppFragment extends BaseFragment {
         mLayoutManager = new LinearLayoutManager(view.getContext());
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
-
-
-        SetUpFabInstalled();
 
         return view;
     }
@@ -146,8 +144,8 @@ public class FollowedAppFragment extends BaseFragment {
         }
     }
 
-    private void SetUpFabInstalled() {
-        FloatingActionButton fab = (FloatingActionButton) getActivity().findViewById(R.id.fab);
+    @Override
+    public void setUpFab(FloatingActionButton fab) {
         fab.setImageResource(R.drawable.ic_add_applications);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override

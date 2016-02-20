@@ -119,6 +119,7 @@ public class HistoryNotificationListFragment extends BaseFragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume()");
+        mAdapter.refresh();
     }
 
     @Override
