@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import org.stream.split.voicenotification.Enities.AppBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
+import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
@@ -16,6 +17,7 @@ import org.stream.split.voicenotification.Enums.NotificationPolicy;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -666,8 +668,11 @@ public class DBHelper extends SQLiteOpenHelper {
         historyNotificationEntity.setTinkerText(cursor.getString(cursor.getColumnIndex(DBContract.HistoryNotificationFeed.COLUMN_NAME_TINKER_TEXT)));
         historyNotificationEntity.setIsFollowed(isFollowed(historyNotificationEntity));
 
-        if (getBundleKeys)
-            historyNotificationEntity.setBundleKeys(getBundleKeys(historyNotificationEntity));
+        if (getBundleKeys) {
+            List<HistoryBundleKeyEntity> bundleKeys = getBundleKeys(historyNotificationEntity);
+            Collections.sort(bundleKeys, BundleKeyEntity.Comparators.DEFAULT);
+            historyNotificationEntity.setBundleKeys(bundleKeys);
+        }
         return historyNotificationEntity;
     }
 

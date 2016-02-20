@@ -8,12 +8,9 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.NotificationBundleKeyEntity;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Enities.UtteranceEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
@@ -84,11 +81,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
     {
         DBHelper db = new DBHelper(mContext);
         HistoryNotificationEntity lastHistoryNotificationEntity = db.getLastHistoryNotification(newHistoryNotificationEntity.getID(), true);
-        logger.d(TAG, "lasnotification.getID: " + lastHistoryNotificationEntity.getID());
         db.close();
-        logger.d(TAG, "addUtterance()");
-        UtteranceEntity utteranceEntity = getUtteranceEntity(newHistoryNotificationEntity, lastHistoryNotificationEntity);
-        logger.d(TAG, "addUtterance(), getUtterance completed");
+
+        UtteranceEntity utteranceEntity = createUtteranceEntity(newHistoryNotificationEntity, lastHistoryNotificationEntity);
+
         mSpeechModule.addUtterance(utteranceEntity);
     }
     private HistoryNotificationEntity getNotificationEntity(Bundle bundle, String key)
@@ -97,32 +93,36 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         return new Gson().fromJson(gsonToJson, HistoryNotificationEntity.class);
     }
 
-    private UtteranceEntity getUtteranceEntity(HistoryNotificationEntity newHistoryNotificationEntity,
-                                               HistoryNotificationEntity lastHistoryNotificationEntity) {
+    private UtteranceEntity createUtteranceEntity(HistoryNotificationEntity newHistoryNotificationEntity,
+                                                  HistoryNotificationEntity lastHistoryNotificationEntity) {
 
 //        UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
 //        if(lastHistoryNotificationEntity != null)
 //            lastUtteranceEntity.addMessages(lastHistoryNotificationEntity.getBundleKeys(true));
 //        String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
-        logger.d(TAG, "getUtteranceEntity()");
-
+        logger.d(TAG, "createUtteranceEntity()");
 
         UtteranceEntity utteranceEntity = new UtteranceEntity();
         utteranceEntity.setUtteranceId(Helper.getUtteranceId(newHistoryNotificationEntity.getPackageName()
-                , newHistoryNotificationEntity.getID()));
+                ,newHistoryNotificationEntity.getID()));
 
-        List<HistoryBundleKeyEntity> followedbundleKeys = newHistoryNotificationEntity.getBundleKeys(true)
+        List<HistoryBundleKeyEntity> followedbundleKeys = newHistoryNotificationEntity.getBundleKeys(true);
+
         logger.d(TAG,"========for1========");
-        for(NotificationBundleKeyEntity followedEntity:followedBundleKeys) {
+        for(HistoryBundleKeyEntity followedEntity:followedbundleKeys) {
             logger.d(TAG, "key: " + followedEntity.getKey());
             List<HistoryBundleKeyEntity> newBundleKeys = newHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
+
             UtteranceEntity temp = new UtteranceEntity();
             temp.addMessages(newBundleKeys);
 
-            List<HistoryBundleKeyEntity> lastBundleKeys = lastHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
-            UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
-            lastUtteranceEntity.addMessages(lastBundleKeys);
-            String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
+            String lastUtteranceFlatMessage  = "";
+            if(lastHistoryNotificationEntity != null) {
+                List<HistoryBundleKeyEntity> lastBundleKeys = lastHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
+                UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
+                lastUtteranceEntity.addMessages(lastBundleKeys);
+                lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
+            }
 
             logger.d(TAG, "lastUtterance.getFlatMessage(): " + lastUtteranceFlatMessage);
 

@@ -1,11 +1,12 @@
 package org.stream.split.voicenotification.Enities;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
 /**
  * Created by split on 2015-11-26.
  */
-public class BundleKeyEntity extends BaseEntity implements Comparable, Serializable {
+public class BundleKeyEntity extends BaseEntity implements Comparable<BundleKeyEntity>, Serializable {
 
     String mKey;
     int mPriority;
@@ -57,21 +58,29 @@ public class BundleKeyEntity extends BaseEntity implements Comparable, Serializa
     }
 
     @Override
-    public int compareTo(Object another) {
+    public int compareTo(BundleKeyEntity another) {
         int result = 0;
-        if(another instanceof BundleKeyEntity) {
-            BundleKeyEntity another1 = (BundleKeyEntity)another;
-            if (this.isFollowed() && another1.isFollowed())
-                if (this.getPriority() < another1.getPriority())
-                    result = 1;
-                else
-                    result = -1;
-            else if (this.isFollowed())
+        if (this.isFollowed() && another.isFollowed())
+            if (this.getPriority() < another.getPriority())
                 result = 1;
-            else if (another1.isFollowed())
+            else
                 result = -1;
-        }
+        else if (this.isFollowed())
+            result = 1;
+        else if (another.isFollowed())
+            result = -1;
+
         return result;
+    }
+
+    public static class Comparators
+    {
+        public static Comparator<BundleKeyEntity> DEFAULT = new Comparator<BundleKeyEntity>() {
+            @Override
+            public int compare(BundleKeyEntity lhs, BundleKeyEntity rhs) {
+                return lhs.compareTo(rhs);
+            }
+        };
     }
 
 }
