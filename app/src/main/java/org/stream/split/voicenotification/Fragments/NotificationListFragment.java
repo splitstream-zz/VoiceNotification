@@ -67,13 +67,6 @@ public class NotificationListFragment extends BaseFragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        activity.setTitle(getTitle());
-
-    }
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
@@ -116,71 +109,7 @@ public class NotificationListFragment extends BaseFragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        Log.d(TAG, "onResume()");
+    public boolean isModified() {
+        return !mAdapter.getModifiedItems().isEmpty();
     }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d(TAG,"onPause()");
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop()");
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        LOGGER.d(TAG, "onDetach()");
-
-    }
-
-//    @Override
-//    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//        if (null != mListener) {
-//            // Notify the active callbacks interface (the activity, if the
-//            // fragment is attached to one) that an item has been selected.
-//            mListener.onFragmentInteraction("sda");
-//        }
-//    }
-
-//    /***
-//     * setting up Floating Action button to issue notification for testing purposes
-//     */
-//    void setUpFab()
-//    {
-//
-//        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);
-//        fab.setImageResource(R.drawable.ic_test_notification);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Intent intent = new Intent(getActivity(), VoiceNotificationActivity.class);
-//                PendingIntent pendingIntent = PendingIntent.getActivity(getActivity(), 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//                Notification notification = Helper.createNotification(getActivity(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
-//                mNotificationManager.notify(mTestingNotificationID, notification);
-//                Snackbar.make(v, "test notification was send ", Snackbar.LENGTH_SHORT).show();
-//
-//            }
-//        });
-//    }
-
-    /**
-     * The default content for this Fragment has a TextView that is shown when
-     * the list is empty. If you would like to change the text, call this method
-     * to supply the text it should use.
-     */
-    public void setEmptyText(CharSequence emptyText) {
-//                     View emptyView = mRecyclerView.
-//
-//        if (emptyView instanceof TextView) {
-//            ((TextView) emptyView).setText(emptyText);
-//        }
-    }
-
 }

@@ -40,7 +40,6 @@ public class InstalledAppFragment extends BaseFragment implements FabOwner {
 
     private final String TAG = this.getClass().getSimpleName();
     private RecyclerView mRecyclerView;
-    private OnFragmentInteractionListener mListener;
     private InstalledAppAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private LoadApplicationsAsync loading;
@@ -95,23 +94,6 @@ public class InstalledAppFragment extends BaseFragment implements FabOwner {
     }
 
     @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        try {
-            mListener = (OnFragmentInteractionListener) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-    @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.installed_apps_menu, menu);
         mAdapter.onCreateMenu(menu);
@@ -163,7 +145,7 @@ public class InstalledAppFragment extends BaseFragment implements FabOwner {
     @Override
     public boolean isModified() {
 
-        return !mAdapter.getSelectedItems().isEmpty() && super.isModified();
+        return !mAdapter.getSelectedItems().isEmpty();
     }
 
     @Override

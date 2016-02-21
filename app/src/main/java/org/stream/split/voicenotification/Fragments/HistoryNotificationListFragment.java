@@ -37,7 +37,7 @@ import java.util.List;
  */
 public class HistoryNotificationListFragment extends BaseFragment {
 
-    private final static String TAG = "HistoryNotificationListFragment";
+    private final static String TAG = "HistoryNotifiListFragment";
     public final static String ARG_NOTIFICATION_LIST = "NotificationListArg";
 
     private NotifyBroadcastReceiver mReceiver;
@@ -63,12 +63,6 @@ public class HistoryNotificationListFragment extends BaseFragment {
         fragment.setArguments(bundle);
 
         return fragment;
-    }
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        activity.setTitle(getTitle());
     }
 
     @Override
@@ -116,30 +110,23 @@ public class HistoryNotificationListFragment extends BaseFragment {
     }
 
     @Override
+    public boolean isModified() {
+        return false;
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume()");
         mAdapter.refresh();
     }
 
-    @Override
-    public void onPause() {
-        super.onPause();
-        Log.d(TAG,"onPause()");
-    }
 
     @Override
     public void onStop() {
         super.onStop();
         Log.d(TAG, "onStop()");
         mConnection.unregisterReceiver(mReceiver);
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        LOGGER.d(TAG, "onDetach()");
-
     }
 
     /**

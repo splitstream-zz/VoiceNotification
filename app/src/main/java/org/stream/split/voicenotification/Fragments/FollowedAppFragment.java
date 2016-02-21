@@ -158,4 +158,9 @@ public class FollowedAppFragment extends BaseFragment implements FabOwner {
             }
         });
     }
+
+    @Override
+    public boolean isModified() {
+        return !mAdapter.getSelectedItems().isEmpty();
+    }
 }

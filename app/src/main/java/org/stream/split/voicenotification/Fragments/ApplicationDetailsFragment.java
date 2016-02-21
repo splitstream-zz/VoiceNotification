@@ -1,10 +1,8 @@
 package org.stream.split.voicenotification.Fragments;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -74,17 +72,15 @@ public class ApplicationDetailsFragment extends BaseFragment implements FabOwner
             entity = new Gson().fromJson(json, AppInfoEntity.class);
         }
 
-        ArrayList<BundleKeyEntity> bundleKeyEntities = (ArrayList) entity.getBundleKeys();
+        ArrayList<BundleKeyEntity> bundleKeyEntities = (ArrayList) entity.getBundleKeyList().get();
         mBundleKeysFragment = BundleKeyListFragment.newInstance(bundleKeyEntities);
-        mBundleKeysFragment.setTitle("Bundle Keys");
 
         ArrayList<NotificationEntity> entities = (ArrayList) entity.getNotifications();
         mNotificationFragment = NotificationListFragment.newInstance(entities);
-        mNotificationFragment.setTitle("Notifications");
 
         mAdapter = new SwipeViewsAdapter(getChildFragmentManager());
-        mAdapter.AddView(mNotificationFragment);
-        mAdapter.AddView(mBundleKeysFragment);
+        mAdapter.AddView(mNotificationFragment, "Notifications");
+        mAdapter.AddView(mBundleKeysFragment, "BundleKeys");
 
 
         setTitle(entity.getApplicationLabel());
@@ -136,22 +132,19 @@ public class ApplicationDetailsFragment extends BaseFragment implements FabOwner
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 String result = updateDatabase();
                 Snackbar.make(v, result, Snackbar.LENGTH_SHORT).show();
                 getFragmentManager().popBackStack();
             }
         });
-        fab.show();
     }
 
     private String updateDatabase() {
         //TODO updateOrInsert update of adapters in swipe screens
         DBHelper db = new DBHelper(getActivity());
-        boolean isFallowed = db.isFollowed(mEntity.getPackageName());
         StringBuilder snackBarText = new StringBuilder();
         mEntity.setNotifications(mNotificationFragment.getAdapter().getItems());
-        mEntity.setBundleKeys(mBundleKeysFragment.getAdapter().getItems());
+        mEntity.getBundleKeyList().set(mBundleKeysFragment.getAdapter().getItems());
 
         snackBarText.append(mEntity.getApplicationLabel());
         snackBarText.append(" ");
@@ -173,6 +166,7 @@ public class ApplicationDetailsFragment extends BaseFragment implements FabOwner
 
     @Override
     public void onResume() {
+        setTitle(mEntity.getApplicationLabel());
         super.onResume();
     }
 

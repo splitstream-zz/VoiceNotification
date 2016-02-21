@@ -10,7 +10,7 @@ import android.util.Log;
 
 import org.stream.split.voicenotification.Enities.BaseEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyEntity;
-import org.stream.split.voicenotification.Enities.BundleKeysOwner;
+import org.stream.split.voicenotification.Enities.BundleKeyList;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
 import org.stream.split.voicenotification.Logging.BaseLogger;
@@ -209,7 +209,7 @@ public class Helper {
         StringBuilder builder = new StringBuilder();
         builder.append(entity.getPackageName());
         builder.append("\n");
-        List<HistoryBundleKeyEntity> list = entity.getBundleKeys();
+        List<HistoryBundleKeyEntity> list = entity.getBundleKeyList().get();
         builder.append("bundlekeys: \n");
         if(list != null || list.isEmpty())
         {
@@ -284,10 +284,10 @@ public class Helper {
         }
     }
 
-    public static <T extends BundleKeysOwner> T getAllNotificationBundleKeys(T bundleKeyOwner)
+    public static <T extends BundleKeyList> T getAllNotificationBundleKeys(T bundleKeyOwner)
     {
         String [] keys = getClassStaticFieldNames(Notification.class, String.class, "EXTRA_");
-        List<BundleKeyEntity> bundleKeys = bundleKeyOwner.getBundleKeys();
+        List<BundleKeyEntity> bundleKeys = bundleKeyOwner.get();
         for(String key:keys)
         {
             boolean absent = true;

@@ -101,6 +101,16 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
         return mDataset;
     }
 
+    public List<T> getModifiedItems() {
+        List<T> modifiedItems = new ArrayList<>();
+        for (T entity : mDataset) {
+            if (entity.isModified()) {
+                modifiedItems.add(entity);
+            }
+        }
+        return modifiedItems;
+    }
+
     public void refresh()
     {
         //todo most likely we will need to load data from database but we do not now what kind of object we need to load notificationEntites/historynotificationEntities
@@ -177,10 +187,10 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
             {
                 DBHelper db = new DBHelper(mContext);
                 try {
-                    Method method = db.getClass().getMethod("getBundleKeys",notificationEntity.getClass());
+                    Method method = db.getClass().getMethod("get",notificationEntity.getClass());
                     method.invoke(db, notificationEntity);
                 } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                    Logger.e(TAG, "exception during invoking method to getBundleKeys from the database",e);
+                    Logger.e(TAG, "exception during invoking method to get from the database",e);
                 }
                 db.close();
 

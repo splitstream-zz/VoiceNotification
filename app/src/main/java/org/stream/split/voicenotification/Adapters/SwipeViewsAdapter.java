@@ -22,6 +22,7 @@ import java.util.List;
 public class SwipeViewsAdapter extends FragmentPagerAdapter {
 
     List<BaseFragment> mFragmentList = new ArrayList<>();
+    List<String> mPageStripTitleList = new ArrayList<>();
 
 
     public SwipeViewsAdapter(FragmentManager fm)
@@ -29,9 +30,10 @@ public class SwipeViewsAdapter extends FragmentPagerAdapter {
         super(fm);
     }
 
-    public void AddView(BaseFragment fragment)
+    public void AddView(BaseFragment fragment, String pageStripTitle)
     {
         mFragmentList.add(fragment);
+        mPageStripTitleList.add(pageStripTitle);
     }
 
     @Override

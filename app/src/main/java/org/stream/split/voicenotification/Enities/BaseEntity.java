@@ -24,6 +24,7 @@ public abstract class BaseEntity implements Serializable {
     public void setIsModified(Boolean bool) {
         mIsModified = bool;
     }
+    public abstract void clearIsModified();
 
     public boolean isSelected() {
         return isSelected;

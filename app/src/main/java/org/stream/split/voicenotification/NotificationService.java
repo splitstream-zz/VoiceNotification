@@ -19,10 +19,8 @@ import android.util.Log;
 import com.google.gson.Gson;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
-import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 
@@ -304,7 +302,7 @@ public class NotificationService extends NotificationListenerService implements 
 
         List<HistoryBundleKeyEntity> bundles = Helper.IterateBundleExtras(sbn.getNotification().extras, newHistoryNotificationEntity);
 
-        newHistoryNotificationEntity.setBundleKeys(bundles);
+        newHistoryNotificationEntity.getBundleKeyList().set(bundles);
         if (sbn.getNotification().tickerText != null) {
             newHistoryNotificationEntity.setTinkerText(sbn.getNotification().tickerText.toString());
 

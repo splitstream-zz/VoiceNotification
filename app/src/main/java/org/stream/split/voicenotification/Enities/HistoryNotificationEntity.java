@@ -39,7 +39,7 @@ public class HistoryNotificationEntity extends NotificationEntity<HistoryBundleK
 
     public String getBundleKeyValue(String key) {
         StringBuilder value = new StringBuilder();
-        List<HistoryBundleKeyEntity> bundleKeys = getBundleKeys();
+        List<HistoryBundleKeyEntity> bundleKeys = getBundleKeyList().get();
         for (HistoryBundleKeyEntity entity : bundleKeys) {
             if (!entity.getValue().isEmpty() && entity.getKey().equals(key)) {
                 value.append(entity.getValue());
@@ -54,13 +54,12 @@ public class HistoryNotificationEntity extends NotificationEntity<HistoryBundleK
         mOccurrenceTime = occurrenceTime;
     }
 
-    @Override
     public void addBundleKey(BundleKeyEntity entity) {
         HistoryBundleKeyEntity historyBundleKeyEntity = new HistoryBundleKeyEntity(this.getPackageName(),
                 this.getSbnId(),
                 "",
                 entity);
-        add(historyBundleKeyEntity);
+        getBundleKeyList().add(historyBundleKeyEntity);
     }
 
 }

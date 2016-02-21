@@ -19,7 +19,6 @@ import org.stream.split.voicenotification.Logging.BaseLogger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 
 /**
  * Created by split on 2015-10-27.
@@ -106,7 +105,7 @@ public class DBHelper extends SQLiteOpenHelper {
         if(getNotifications)
             app.setNotifications(getFollowedNotification(packageName, getBundleKeys));
         if (getBundleKeys)
-            app.setBundleKeys(getBundleKeys(app));
+            app.getBundleKeyList().set(getBundleKeys(app));
 
         return app;
     }
@@ -138,13 +137,15 @@ public class DBHelper extends SQLiteOpenHelper {
         if(rowsAffected == 0)
             getWritableDatabase().insert(DBContract.FollowedAppFeed.TABLE_NAME, null, values);
 
+        app.setIsModified(false);
+
         if(addNotification)
         {
             updateOrInsert(app.getNotifications(),addBundleKeys);
         }
         if(addBundleKeys)
         {
-            List<AppBundleKeyEntity> bundleKeyEntities = app.getBundleKeys();
+            List<AppBundleKeyEntity> bundleKeyEntities = app.getBundleKeyList().get();
             for(AppBundleKeyEntity bundleKeyEntity:bundleKeyEntities)
             {
                 updateOrInsert(bundleKeyEntity);
@@ -179,13 +180,12 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public void delete(AppInfoEntity app) {
         SQLiteDatabase db = this.getWritableDatabase();
-        //TODO CHECK IF BUNDLE KEYS ARE DELETED AUTOMATICALLY
-//        if (deleteBundleKeys) {
-//            deleteFollowedBundleKeys(app.getPackageName());
-//        }
+
         db.delete(DBContract.FollowedAppFeed.TABLE_NAME,
                 DBContract.FollowedAppFeed.COLUMN_NAME_PACKAGE_NAME + " = ?",
                 new String[]{app.getPackageName()});
+
+        app.setIsModified(false);
     }
 
     public boolean isFollowed(NotificationEntity entity)
@@ -260,7 +260,7 @@ public class DBHelper extends SQLiteOpenHelper {
         NotificationEntity entity = new NotificationEntity(sbnId,packageName, policy);
         entity.setIsFollowed(true);
         if(getBundleKeys)
-            entity.setBundleKeys(getBundleKeys(entity));
+            entity.getBundleKeyList().set(getBundleKeys(entity));
         return entity;
     }
 
@@ -286,17 +286,15 @@ public class DBHelper extends SQLiteOpenHelper {
                 new String[]{entity.getPackageName(),String.valueOf(entity.getSbnId())});
         if(rowsAffected == 0)
             getWritableDatabase().insert(DBContract.FollowedNotificationsFeed.TABLE_NAME, null, values);
+
+        entity.setIsModified(false);
+
         if(addBundleKeys)
         {
-            List<NotificationBundleKeyEntity> bundleKeyEntities = entity.getBundleKeys();
+            List<NotificationBundleKeyEntity> bundleKeyEntities = entity.getBundleKeyList().get();
             for(NotificationBundleKeyEntity bundleKeyEntity:bundleKeyEntities)
             {
-//                if(bundleKeyEntity.isModified()) {
-//                    if (bundleKeyEntity.isFollowed())
                         updateOrInsert(bundleKeyEntity);
-//                    else
-//                        delete(bundleKeyEntity);
-
             }
         }
 
@@ -306,6 +304,8 @@ public class DBHelper extends SQLiteOpenHelper {
 
         String sql_where = DBContract.FollowedNotificationsFeed.COLUMN_NAME_PACKAGE_NAME + " = ? AND "
                 + DBContract.FollowedNotificationsFeed.COLUMN_NAME_SBN_ID + " = ?";
+
+        entity.setIsModified(false);
 
         return getWritableDatabase().delete(DBContract.FollowedNotificationsFeed.TABLE_NAME,
                 sql_where,
@@ -324,7 +324,7 @@ public class DBHelper extends SQLiteOpenHelper {
         {
             result = getBundleKeys(appInfoEntity.getPackageName());
         }
-        appInfoEntity.setBundleKeys(result);
+        appInfoEntity.getBundleKeyList().set(result);
         return result;
     }
 
@@ -345,7 +345,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 bundlekeys.add(bundleKey);
             } while (cursor.moveToNext());
         }
-        entity.setBundleKeys(bundlekeys);
+        entity.getBundleKeyList().set(bundlekeys);
         return bundlekeys;
     }
     /**
@@ -373,7 +373,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 bundleKeys.add(entity);
             } while (cursor.moveToNext());
         }
-        followedNotificationEntity.setBundleKeys(bundleKeys);
+        followedNotificationEntity.getBundleKeyList().set(bundleKeys);
         cursor.close();
         return bundleKeys;
     }
@@ -447,6 +447,7 @@ public class DBHelper extends SQLiteOpenHelper {
         } else
             delete(appBundleKeyEntity);
 
+        appBundleKeyEntity.setIsModified(false);
     }
 
     public void updateOrInsert(NotificationBundleKeyEntity notificationBundleKeyEntity) {
@@ -471,6 +472,8 @@ public class DBHelper extends SQLiteOpenHelper {
         }
         else
             delete(notificationBundleKeyEntity);
+
+        notificationBundleKeyEntity.setIsModified(false);
     }
 
 
@@ -590,7 +593,7 @@ public class DBHelper extends SQLiteOpenHelper {
     private List<Long> addNotificationBundleHistoryEntries(HistoryNotificationEntity historyNotificationEntity, long notificationId) {
         List<Long> rowIds = new ArrayList<>();
 
-        for (HistoryBundleKeyEntity entry : historyNotificationEntity.getBundleKeys()) {
+        for (HistoryBundleKeyEntity entry : historyNotificationEntity.getBundleKeyList().get()) {
             ContentValues values = new ContentValues();
             values.put(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_NOTIFICATION_ID, notificationId);
             values.put(DBContract.HistoryBundlesKeysFeed.COLUMN_NAME_BUNDLE_KEY, entry.getKey());
@@ -671,7 +674,7 @@ public class DBHelper extends SQLiteOpenHelper {
         if (getBundleKeys) {
             List<HistoryBundleKeyEntity> bundleKeys = getBundleKeys(historyNotificationEntity);
             Collections.sort(bundleKeys, BundleKeyEntity.Comparators.DEFAULT);
-            historyNotificationEntity.setBundleKeys(bundleKeys);
+            historyNotificationEntity.getBundleKeyList().set(bundleKeys);
         }
         return historyNotificationEntity;
     }

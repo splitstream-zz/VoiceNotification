@@ -98,7 +98,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
 
 //        UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
 //        if(lastHistoryNotificationEntity != null)
-//            lastUtteranceEntity.addMessages(lastHistoryNotificationEntity.getBundleKeys(true));
+//            lastUtteranceEntity.addMessages(lastHistoryNotificationEntity.get(true));
 //        String lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();
         logger.d(TAG, "createUtteranceEntity()");
 
@@ -106,19 +106,19 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver {
         utteranceEntity.setUtteranceId(Helper.getUtteranceId(newHistoryNotificationEntity.getPackageName()
                 ,newHistoryNotificationEntity.getID()));
 
-        List<HistoryBundleKeyEntity> followedbundleKeys = newHistoryNotificationEntity.getBundleKeys(true);
+        List<HistoryBundleKeyEntity> followedbundleKeys = newHistoryNotificationEntity.getBundleKeyList().get(true);
 
         logger.d(TAG,"========for1========");
         for(HistoryBundleKeyEntity followedEntity:followedbundleKeys) {
             logger.d(TAG, "key: " + followedEntity.getKey());
-            List<HistoryBundleKeyEntity> newBundleKeys = newHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
+            List<HistoryBundleKeyEntity> newBundleKeys = newHistoryNotificationEntity.getBundleKeyList().get(followedEntity.getKey());
 
             UtteranceEntity temp = new UtteranceEntity();
             temp.addMessages(newBundleKeys);
 
             String lastUtteranceFlatMessage  = "";
             if(lastHistoryNotificationEntity != null) {
-                List<HistoryBundleKeyEntity> lastBundleKeys = lastHistoryNotificationEntity.getBundleKeys(followedEntity.getKey());
+                List<HistoryBundleKeyEntity> lastBundleKeys = lastHistoryNotificationEntity.getBundleKeyList().get(followedEntity.getKey());
                 UtteranceEntity lastUtteranceEntity = new UtteranceEntity();
                 lastUtteranceEntity.addMessages(lastBundleKeys);
                 lastUtteranceFlatMessage = lastUtteranceEntity.getFlatMessage();

@@ -90,4 +90,8 @@ public class BundleKeyListFragment<T extends BundleKeyEntity & Serializable> ext
         mItemTouchHelper.startDrag(viewHolder);
     }
 
+    @Override
+    public boolean isModified() {
+        return !mAdapter.getModifiedItems().isEmpty();
+    }
 }

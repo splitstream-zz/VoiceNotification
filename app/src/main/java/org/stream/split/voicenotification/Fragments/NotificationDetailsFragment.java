@@ -73,8 +73,8 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
         if (getArguments() != null) {
             mEntity = (T)getArguments().getSerializable(ARG_NOTIFICATION_GSON_OBJECT);
         }
-        Helper.getAllNotificationBundleKeys(mEntity);
-        mAdapter = new BundleKeysAdapter(mEntity.getBundleKeys(),this,getActivity());
+        Helper.getAllNotificationBundleKeys(mEntity.getBundleKeyList());
+        mAdapter = new BundleKeysAdapter(mEntity.getBundleKeyList().get(),this,getActivity());
         setTitle(Helper.getApplicationLabel(mEntity.getPackageName(), getActivity()));
     }
     @Override
@@ -197,20 +197,4 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
             isModified = true;
         return isModified;
     }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
-    }
-
 }

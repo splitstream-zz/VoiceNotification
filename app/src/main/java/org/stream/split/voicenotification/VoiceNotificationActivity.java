@@ -180,29 +180,6 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
-    public void onAttachFragment(Fragment fragment) {
-        super.onAttachFragment(fragment);
-//        if(fragment instanceof BaseFragment) {
-//            setTitle(((BaseFragment) fragment).getTitle());
-//        }
-//
-//        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) findViewById(R.id.fab);
-//        if(fragment instanceof FabOwner)
-//        {
-//            ((FabOwner) fragment).setUpFab(fab);
-//            fab.show();
-//        }
-//        else
-//            fab.hide();
-    }
-
-
-    @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {

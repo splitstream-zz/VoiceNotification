@@ -3,15 +3,28 @@ package org.stream.split.voicenotification.Enities;
 import org.stream.split.voicenotification.Enums.NotificationPolicy;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by split on 2016-01-30.
  */
-public class NotificationEntity<T extends NotificationBundleKeyEntity & Serializable> extends BundleKeysOwner<T> implements Serializable {
+public class NotificationEntity<T extends NotificationBundleKeyEntity & Serializable> extends BaseEntity implements Serializable {
     private String mPackageName;
     private int mSbnId;
     private NotificationPolicy mPolicy;
 
+    private BundleKeyList<T> mBundleKeyList = new BundleKeyList<T>() {
+        @Override
+        public void addBundleKey(BundleKeyEntity entity) {
+            NotificationBundleKeyEntity notificationBundleKeyEntity = new NotificationBundleKeyEntity(getPackageName(),getSbnId(),entity);
+            add((T)notificationBundleKeyEntity);
+        }
+    };
+
+    public BundleKeyList<T> getBundleKeyList()
+    {
+        return mBundleKeyList;
+    }
 
     public int getSbnId() {
         return mSbnId;
@@ -46,11 +59,15 @@ public class NotificationEntity<T extends NotificationBundleKeyEntity & Serializ
         mPackageName = packageName;
         mSbnId = sbnId;
     }
-
     @Override
-    public void addBundleKey(BundleKeyEntity entity) {
-        NotificationBundleKeyEntity notificationBundleKeyEntity = new NotificationBundleKeyEntity(getPackageName(),getSbnId(),entity);
-        add((T)notificationBundleKeyEntity);
+    public boolean isModified()
+    {
+        boolean result = false;
+        if(super.isModified() || mBundleKeyList.isModified())
+        {
+            result = true;
+        }
+        return result;
     }
 
 }

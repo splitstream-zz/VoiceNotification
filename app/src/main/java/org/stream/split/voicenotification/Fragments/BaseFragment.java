@@ -14,7 +14,9 @@ public abstract class BaseFragment extends Fragment{
 
     String mTitle = "";
     boolean mIsModified;
+    private android.support.design.widget.FloatingActionButton mfab;
     public static BaseLogger LOGGER = BaseLogger.getInstance();
+
 
     public String getTitle() {
         return mTitle;
@@ -24,10 +26,7 @@ public abstract class BaseFragment extends Fragment{
         mTitle = title;
     }
 
-    public boolean isModified()
-    {
-        return mIsModified;
-    }
+    public abstract boolean isModified();
     protected void setIsModified(boolean isModified)
     {
         mIsModified = isModified;
@@ -42,6 +41,14 @@ public abstract class BaseFragment extends Fragment{
         setImmediatelyTitle(mTitle);
         setUpFab();
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(this instanceof FabOwner && mfab != null)
+            mfab.hide();
+    }
+
     private void setImmediatelyTitle(String title)
     {
         if(getActivity() instanceof  AppCompatActivity && ((AppCompatActivity)getActivity()).getSupportActionBar() != null) {
@@ -53,12 +60,10 @@ public abstract class BaseFragment extends Fragment{
     }
     private void setUpFab()
     {
-        android.support.design.widget.FloatingActionButton fab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);
         if(this instanceof FabOwner) {
-            ((FabOwner) this).setUpFab(fab);
-            fab.show();
+            mfab = (android.support.design.widget.FloatingActionButton) getActivity().findViewById(R.id.fab);
+            ((FabOwner) this).setUpFab(mfab);
+            mfab.show();
         }
-        else
-            fab.hide();
     }
 }

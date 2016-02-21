@@ -39,7 +39,4 @@ public class AppBundleKeyEntity extends BundleKeyEntity implements Serializable 
         mPackageName = packageName;
     }
 
-
-
-
 }
