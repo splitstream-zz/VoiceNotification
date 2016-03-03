@@ -1,13 +1,15 @@
 package org.stream.split.voicenotification.Enities;
 
 
+import org.stream.split.voicenotification.Interfaces.BundleKeyOwner;
+
 import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by B on 2015-11-05.
  */
-public class HistoryNotificationEntity extends NotificationEntity<HistoryBundleKeyEntity> implements Serializable {
+public class HistoryNotificationEntity extends NotificationEntity<HistoryBundleKeyEntity> implements Serializable, BundleKeyOwner {
     long mId;
     long mOccurrenceTime;
     String mTinkerText;
@@ -53,10 +55,10 @@ public class HistoryNotificationEntity extends NotificationEntity<HistoryBundleK
         super(sbnId, packageName);
         mOccurrenceTime = occurrenceTime;
     }
-
+    @Override
     public void addBundleKey(BundleKeyEntity entity) {
-        HistoryBundleKeyEntity historyBundleKeyEntity = new HistoryBundleKeyEntity(this.getPackageName(),
-                this.getSbnId(),
+        HistoryBundleKeyEntity historyBundleKeyEntity = new HistoryBundleKeyEntity(getPackageName(),
+                getSbnId(),
                 "",
                 entity);
         getBundleKeyList().add(historyBundleKeyEntity);

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
 import android.app.Fragment;
+import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,8 +15,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.google.gson.reflect.TypeToken;
 
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
@@ -28,10 +27,9 @@ import org.stream.split.voicenotification.R;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Observable;
 
 /**
  * Created by split on 2015-10-20.
@@ -93,7 +91,7 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
             mDataset.remove(mDataset.size()-1);
         mDataset.add(0,entity);
         mAnimationFlag = true;
-        refresh();
+        notifyDataSetChanged();
     }
 
     public List<T> getItems()
@@ -111,34 +109,26 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
         return modifiedItems;
     }
 
-    public void refresh()
+    public AsyncTask refresh()
     {
-        //todo most likely we will need to load data from database but we do not now what kind of object we need to load notificationEntites/historynotificationEntities
-        //we can check what kind of object there were in list but what if there is null?
-        List<T> newEntities = new ArrayList<>();
-        //newEntities.addAll(mDataset);
-        //mDataset.clear();
-        for(T entity:mDataset)
-        {
-            try {
-                T notificationFromDb = getNotificationFromDb(entity,false);
-                if(notificationFromDb != null)
-                    newEntities.add(notificationFromDb);
-            } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                Logger.e(TAG, "exception during invoking method to refresh notification list",e);
-            }
-        }
-        mDataset.clear();
-        mDataset.addAll(newEntities);
-        this.notifyDataSetChanged();
+        return new LoadNotificationsAsync().execute((ArrayList)mDataset);
     }
 
-    private T getNotificationFromDb(T notificationEntity, boolean getBundleKeys) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void setDataset(List<T> notifications)
+    {
+        mDataset.clear();
+        mDataset.addAll(notifications);
+    }
 
-        Method method = DBHelper.class.getMethod("getNotification", notificationEntity.getClass(), boolean.class);
-
+    private T getNotificationFromDb(T notificationEntity, boolean getBundleKeys) {
         DBHelper db = new DBHelper(mContext);
-        notificationEntity = (T)method.invoke(db, notificationEntity, getBundleKeys);
+        try {
+            Method method = DBHelper.class.getMethod("getNotification", notificationEntity.getClass(), boolean.class);
+            notificationEntity = (T) method.invoke(db, notificationEntity, getBundleKeys);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            Logger.e(TAG, "exception during invoking method to get notification from the database", e);
+        }
+
         db.close();
         return notificationEntity;
     }
@@ -183,24 +173,16 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
 
         @Override
         public void onClick(View v) {
-            if(mContext instanceof Activity)
-            {
                 DBHelper db = new DBHelper(mContext);
-                try {
-                    Method method = db.getClass().getMethod("get",notificationEntity.getClass());
-                    method.invoke(db, notificationEntity);
-                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                    Logger.e(TAG, "exception during invoking method to get from the database",e);
-                }
+                notificationEntity = getNotificationFromDb(notificationEntity, true);
                 db.close();
 
                 Fragment fragment = NotificationDetailsFragment.newInstance(notificationEntity);
-                FragmentManager fragmentManager = ((Activity)mContext).getFragmentManager();
+                FragmentManager fragmentManager = ((Activity) mContext).getFragmentManager();
                 fragmentManager.beginTransaction()
                         .replace(R.id.frame_content, fragment)
-                        .addToBackStack("notification details")
+                        .addToBackStack(TAG)
                         .commit();
-            }
         }
 
         @Override
@@ -208,11 +190,11 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
 
             if(isChecked != notificationEntity.isFollowed()) {
                 notificationEntity.setIsFollowed(isChecked);
-                updateDatabase(notificationEntity);
+                updateDatabaseEntity(notificationEntity);
                 refresh();
             }
         }
-        private void updateDatabase(T entity)
+        private void updateDatabaseEntity(T entity)
         {
             DBHelper db = new DBHelper(mContext);
             if (entity.isFollowed()) {
@@ -223,6 +205,29 @@ public class NotificationsAdapter<T extends NotificationEntity> extends Recycler
                 db.delete(entity);
             db.close();
         }
+    }
+
+    private class LoadNotificationsAsync extends AsyncTask<List<T>,Void,List<T>>
+    {
+        @Override
+        protected List<T> doInBackground(List<T>... params) {
+            List<T> entities = params[0];
+            List<T> updatedEntities = new ArrayList<>();
+            for(T entity:entities)
+            {
+                T entity1 = getNotificationFromDb(entity,false);
+                updatedEntities.add(entity1);
+            }
+            return updatedEntities;
+        }
+
+        @Override
+        protected void onPostExecute(List<T> updatedEntities) {
+            super.onPostExecute(updatedEntities);
+            setDataset(updatedEntities);
+            notifyDataSetChanged();
+        }
+
     }
 
 }

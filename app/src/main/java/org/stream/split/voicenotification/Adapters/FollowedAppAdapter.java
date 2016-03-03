@@ -148,7 +148,7 @@ public class FollowedAppAdapter extends RecyclerView.Adapter<FollowedAppAdapter.
         public void onClick(View v) {
 
             //TODO might not be needed test it!
-            Helper.getAllNotificationBundleKeys(entity.getBundleKeyList());
+            Helper.getAllNotificationBundleKeys(entity);
 
             ApplicationDetailsFragment fragment = ApplicationDetailsFragment.newInstance(entity);
             ((Activity)mContext).getFragmentManager().beginTransaction()

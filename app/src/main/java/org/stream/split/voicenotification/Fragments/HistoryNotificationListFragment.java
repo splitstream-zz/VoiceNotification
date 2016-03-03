@@ -1,29 +1,21 @@
 package org.stream.split.voicenotification.Fragments;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import com.google.gson.Gson;
 
-import org.stream.split.voicenotification.Adapters.NotificationsAdapter;
+import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.BaseEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
-import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
 import org.stream.split.voicenotification.NotificationService;
 import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
-import org.stream.split.voicenotification.R;
-import org.stream.split.voicenotification.VoiceNotificationActivity;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,33 +27,29 @@ import java.util.List;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class HistoryNotificationListFragment extends BaseFragment {
+public class HistoryNotificationListFragment extends NotificationListFragment {
 
-    private final static String TAG = "HistoryNotifiListFragment";
-    public final static String ARG_NOTIFICATION_LIST = "NotificationListArg";
+    public final static String TAG = "HistoryNotifiListFragment";
 
     private NotifyBroadcastReceiver mReceiver;
     private NotificationServiceConnection mConnection;
-    private RecyclerView mRecyclerView;
-    private NotificationsAdapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
 
-    public NotificationsAdapter getAdapter() {
-        return mAdapter;
+    @Override
+    public String getTAG() {
+        return TAG;
+    }
+
+    @Override
+    public void refresh() {
+        mLoading = new LoadHistoryNotificationsAsync().execute();
     }
 
     public HistoryNotificationListFragment() {
     }
 
-    public static HistoryNotificationListFragment newInstance(
-            ArrayList<HistoryNotificationEntity> notificationEntities)
+    public static HistoryNotificationListFragment newInstance()
     {
-        Bundle bundle = new Bundle();
-        bundle.putSerializable(ARG_NOTIFICATION_LIST, notificationEntities);
-
         HistoryNotificationListFragment fragment = new HistoryNotificationListFragment();
-        fragment.setArguments(bundle);
-
         return fragment;
     }
 
@@ -69,44 +57,9 @@ public class HistoryNotificationListFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate()");
-
-        List entities = new ArrayList();
-        if (getArguments() != null) {
-            entities = (List<HistoryNotificationEntity>) getArguments().getSerializable(ARG_NOTIFICATION_LIST);
-        }
-
-        mAdapter = new NotificationsAdapter(entities, getActivity());
-
         mReceiver = new NotifyBroadcastReceiver();
         mConnection = NotificationServiceConnection.getInstance();
 
-    }
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_notification_list, container, false);
-
-        mRecyclerView = (RecyclerView) view.findViewById(R.id.recycler_view_notifications);
-
-        // use this setting to improve performance if you know that changes
-        // in content do not change the layout size of the RecyclerView
-        mRecyclerView.setHasFixedSize(true);
-
-        // use a linear layout manager
-        mLayoutManager = new LinearLayoutManager(view.getContext());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-
-        mRecyclerView.setAdapter(mAdapter);
-
-        return view;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart()");
-        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
-        mConnection.registerReceiver(mReceiver);
     }
 
     @Override
@@ -114,18 +67,16 @@ public class HistoryNotificationListFragment extends BaseFragment {
         return false;
     }
 
+
     @Override
     public void onResume() {
         super.onResume();
-        Log.d(TAG, "onResume()");
-        mAdapter.refresh();
+        mConnection.registerReceiver(mReceiver);
     }
 
-
     @Override
-    public void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop()");
+    public void onPause() {
+        super.onPause();
         mConnection.unregisterReceiver(mReceiver);
     }
 
@@ -151,10 +102,28 @@ public class HistoryNotificationListFragment extends BaseFragment {
             Bundle extras = intent.getExtras();
             String gsonToJson;
             if(extras != null) {
-                gsonToJson = extras.getString(NotificationService.NEW_NOTIFICATION_OBJECT);
+                gsonToJson = extras.getString(NotificationService.EXTRA_NEW_NOTIFICATION_OBJECT);
                 HistoryNotificationEntity historyNotificationEntity = new Gson().fromJson(gsonToJson, HistoryNotificationEntity.class);
                 getAdapter().addItem(historyNotificationEntity);
             }
         }
+    }
+    private class LoadHistoryNotificationsAsync extends AsyncTask<Void,Void,List<? extends BaseEntity>>
+    {
+        @Override
+        protected List<HistoryNotificationEntity> doInBackground(Void... params) {
+            DBHelper db = new DBHelper(getActivity());
+            List entities = db.getAllHistoryNotification(false);
+            db.close();
+            return entities;
+        }
+
+        @Override
+        protected void onPostExecute(List<? extends BaseEntity> historyNotificationEntities) {
+            super.onPostExecute(historyNotificationEntities);
+            getAdapter().setDataset(historyNotificationEntities);
+            getAdapter().notifyDataSetChanged();
+        }
+
     }
 }

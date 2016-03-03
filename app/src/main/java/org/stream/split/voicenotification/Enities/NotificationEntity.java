@@ -1,6 +1,7 @@
 package org.stream.split.voicenotification.Enities;
 
 import org.stream.split.voicenotification.Enums.NotificationPolicy;
+import org.stream.split.voicenotification.Interfaces.BundleKeyOwner;
 
 import java.io.Serializable;
 import java.util.List;
@@ -8,21 +9,15 @@ import java.util.List;
 /**
  * Created by split on 2016-01-30.
  */
-public class NotificationEntity<T extends NotificationBundleKeyEntity & Serializable> extends BaseEntity implements Serializable {
+public class NotificationEntity<T extends NotificationBundleKeyEntity & Serializable> extends BaseEntity implements Serializable, BundleKeyOwner {
     private String mPackageName;
     private int mSbnId;
     private NotificationPolicy mPolicy;
-
-    private BundleKeyList<T> mBundleKeyList = new BundleKeyList<T>() {
-        @Override
-        public void addBundleKey(BundleKeyEntity entity) {
-            NotificationBundleKeyEntity notificationBundleKeyEntity = new NotificationBundleKeyEntity(getPackageName(),getSbnId(),entity);
-            add((T)notificationBundleKeyEntity);
-        }
-    };
+    private BundleKeyList<T> mBundleKeyList;
 
     public BundleKeyList<T> getBundleKeyList()
     {
+
         return mBundleKeyList;
     }
 
@@ -58,6 +53,7 @@ public class NotificationEntity<T extends NotificationBundleKeyEntity & Serializ
     {
         mPackageName = packageName;
         mSbnId = sbnId;
+        mBundleKeyList = new BundleKeyList<>();
     }
     @Override
     public boolean isModified()
@@ -70,4 +66,16 @@ public class NotificationEntity<T extends NotificationBundleKeyEntity & Serializ
         return result;
     }
 
+    @Override
+    public void clearIsModified() {
+        setIsModified(false);
+        mBundleKeyList.clearIsModified();
+    }
+
+    @Override
+    public void addBundleKey(BundleKeyEntity entity) {
+        NotificationBundleKeyEntity notificationBundleKeyEntity =
+                new NotificationBundleKeyEntity(getPackageName(),getSbnId(),entity.getKey());
+        getBundleKeyList().add((T)notificationBundleKeyEntity);
+    }
 }

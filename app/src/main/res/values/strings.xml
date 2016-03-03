@@ -7,7 +7,7 @@
     <string name="action_settings">Settings</string>
     <string name="action_turn_off">Turn off</string>
 
-    <string name="Persistent_notification_title">Voice notification</string>
+    <string name="persistent_notification_title">Voice notification</string>
     <string name="Persistent_notification_text_enabled">aplikacja aktywna</string>
     <string name="Persistent_notification_text_no_notification_access">brak dostępu do powiadomień</string>
     <string name="Persistent_notification_text_disabled">aplikacja nie aktywna</string>
@@ -19,22 +19,35 @@
     <string name="apps_IT" >aplikacje</string>
     <string name="history_IT" >historia</string>
 
-
     <string name="add_app">dodaj zaznaczone</string>
     <string name="CustomIntent_NotificationCatcher">org.stream.split.voicenotification.CustomIntent_NotificationCatcher</string>
     <string name="delete_app">Usuń</string>
 
     <string name="pref_accept_notifications_title">Powiadomienia</string>
     <string name="pref_accept_notifications_summary">zezwól aplikacji na przechwytywanie powiadomień</string>
-    <string name="pref_category_title">Ustawienia</string>
-    <string name="shared_preferences">sharedPref</string>
 
-    <string name="pref_is_persistent_notification_key">Stałe powiadomieni</string>
-    <string name="pref_is_persistent_notification_title">Stałe powiadomieni</string>
+    <string name="SETTINGS_PREFERENCES_CATEGORY_TITLE">Ustawienia</string>
 
-    <string name="pref_is_voice_active_key">powiadomienia głosowe</string>
-    <string name="pref_is_voice_active_title">powiadomienia głosowe</string>
-    <string name="default_title">domyślny tytuł</string>
+    <string name="IS_PERSISTENT_NOTIFICATION_ACTIVE_PREFERENCE_KEY">Stałe powiadomieni</string>
+    <string name="IS_PERSISTENT_NOTIFICATION_ACTIVE_PREFERENCE_TITLE">Stałe powiadomieni</string>
 
+    <string name="IS_VOICE_ACTIVE_PREFERENCE_KEY">powiadomienia głosowe</string>
+    <string name="IS_VOICE_ACTIVE_PREFERENCE_TITLE">powiadomienia głosowe</string>
+
+    <string name="EXIT_SNACKBAR_TEXT">Naciśnij kliwisz back aby wyjść z aplikacji</string>
+    <string name="UNSAVED_DATA_WARNING_SNACKBAR_TEXT">Discard unsaved data?</string>
+    <string name="UNSAVED_DATA_SNACKBAR_BTN_LBL">YES</string>
+
+    <string name="DEFAULT_FRAGMENT_TITLE">domyślny tytuł</string>
+    <string name="FOLLOWED_APP_FRAGMENT_TITLE">Followed Applications</string>
+    <string name="HISTORY_NOTIFICATION_LIST_FRAGMENT_TITLE">Notifications history</string>
+    <string name="BUNDLE_KEYS_FRAGMENT_TITLE">Bundle keys</string>
+    <string name="NOTIFICATIONS_FRAGMENT_TITLE">Notifications</string>
+
+    <string name="CONDITIONS_PREFERENCE_CATEGORY_TITLE">Warunki</string>
+    <string name="SPEAK_DURING_ACTIVE_CALL_PREFERENCE_KEY">speakDuringActiveCall</string>
+    <string name="SPEAK_DURING_ACTIVE_CALL_PREFERENCE_TITLE">mów podczas aktywnej rozmowy</string>
+    <string name="INDIVIDUAL_VOLUME_PREFERENCE_KEY">adjustVolumeKey</string>
+    <string name="INDIVIDUAL_VOLUME_PREFERENCE_TITLE">Idywidualny poziom głośności</string>
 
 </resources>

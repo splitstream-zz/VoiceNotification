@@ -2,20 +2,17 @@ package org.stream.split.voicenotification;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Debug;
-import android.os.UserHandle;
 import android.preference.PreferenceManager;
-import android.service.notification.StatusBarNotification;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
@@ -30,46 +27,34 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Switch;
 
-import com.google.gson.reflect.TypeToken;
-
-import org.stream.split.voicenotification.DataAccessLayer.DBContract;
-import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
-import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
-import org.stream.split.voicenotification.Exceptions.ExceptionHandler;
 import org.stream.split.voicenotification.Fragments.BaseFragment;
 import org.stream.split.voicenotification.Fragments.FollowedAppFragment;
 import org.stream.split.voicenotification.Fragments.HistoryNotificationListFragment;
 import org.stream.split.voicenotification.Fragments.SettingsFragment;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.NotificationServiceConnection;
-import org.stream.split.voicenotification.Interfaces.FabOwner;
-import org.stream.split.voicenotification.Interfaces.OnFragmentInteractionListener;
 import org.stream.split.voicenotification.Logging.BaseLogger;
-import org.stream.split.voicenotification.Logging.DbLogger;
-import org.stream.split.voicenotification.Logging.DbToLog;
-
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
 
 //TODO dodać do poszczególnych fragmentów tytuły
 //TODO dodać funkcjonalności związane z dodawaniem warunków, po spełnieniu których,
 //TODO there is warning about notification access even when it is allowed.
 //TODO Make proper logging class not only to output but db as well
 public class VoiceNotificationActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener, SharedPreferences.OnSharedPreferenceChangeListener {
+        implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
-    public static Fragment CURRENT_FRAGMENT;
+    //public static Fragment CURRENT_FRAGMENT;
 
     private final String TAG = "VoiceNotifiActivity";
     private NotificationManager mNotificationManager;
     private final int mTestingNotificationID = 6879;
     private FragmentManager mFragmentManager;
     private NotificationServiceConnection mServiceConnection;
+    private NotificationServiceCallback mNotificationServiceCallback;
     private SharedPreferences mSharedPreferences;
     private boolean mIsVoiceActive;
     private Switch mIsVoiceActiveSwitch;
     private BaseLogger logger = BaseLogger.getInstance();
+    private Snackbar mCheckNotificationAccess;
 
     /**
      * zmienna w której zapisywany jest timestamp naciśniecia klawisza back
@@ -87,9 +72,15 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
     public void setIsVoiceActive(boolean isVoiceActive) {
         this.mIsVoiceActive = isVoiceActive;
-        String isVoiceActivePrefKey = getResources().getString(R.string.pref_is_voice_active_key);
+        String isVoiceActivePrefKey = getResources().getString(R.string.IS_VOICE_ACTIVE_PREFERENCE_KEY);
         logger.d(TAG, "set voice active = "+isVoiceActive);
         mSharedPreferences.edit().putBoolean(isVoiceActivePrefKey,isVoiceActive).apply();
+    }
+
+    public Fragment getCurrentFragment()
+    {
+        Fragment fragment = mFragmentManager.findFragmentById(R.id.frame_content);
+        return fragment;
     }
 
     @Override
@@ -122,22 +113,18 @@ public class VoiceNotificationActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         mFragmentManager = getFragmentManager();
+        String historyFragmentTitle = res.getString(R.string.HISTORY_NOTIFICATION_LIST_FRAGMENT_TITLE);
         if(savedInstanceState == null) {
-            DBHelper db = new DBHelper(this);
-            ArrayList<HistoryNotificationEntity> entities = (ArrayList) db.getAllHistoryNotification(true);
-            db.close();
-            HistoryNotificationListFragment fragment = HistoryNotificationListFragment.newInstance(entities);
-
+            HistoryNotificationListFragment fragment = HistoryNotificationListFragment.newInstance();
+            fragment.setTitle(historyFragmentTitle);
             mFragmentManager.beginTransaction()
                     .add(R.id.frame_content, fragment)
-                    .addToBackStack("history fragment")
+                    .addToBackStack(fragment.getTitle())
                     .commit();
         }
 
         mNotificationManager =(NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
-        //creating persistent notification
-        checkNotificationAccess();
 
         //setting background from splash screen back to color
         View root = drawer.getRootView();
@@ -145,19 +132,21 @@ public class VoiceNotificationActivity extends AppCompatActivity
     }
 
     private void initializeActivity(SharedPreferences sharedPreferences, Resources res) {
-        mIsVoiceActive = sharedPreferences.getBoolean(res.getString(R.string.pref_is_voice_active_key),false);
+        mIsVoiceActive = sharedPreferences.getBoolean(res.getString(R.string.IS_VOICE_ACTIVE_PREFERENCE_KEY),false);
     }
 
     private void checkNotificationAccess() {
-        if(!NotificationService.isNotificationRelayActive())
-            Snackbar.make(findViewById(R.id.coordinator_layout),"Notification access denied!",Snackbar.LENGTH_INDEFINITE)
+        if(!NotificationService.isNotificationRelayActive()) {
+            mCheckNotificationAccess = Snackbar.make(findViewById(R.id.coordinator_layout), "Notification access denied!", Snackbar.LENGTH_INDEFINITE)
                     .setAction("Grant", new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             Intent notificationAccess = new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS");
                             startActivity(notificationAccess);
                         }
-                    }).show();
+                    });
+            mCheckNotificationAccess.show();
+        }
     }
 
     @Override
@@ -166,7 +155,11 @@ public class VoiceNotificationActivity extends AppCompatActivity
         Intent intent = new Intent(this,NotificationService.class);
         intent.setAction(NotificationService.CUSTOM_BINDING);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        //creating persistent notification
+        checkNotificationAccess();
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
+        mNotificationServiceCallback = new NotificationServiceCallback();
+        mServiceConnection.registerReceiver(mNotificationServiceCallback);
     }
 
     @Override
@@ -174,6 +167,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
         super.onStop();
         // Unbind from the service
         Log.d(TAG, "onStop()");
+        mServiceConnection.unregisterReceiver(mNotificationServiceCallback);
         unbindService(mServiceConnection);
         mSharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
     }
@@ -186,26 +180,25 @@ public class VoiceNotificationActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         }
 
-        if(CURRENT_FRAGMENT instanceof BaseFragment && ((BaseFragment) CURRENT_FRAGMENT).isModified()) {
-            Snackbar.make(findViewById(R.id.coordinator_layout), "Discard unsaved data?", Snackbar.LENGTH_LONG)
-                    .setAction("YES", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            ((BaseFragment) CURRENT_FRAGMENT).finish();
-                            mFragmentManager.popBackStack();
-                        }
-                    }).show();
-            return;
-        }
-        if(CURRENT_FRAGMENT instanceof HistoryNotificationListFragment) {
+        Fragment currentFragment = getCurrentFragment();
+
+        if (currentFragment instanceof HistoryNotificationListFragment) {
             if (System.currentTimeMillis() - mExitBackKeyTimestamp < mExitBackKeyInterval) {
-                Log.d(TAG, String.valueOf(System.currentTimeMillis() - mExitBackKeyTimestamp));
                 finish();
             } else {
                 mExitBackKeyTimestamp = System.currentTimeMillis();
-                Snackbar.make(findViewById(R.id.coordinator_layout), "Naciśnij kliwisz back aby wyjśc z aplikajci", Snackbar.LENGTH_SHORT).show();
+                Snackbar.make(findViewById(R.id.coordinator_layout), R.string.EXIT_SNACKBAR_TEXT, Snackbar.LENGTH_SHORT).show();
             }
         }
+        else if (currentFragment instanceof BaseFragment && ((BaseFragment) currentFragment).isModified()){
+                Snackbar.make(findViewById(R.id.coordinator_layout), R.string.UNSAVED_DATA_WARNING_SNACKBAR_TEXT, Snackbar.LENGTH_LONG)
+                        .setAction(R.string.UNSAVED_DATA_SNACKBAR_BTN_LBL, new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                mFragmentManager.popBackStack();
+                            }
+                        }).show();
+            }
         else
             mFragmentManager.popBackStack();
     }
@@ -238,8 +231,7 @@ public class VoiceNotificationActivity extends AppCompatActivity
 
         switch(id) {
             case R.id.action_settings:
-                FragmentTransaction transaction = mFragmentManager.beginTransaction();
-                transaction.replace(R.id.frame_content, new SettingsFragment())
+                mFragmentManager.beginTransaction().replace(R.id.frame_content, new SettingsFragment())
                         .addToBackStack(item.getTitle().toString())
                         .commit();
                 break;
@@ -255,19 +247,18 @@ public class VoiceNotificationActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        Fragment fragment = null;
+        BaseFragment newFragment = null;
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         Snackbar snackBar = null;
 
         switch (id) {
             case R.id.choose_apps:
-                fragment = new FollowedAppFragment();
+                newFragment = new FollowedAppFragment();
+                newFragment.setTitle(getString(R.string.FOLLOWED_APP_FRAGMENT_TITLE));
                 break;
             case R.id.history:
-                DBHelper db = new DBHelper(this);
-                ArrayList<HistoryNotificationEntity> entities = (ArrayList) db.getAllHistoryNotification(false);
-                db.close();
-                fragment = HistoryNotificationListFragment.newInstance(entities);
+                newFragment = HistoryNotificationListFragment.newInstance();
+                newFragment.setTitle(getString(R.string.HISTORY_NOTIFICATION_LIST_FRAGMENT_TITLE));
                 break;
             case R.id.nav_share:
                 break;
@@ -277,15 +268,14 @@ public class VoiceNotificationActivity extends AppCompatActivity
                 break;
         }
 
-        if(fragment != null && fragment.getClass() != CURRENT_FRAGMENT.getClass()) {
-            mFragmentManager.beginTransaction().replace(R.id.frame_content, fragment)
-                    .addToBackStack(item.getTitle().toString())
+        Fragment currentFragment = getCurrentFragment();
+        if((newFragment != null && (currentFragment == null || newFragment.getClass() != currentFragment.getClass()))) {
+            mFragmentManager.beginTransaction().replace(R.id.frame_content, newFragment)
+                    .addToBackStack(newFragment.getTAG())
                     .commit();
-
-            CURRENT_FRAGMENT = fragment;
         }
 
-        if(snackBar != null)
+        if (snackBar != null)
             snackBar.show();
 
         drawer.closeDrawer(GravityCompat.START);
@@ -297,35 +287,15 @@ public class VoiceNotificationActivity extends AppCompatActivity
         Intent intent = new Intent(getApplicationContext(), VoiceNotificationActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 01, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         Notification notification = Helper.createNotification(getApplicationContext(), pendingIntent, "Tytuł", "Na tydzień przed wyborami parlamentarnymi Andrzej Duda był gościem specjalnego wydania programu \"Kawa na ławę\". Bogdan Rymanowski pytał prezydenta m.in. o relacje z rządem, politykę zagraniczną i ocenę dobiegającej końca kampanii wyborczej.", "subtext", false);
-        if(Debug.isDebuggerConnected())
-        {
-            Log.d(TAG, "create test notification DEBUG MODE ON");
-
-            UserHandle userHandle = android.os.Process.myUserHandle();
-
-            StatusBarNotification sbn = new StatusBarNotification(this.getPackageName(),"",mTestingNotificationID,"tag?",18,19,3,notification,userHandle, System.currentTimeMillis() );
-            mServiceConnection.sendTestNotification(sbn);
-
-        }
         mNotificationManager.notify(mTestingNotificationID, notification);
 
-    }
-
-
-    /**
-     * Funkcja służaca do komunikacji pomiędzy Fragmentami
-     * @param id
-     */
-    @Override
-    public void onFragmentInteraction(long [] id) {
-        Snackbar.make(this.findViewById(R.id.frame_content),"sdasd",Snackbar.LENGTH_SHORT).show();
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         Resources res = getResources();
         logger.d(TAG,"onSharedPreferenceChanged()");
-        if(key.equals(res.getString(R.string.pref_is_voice_active_key)))
+        if(key.equals(res.getString(R.string.IS_VOICE_ACTIVE_PREFERENCE_KEY)))
         {
             Boolean isVoiceActive = sharedPreferences.getBoolean(key,false);
             mIsVoiceActiveSwitch.setChecked(isVoiceActive);
@@ -333,5 +303,20 @@ public class VoiceNotificationActivity extends AppCompatActivity
             logger.d(TAG,"onSharedPreferenceChanged(), isVoiceActive = " + isVoiceActive);
         }
 
+    }
+    private class NotificationServiceCallback extends BroadcastReceiver
+    {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+            switch(intent.getAction()) {
+                case NotificationService.ACTION_NOTIFICATION_ACCESS_CHANGED:
+                    if (intent.getBooleanExtra(NotificationService.EXTRA_IS_NOTIFICATION_ACCESS_GRANTED, false))
+                        mCheckNotificationAccess.dismiss();
+                    else
+                        mCheckNotificationAccess.show();
+                    break;
+            }
+        }
     }
 }

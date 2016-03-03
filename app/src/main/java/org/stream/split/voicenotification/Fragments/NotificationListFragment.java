@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.LinearLayoutManager;
@@ -49,6 +50,16 @@ public class NotificationListFragment extends BaseFragment {
 
     public NotificationsAdapter getAdapter() {
         return mAdapter;
+    }
+
+    @Override
+    public String getTAG() {
+        return TAG;
+    }
+
+    @Override
+    public void refresh() {
+        mLoading = mAdapter.refresh();
     }
 
     public NotificationListFragment() {
@@ -99,17 +110,10 @@ public class NotificationListFragment extends BaseFragment {
 
         return view;
     }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Log.d(TAG, "onStart()");
-        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
-        mAdapter.refresh();
-    }
-
     @Override
     public boolean isModified() {
         return !mAdapter.getModifiedItems().isEmpty();
     }
+
+
 }
