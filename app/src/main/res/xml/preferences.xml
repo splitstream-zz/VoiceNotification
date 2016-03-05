@@ -1,17 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory android:title="@string/pref_category_title"
-        >
+    <PreferenceCategory android:title="@string/SETTINGS_PREFERENCES_CATEGORY_TITLE">
         <Preference
             android:summary="@string/pref_accept_notifications_summary"
-            android:title="@string/pref_accept_notifications_title" >
-            <intent android:action="android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS">
-            </intent>
+            android:title="@string/pref_accept_notifications_title">
+            <intent android:action="android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"></intent>
         </Preference>
-        <CheckBoxPreference android:title="@string/pref_is_persistent_notification_title"
-            android:key="@string/pref_is_persistent_notification_key"
-            android:defaultValue="@bool/isNotificationPersistent"/>
-        <CheckBoxPreference android:key="@string/pref_is_voice_active_key"
-            android:title="@string/pref_is_voice_active_title"/>
+        <CheckBoxPreference
+            android:defaultValue="@bool/isNotificationPersistent"
+            android:key="@string/IS_PERSISTENT_NOTIFICATION_ACTIVE_PREFERENCE_KEY"
+            android:title="@string/IS_PERSISTENT_NOTIFICATION_ACTIVE_PREFERENCE_TITLE" />
+        <CheckBoxPreference
+            android:key="@string/IS_VOICE_ACTIVE_PREFERENCE_KEY"
+            android:title="@string/IS_VOICE_ACTIVE_PREFERENCE_TITLE" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/CONDITIONS_PREFERENCE_CATEGORY_TITLE">
+        <CheckBoxPreference
+            android:key="@string/SPEAK_DURING_ACTIVE_CALL_PREFERENCE_KEY"
+            android:title="@string/SPEAK_DURING_ACTIVE_CALL_PREFERENCE_TITLE"
+            android:defaultValue="@bool/SPEAK_DURING_ACTIVE_CALL_PREFERENCE_DEFAULT"/>
+        <CheckBoxPreference android:key="@string/INDIVIDUAL_VOLUME_PREFERENCE_KEY"
+            android:title="@string/INDIVIDUAL_VOLUME_PREFERENCE_TITLE"
+            android:defaultValue="false"/>
+        <!--<org.stream.split.voicenotification.Controls.SeekBarPreference-->
+            <!--android:key=""-->
     </PreferenceCategory>
 </PreferenceScreen>

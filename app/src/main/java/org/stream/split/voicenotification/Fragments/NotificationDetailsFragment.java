@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import org.stream.split.voicenotification.Adapters.BundleKeysAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
+import org.stream.split.voicenotification.Enities.AppInfoEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Helpers.SimpleItemTouchHelperCallback;
@@ -50,11 +51,15 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
     private RecyclerView.LayoutManager mLayoutManager;
     private BundleKeysAdapter mAdapter;
 
+    @Override
+    public String getTAG() {
+        return TAG;
+    }
+
     public static <T extends NotificationEntity> NotificationDetailsFragment newInstance(T notificationEntity) {
         NotificationDetailsFragment<T> fragment = new NotificationDetailsFragment<>();
         Bundle args = new Bundle();
         args.putSerializable(ARG_NOTIFICATION_GSON_OBJECT, notificationEntity);
-        //args.putString(ARG_NOTIFICATION_GSON_TYPE, notificationEntity.getClass().getName());
         fragment.setArguments(args);
         return fragment;
     }
@@ -73,14 +78,9 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
         if (getArguments() != null) {
             mEntity = (T)getArguments().getSerializable(ARG_NOTIFICATION_GSON_OBJECT);
         }
-        Helper.getAllNotificationBundleKeys(mEntity.getBundleKeyList());
+        Helper.getAllNotificationBundleKeys(mEntity);
         mAdapter = new BundleKeysAdapter(mEntity.getBundleKeyList().get(),this,getActivity());
         setTitle(Helper.getApplicationLabel(mEntity.getPackageName(), getActivity()));
-    }
-    @Override
-     public void onStart() {
-        super.onStart();
-        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
     }
 
     @Override
@@ -100,8 +100,10 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.setAdapter(mAdapter);
 
-        ItemTouchHelper.Callback callback = new SimpleItemTouchHelperCallback(mAdapter);
+        SimpleItemTouchHelperCallback callback = new SimpleItemTouchHelperCallback(mAdapter);
+        callback.setIsItemViewSwipeEnabled(false);
         mItemTouchHelper = new ItemTouchHelper(callback);
+
         mItemTouchHelper.attachToRecyclerView(mRecyclerView);
 
         mNotificationSbnID = (TextView) view.findViewById(R.id.notification_sbn_id_text);
@@ -138,16 +140,6 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
 
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
-    }
 
     @Override
     public void setUpFab(FloatingActionButton fab) {
@@ -174,6 +166,7 @@ public class NotificationDetailsFragment<T extends NotificationEntity> extends B
         snackBarText.append(" ");
 
         if (mEntity.isFollowed()) {
+            db.updateOrInsert(new AppInfoEntity(mEntity.getPackageName(),Helper.getApplicationLabel(mEntity.getPackageName(),getActivity())),false,false);
             db.updateOrInsert(mEntity, true);
             snackBarText.append("has been modified");
         } else {

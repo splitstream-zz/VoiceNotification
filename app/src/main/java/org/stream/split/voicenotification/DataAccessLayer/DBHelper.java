@@ -204,12 +204,13 @@ public class DBHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         return result;
     }
-
+//leave it be - its used to get notification in notificationAdapter (generic invoking method - refactoring do not work)
     public NotificationEntity getNotification(NotificationEntity notification, boolean getBundleKeys)
     {
         notification =getFollowedNotification(notification.getPackageName(), notification.getSbnId(), getBundleKeys);
         return notification;
     }
+    //leave it be - its used to get notification in notificationAdapter (generic invoking method - refactoring do not work)
     public HistoryNotificationEntity getNotification(HistoryNotificationEntity notification, boolean getBundleKeys)
     {
         notification = getHistoryNotification(notification.getID(),getBundleKeys);
@@ -690,7 +691,7 @@ public class DBHelper extends SQLiteOpenHelper {
                 DBContract.HistoryNotificationFeed.TABLE_NAME + " t1 INNER JOIN " +
                 DBContract.HistoryNotificationFeed.TABLE_NAME + " t2 " +
                 " ON t2." + DBContract.HistoryNotificationFeed.COLUMN_NAME_INSERTION_TIMESTAMP + " < t1." + DBContract.HistoryNotificationFeed.COLUMN_NAME_INSERTION_TIMESTAMP +
-                " AND t1." + DBContract.HistoryNotificationFeed.COLUMN_NAME_PACKAGE_NAME + " = t2." + DBContract.HistoryNotificationFeed.COLUMN_NAME_PACKAGE_NAME +
+                " AND t1." + DBContract.HistoryNotificationFeed.COLUMN_NAME_SBN_ID + " = t2." + DBContract.HistoryNotificationFeed.COLUMN_NAME_SBN_ID +
                 " WHERE t1.rowId = " + rowId + ");";
         logger.d(TAG, sql_query);
         Cursor cursor = getReadableDatabase().rawQuery(sql_query, null);

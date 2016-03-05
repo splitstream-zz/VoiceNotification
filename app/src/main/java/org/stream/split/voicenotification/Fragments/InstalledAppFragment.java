@@ -51,6 +51,11 @@ public class InstalledAppFragment extends BaseFragment implements FabOwner {
     private ProgressBar mProgressBar;
     private int mProgressBarVisibility;
 
+    @Override
+    public String getTAG() {
+        return TAG;
+    }
+
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -85,12 +90,6 @@ public class InstalledAppFragment extends BaseFragment implements FabOwner {
         mRecyclerView.setAdapter(mAdapter);
 
         return view;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
     }
 
     @Override

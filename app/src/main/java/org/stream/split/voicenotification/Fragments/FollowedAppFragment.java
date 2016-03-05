@@ -42,7 +42,6 @@ public class FollowedAppFragment extends BaseFragment implements FabOwner {
     private FollowedAppAdapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
 
-
     /**
      * progressBar indicating application loading
      */
@@ -50,6 +49,10 @@ public class FollowedAppFragment extends BaseFragment implements FabOwner {
     private int mProgressBarVisibility;
     private MenuItem mDeleteMenuItem;
 
+    @Override
+    public String getTAG() {
+        return TAG;
+    }
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -88,7 +91,6 @@ public class FollowedAppFragment extends BaseFragment implements FabOwner {
     @Override
     public void onStart() {
         super.onStart();
-        VoiceNotificationActivity.CURRENT_FRAGMENT = this;
         DBHelper db = new DBHelper(getActivity());
         List<AppInfoEntity> apps = db.getAllFollowedApps(true,true);
         db.close();

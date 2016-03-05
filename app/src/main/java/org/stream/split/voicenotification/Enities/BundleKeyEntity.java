@@ -73,6 +73,11 @@ public class BundleKeyEntity extends BaseEntity implements Comparable<BundleKeyE
         return result;
     }
 
+    @Override
+    public void clearIsModified() {
+        this.setIsModified(false);
+    }
+
     public static class Comparators
     {
         public static Comparator<BundleKeyEntity> DEFAULT = new Comparator<BundleKeyEntity>() {

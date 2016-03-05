@@ -2,8 +2,10 @@ package org.stream.split.voicenotification;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.AudioManager;
+import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
 
 import org.stream.split.voicenotification.Enities.UtteranceEntity;
@@ -27,10 +29,11 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
 {
     public final static String TAG = "SpeechModule";
     private TextToSpeech mTts;
+    private int mStatus = TextToSpeech.ERROR;
     private Queue<UtteranceEntity> mUtterances;
     private Context mContext;
     private BaseLogger logger = BaseLogger.getInstance();
-    AudioManager am;
+    private AudioManager am;
 
 
     public SpeechModule(Context context)
@@ -39,41 +42,43 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         mContext = context;
         mUtterances = new LinkedList<>();
         am= (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        initialize();
+    }
 
+    private void initialize() {
     }
 
     public void addUtterance(UtteranceEntity utteranceEntity)
     {
         logger.d(TAG, "addUtterance()");
-        if(utteranceEntity != null)
+        if(utteranceEntity != null) {
             mUtterances.add(utteranceEntity);
-        startNext();
-
+            logger.d(TAG,"utteranceId = " + utteranceEntity.getUtteranceId());
+        }
     }
 
-    public void removeUtterance(String utteraanceId)
+    public void removeUtterance(String utteranceId)
     {
         Iterator<UtteranceEntity> i = mUtterances.iterator();
         while(i.hasNext())
         {
             UtteranceEntity entity = i.next();
             logger.d(TAG, "utteranceId = " + entity.getUtteranceId());
-            if(entity.getUtteranceId().equals(utteraanceId))
+            if(entity.getUtteranceId().equals(utteranceId))
                 i.remove();
         }
     }
-    public synchronized void startNext() {
-        logger.d(TAG, "startNext()");
-
-        if(!mUtterances.isEmpty()) {
-            if (mTts == null) {
-                logger.d(TAG, "mTts = null");
-                mTts = new TextToSpeech(mContext, this);
+    public synchronized void start() {
+        logger.d(TAG, "start()");
+        UtteranceEntity utteranceEntity = mUtterances.peek();
+        if (utteranceEntity != null) {
+            if (mTts != null && mStatus == TextToSpeech.SUCCESS) {
+                    logger.d(TAG, "isSpeaking() = " + mTts.isSpeaking());
+                    speak(utteranceEntity);
             }
             else {
-                logger.d(TAG, "else, isSpeaking() = " + mTts.isSpeaking());
-                UtteranceEntity utteranceEntity = mUtterances.remove();
-                speak(utteranceEntity);
+                logger.d(TAG, "mTts = null");
+                mTts = new TextToSpeech(mContext, this);
             }
         }
     }
@@ -83,10 +88,11 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         HashMap<String, String> params = new HashMap<>();
         String id = utteranceEntity.getUtteranceId();
         String message = utteranceEntity.getFlatMessage();
+
         logger.d(TAG, "\tutteranceId:" + id + "\tMessage: " + message);
         params.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, id);
-        mTts.speak(message, TextToSpeech.QUEUE_ADD, params);
 
+        mTts.speak(message, TextToSpeech.QUEUE_ADD, params);
     }
 
     public void clearUtterances()
@@ -96,18 +102,20 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
             mUtterances.clear();
         }
     }
-    public void shutdown()
+
+    public void shutdown(boolean clearUtterances)
     {
-        clearUtterances();
+        if(clearUtterances)
+            clearUtterances();
         if(mTts != null) {
+            mStatus = TextToSpeech.ERROR;
             mTts.stop();
             mTts.shutdown();
             mTts = null;
         }
         am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+
     }
-
-
 
     @Override
     public void onStart(String utteranceId) {
@@ -118,24 +126,28 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     @Override
     public void onDone(String utteranceId) {
         logger.d(TAG, "onDone()");
+        logger.d(TAG, "Done speaking utteranceID = " +utteranceId);
         am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+        removeUtterance(utteranceId);
+        start();
     }
 
     @Override
     public void onError(String utteranceId) {
-        logger.d(TAG, "onError(String utteranceId)");
+        logger.d(TAG, "onError(String utteranceId = " + utteranceId +")");
+        mStatus = TextToSpeech.ERROR;
         if(mTts != null)
         {
-            mTts.shutdown();
-            mTts = null;
+            shutdown(false);
         }
-        startNext();
+        start();
     }
 
     @Override
     public void onError(String utteranceId, int errorCode) {
-        super.onError(utteranceId, errorCode);
         logger.d(TAG, "onError(String utteranceId, errorcode)");
+        logger.d(TAG, "utteranceId = "+ utteranceId + "\terrorCode = " + errorCode );
+        super.onError(utteranceId, errorCode);
     }
 
     @Override
@@ -143,14 +155,14 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         super.onStop(utteranceId, interrupted);
         logger.d(TAG, "onStop(String utteranceId, boolean interrupted)");
         am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-
+        clearUtterances();
     }
 
     @Override
     public void onInit(int status) {
         logger.d(TAG, "onInit status = " + status);
         Locale locale = new Locale("pl","PL");
-
+        mStatus = status;
         if(status == TextToSpeech.SUCCESS)
         {
             mTts.setOnUtteranceProgressListener(this);
@@ -160,7 +172,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
             if(mTts.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE) {
                 int languageSetResult = mTts.setLanguage(locale);
                 logger.d(TAG, "setLanguage: " + languageSetResult);
-                startNext();
+                start();
             }
             else
             {
@@ -182,4 +194,5 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         if(mTts != null)
             mTts.stop();
     }
+
 }

@@ -30,14 +30,16 @@ public class BundleKeyListFragment<T extends BundleKeyEntity & Serializable> ext
 
     private static final String TAG = "BundleKeyListFragment";
     private static String ARG_BUNDLEKEY_LIST = "argBundlekeyList";
-    private static String ARG_BUNDLEKEY_LIST_TYPE = "argBundlekeyListType";
-
 
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager mLayoutManager;
     private BundleKeysAdapter mAdapter;
     private ItemTouchHelper mItemTouchHelper;
 
+    @Override
+    public String getTAG() {
+        return TAG;
+    }
 
     public BundleKeysAdapter getAdapter() {
         return mAdapter;

@@ -71,6 +71,7 @@ public class NotificationServiceConnection implements ServiceConnection {
             mNotificationService = (NotificationService.NotificationCatcherBinder) service;
             for(BroadcastReceiver receiver:mBroadcastReceivers)
                 mNotificationService.registerReceiver(receiver);
+            mBroadcastReceivers.clear();
             mIsServiceBound = true;
         }
     }

@@ -13,6 +13,7 @@ import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.BundleKeyList;
 import org.stream.split.voicenotification.Enities.HistoryBundleKeyEntity;
 import org.stream.split.voicenotification.Enities.HistoryNotificationEntity;
+import org.stream.split.voicenotification.Interfaces.BundleKeyOwner;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 import org.stream.split.voicenotification.R;
 
@@ -228,10 +229,10 @@ public class Helper {
     }
 
 
-    public static String getUtteranceId(String packageName, long sbnId)
+    public static String getUtteranceId(String packageName, long notificationId)
     {
         StringBuilder utteranceId = new StringBuilder();
-        utteranceId.append(sbnId)
+        utteranceId.append(notificationId)
                 .append("_")
                 .append(packageName);
         return utteranceId.toString();
@@ -251,14 +252,14 @@ public class Helper {
     }
 
     public static Notification createNotification(Context context,PendingIntent pendingIntent,
-                                                  String title,String text, String subText, Boolean persistance)
+                                                  String title,String text, String subText, Boolean persistence)
     {
 
         Notification.Builder builder = new Notification.Builder(context);
         builder.setContentTitle(title)
                 .setContentText(text)
                 .setSubText(subText)
-                .setOngoing(persistance)
+                .setOngoing(persistence)
                 .setContentIntent(pendingIntent)
                 .setPriority(Notification.PRIORITY_DEFAULT)
                 .setSmallIcon(R.drawable.ic_persistent_notification)
@@ -284,10 +285,10 @@ public class Helper {
         }
     }
 
-    public static <T extends BundleKeyList> T getAllNotificationBundleKeys(T bundleKeyOwner)
+    public static <T extends BaseEntity & BundleKeyOwner> T getAllNotificationBundleKeys(T bundleKeyOwner)
     {
         String [] keys = getClassStaticFieldNames(Notification.class, String.class, "EXTRA_");
-        List<BundleKeyEntity> bundleKeys = bundleKeyOwner.get();
+        List<BundleKeyEntity> bundleKeys = bundleKeyOwner.getBundleKeyList().get();
         for(String key:keys)
         {
             boolean absent = true;

@@ -1,5 +1,6 @@
 package org.stream.split.voicenotification.Fragments;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -11,8 +12,6 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
-
 import org.stream.split.voicenotification.Adapters.SwipeViewsAdapter;
 import org.stream.split.voicenotification.DataAccessLayer.DBHelper;
 import org.stream.split.voicenotification.Enities.AppInfoEntity;
@@ -20,7 +19,6 @@ import org.stream.split.voicenotification.Enities.BundleKeyEntity;
 import org.stream.split.voicenotification.Enities.NotificationEntity;
 import org.stream.split.voicenotification.Interfaces.FabOwner;
 import org.stream.split.voicenotification.R;
-import org.stream.split.voicenotification.VoiceNotificationActivity;
 
 import java.util.ArrayList;
 
@@ -33,6 +31,7 @@ import java.util.ArrayList;
  */
 public class ApplicationDetailsFragment extends BaseFragment implements FabOwner {
 
+    public static final String TAG = "AppDetailsFragment";
     private static final String ARG_APP_GSON_OBJECT = "NotificationObject";
     private AppInfoEntity mEntity;
 
@@ -45,12 +44,15 @@ public class ApplicationDetailsFragment extends BaseFragment implements FabOwner
     private TextView mPackageNameTextView;
     private CheckBox mAddDeleteCbx;
 
+    @Override
+    public String getTAG() {
+        return TAG;
+    }
 
     public static ApplicationDetailsFragment newInstance(AppInfoEntity entity) {
         ApplicationDetailsFragment fragment = new ApplicationDetailsFragment();
         Bundle args = new Bundle();
-        String jsonEntity = new Gson().toJson(entity,AppInfoEntity.class);
-        args.putString(ARG_APP_GSON_OBJECT, jsonEntity);
+        args.putSerializable(ARG_APP_GSON_OBJECT, entity);
         fragment.setArguments(args);
         return fragment;
     }
@@ -68,15 +70,17 @@ public class ApplicationDetailsFragment extends BaseFragment implements FabOwner
 
         AppInfoEntity entity = null;
         if (getArguments() != null) {
-            String json = getArguments().getString(ARG_APP_GSON_OBJECT);
-            entity = new Gson().fromJson(json, AppInfoEntity.class);
+            entity = (AppInfoEntity) getArguments().getSerializable(ARG_APP_GSON_OBJECT);
         }
 
+        Resources res = getResources();
         ArrayList<BundleKeyEntity> bundleKeyEntities = (ArrayList) entity.getBundleKeyList().get();
         mBundleKeysFragment = BundleKeyListFragment.newInstance(bundleKeyEntities);
+        mBundleKeysFragment.setTitle(res.getString(R.string.BUNDLE_KEYS_FRAGMENT_TITLE));
 
         ArrayList<NotificationEntity> entities = (ArrayList) entity.getNotifications();
         mNotificationFragment = NotificationListFragment.newInstance(entities);
+        mNotificationFragment.setTitle(res.getString(R.string.NOTIFICATIONS_FRAGMENT_TITLE));
 
         mAdapter = new SwipeViewsAdapter(getChildFragmentManager());
         mAdapter.AddView(mNotificationFragment, "Notifications");
@@ -157,27 +161,6 @@ public class ApplicationDetailsFragment extends BaseFragment implements FabOwner
     @Override
     public boolean isModified() {
         return mEntity.isModified() || mAdapter.isModified();
-    }
-
-    @Override
-    public void onResume() {
-        setTitle(mEntity.getApplicationLabel());
-        super.onResume();
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
     }
 
 }
