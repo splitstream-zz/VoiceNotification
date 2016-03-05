@@ -14,6 +14,7 @@ import org.stream.split.voicenotification.Logging.BaseLogger;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
 
@@ -57,24 +58,19 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         }
     }
 
-    public void removeUtterance(String utteranceId)
+     void speak(Queue<UtteranceEntity> utterances)
     {
-        Iterator<UtteranceEntity> i = mUtterances.iterator();
-        while(i.hasNext())
+        while(utterances != null)
         {
-            UtteranceEntity entity = i.next();
-            logger.d(TAG, "utteranceId = " + entity.getUtteranceId());
-            if(entity.getUtteranceId().equals(utteranceId))
-                i.remove();
+            UtteranceEntity entity = utterances.remove();
+            speak(entity);
         }
     }
     public synchronized void start() {
         logger.d(TAG, "start()");
-        UtteranceEntity utteranceEntity = mUtterances.peek();
-        if (utteranceEntity != null) {
+        if (!mUtterances.isEmpty()) {
             if (mTts != null && mStatus == TextToSpeech.SUCCESS) {
-                    logger.d(TAG, "isSpeaking() = " + mTts.isSpeaking());
-                    speak(utteranceEntity);
+                speak(mUtterances);
             }
             else {
                 logger.d(TAG, "mTts = null");
@@ -120,15 +116,15 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     @Override
     public void onStart(String utteranceId) {
         logger.d(TAG, "onStart(utteranceId)");
+        am.getMode()
         am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
     }
 
     @Override
     public void onDone(String utteranceId) {
         logger.d(TAG, "onDone()");
-        logger.d(TAG, "Done speaking utteranceID = " +utteranceId);
+        logger.d(TAG, "Done speaking utteranceID = " + utteranceId);
         am.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
-        removeUtterance(utteranceId);
         start();
     }
 
@@ -177,8 +173,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
             else
             {
                 Intent installIntent = new Intent();
-                installIntent.setAction(
-                        TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
+                installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
                 installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 if(mContext.getPackageManager().resolveActivity(installIntent,PackageManager.GET_META_DATA) != null)
                     this.mContext.startActivity(installIntent);
