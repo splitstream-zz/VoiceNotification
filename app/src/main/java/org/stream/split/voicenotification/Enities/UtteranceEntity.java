@@ -41,7 +41,7 @@ public class UtteranceEntity {
         StringBuilder message = new StringBuilder();
         for(HistoryBundleKeyEntity bundle:mMessages) {
             message.append(bundle.getValue());
-            //message.append("\n");
+            message.append(" ");
         }
         return message.toString();
     }

@@ -36,10 +36,8 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver implements 
     private final SharedPreferences mSharedPreferences;
 
     private SpeechModule mSpeechModule;
-    private HashMap<String,Boolean> mConditions = new HashMap<>();
     private Context mContext;
     private boolean mIsVoiceActive;
-
     public boolean isVoiceActive() {
         return mIsVoiceActive;
     }
@@ -80,8 +78,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver implements 
         switch (intent.getAction()) {
             case NotificationService.ACTION_NOTIFICATION_POSTED:
                 logger.d(TAG, NotificationService.ACTION_NOTIFICATION_POSTED);
-                if (evaluateConditions())
-                    actionNotificationPosted(intent);
+                actionNotificationPosted(intent);
                 break;
             case Intent.ACTION_SCREEN_ON:
                 logger.d(TAG, Intent.ACTION_SCREEN_ON);
@@ -90,18 +87,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver implements 
         }
     }
 
-    private boolean evaluateConditions() {
-        Collection<Boolean> values = mConditions.values();
-        boolean result = true;
-        for(boolean value:values)
-        {
-            if(!value) {
-                result = false;
-                break;
-            }
-        }
-        return isVoiceActive() && result;
-    }
+
 
     private void actionScreenOn() {
         //stopSpeaking();

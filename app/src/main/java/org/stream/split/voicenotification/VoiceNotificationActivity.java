@@ -42,8 +42,6 @@ import org.stream.split.voicenotification.Logging.BaseLogger;
 public class VoiceNotificationActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, SharedPreferences.OnSharedPreferenceChangeListener {
 
-    //public static Fragment CURRENT_FRAGMENT;
-
     private final String TAG = "VoiceNotifiActivity";
     private NotificationManager mNotificationManager;
     private final int mTestingNotificationID = 6879;

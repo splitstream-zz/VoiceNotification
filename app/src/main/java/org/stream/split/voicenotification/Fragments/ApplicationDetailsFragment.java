@@ -90,10 +90,6 @@ public class ApplicationDetailsFragment extends BaseFragment implements FabOwner
         setTitle(entity.getApplicationLabel());
         mEntity = entity;
     }
-    @Override
-     public void onStart() {
-        super.onStart();
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
