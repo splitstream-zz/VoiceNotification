@@ -10,13 +10,11 @@ public class ActiveCallCondition extends BaseCondition {
     AudioManager mAudioManager;
     public ActiveCallCondition(Context context, boolean value)
     {
-
         super(value, context);
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
     }
     @Override
     public boolean evaluate() {
-
-        return mAudioManager.getMode() == AudioManager.MODE_IN_CALL;
+        return getValue() && mAudioManager.getMode() == AudioManager.MODE_IN_CALL;
     }
 }

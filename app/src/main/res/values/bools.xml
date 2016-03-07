@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <bool name="SPEAK_DURING_ACTIVE_CALL_PREFERENCE_DEFAULT">false</bool>
+    <bool name="isNotificationPersistent" >true</bool>
 </resources>
