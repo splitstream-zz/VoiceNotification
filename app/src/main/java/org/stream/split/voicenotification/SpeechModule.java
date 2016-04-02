@@ -35,9 +35,18 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     private Context mContext;
     private BaseLogger logger = BaseLogger.getInstance();
     private AudioManager am;
+    private static SpeechModule SINGLETON;
 
+    public static SpeechModule getInstance(Context context)
+    {
+        if(SINGLETON == null)
+        {
+            SINGLETON = new SpeechModule(context);
+        }
+        return SINGLETON;
+    }
 
-    public SpeechModule(Context context)
+    private SpeechModule(Context context)
     {
         super();
         mContext = context;
@@ -116,7 +125,7 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     @Override
     public void onStart(String utteranceId) {
         logger.d(TAG, "onStart(utteranceId)");
-        am.getMode()
+        am.getMode();
         am.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
     }
 

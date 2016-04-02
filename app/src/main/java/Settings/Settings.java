@@ -43,7 +43,7 @@ public class Settings implements SharedPreferences.OnSharedPreferenceChangeListe
 
     public void addCondition(String key,boolean value)
     {
-        Class<? extends BaseCondition> condition = mConditions.get(key);
+        Class<? extends BaseCondition> condition = mConditions.get(key).getClass();
     }
 
     @Override

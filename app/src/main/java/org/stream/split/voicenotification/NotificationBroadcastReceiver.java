@@ -59,7 +59,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver implements 
     {
         mSharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         mSharedPreferences.registerOnSharedPreferenceChangeListener(this);
-        mSpeechModule = new SpeechModule(context);
+        mSpeechModule = SpeechModule.getInstance(context);
         mContext = context;
 
         initialize(mSharedPreferences);
