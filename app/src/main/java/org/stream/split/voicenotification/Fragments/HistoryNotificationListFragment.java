@@ -102,7 +102,7 @@ public class HistoryNotificationListFragment extends NotificationListFragment {
             Bundle extras = intent.getExtras();
             String gsonToJson;
             if(extras != null) {
-                gsonToJson = extras.getString(NotificationService.EXTRA_NEW_NOTIFICATION_OBJECT);
+                gsonToJson = extras.getString(NotificationService.EXTRA_NOTIFICATION_OBJECT);
                 HistoryNotificationEntity historyNotificationEntity = new Gson().fromJson(gsonToJson, HistoryNotificationEntity.class);
                 getAdapter().addItem(historyNotificationEntity);
             }

@@ -37,7 +37,7 @@ public class NotificationService extends NotificationListenerService implements 
 
     public static final String TAG = "NotificationService";
     public static final String CUSTOM_BINDING = "org.stream.split.voicenotification.CustomIntent_NotificationCatcher";
-    public static final String EXTRA_NEW_NOTIFICATION_OBJECT = "new_notification_object";
+    public static final String EXTRA_NOTIFICATION_OBJECT = "new_notification_object";
     public static final String EXTRA_IS_NOTIFICATION_ACCESS_GRANTED = "isNotificationAccessGranted";
     public static final String ACTION_NOTIFICATION_POSTED = TAG + ".notificationPosted";
     public static final String ACTION_NOTIFICATION_REMOVED = TAG + ".notificationRemoved";
@@ -284,7 +284,7 @@ public class NotificationService extends NotificationListenerService implements 
 
         Intent intent = new Intent();
         intent.setAction(ACTION_NOTIFICATION_POSTED);
-        intent.putExtra(EXTRA_NEW_NOTIFICATION_OBJECT, new Gson().toJson(newHistoryNotificationEntity));
+        intent.putExtra(EXTRA_NOTIFICATION_OBJECT, new Gson().toJson(newHistoryNotificationEntity));
         sendBroadcast(intent);
     }
 
@@ -293,7 +293,9 @@ public class NotificationService extends NotificationListenerService implements 
         Log.d(TAG, "********** onNOtificationRemoved");
         Log.d(TAG, "COLUMN_NAME_ID :" + sbn.getId() + "\t" + sbn.getNotification().tickerText + "\t" + sbn.getPackageName());
         if(!mReceivers.isEmpty() || mIsVoiceActive) {
+            HistoryNotificationEntity temp = createNotification(sbn);
             Intent intent = new Intent(ACTION_NOTIFICATION_REMOVED);
+            intent.putExtra(EXTRA_NOTIFICATION_OBJECT, new Gson().toJson(temp));
             sendBroadcast(intent);
         }
         else

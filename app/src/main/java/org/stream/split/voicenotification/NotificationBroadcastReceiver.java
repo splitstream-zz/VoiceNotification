@@ -18,10 +18,7 @@ import org.stream.split.voicenotification.Helpers.Helper;
 import org.stream.split.voicenotification.Logging.BaseLogger;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
 //todo updateOrInsert condition not to utter when device is in mute or only vibrate mode
 // todo if !textlines.isEmpty() do not show text
@@ -98,7 +95,7 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver implements 
 
         if (bundle != null) {
 
-            HistoryNotificationEntity postedNotificationEntity = getNotificationEntity(bundle, NotificationService.EXTRA_NEW_NOTIFICATION_OBJECT);
+            HistoryNotificationEntity postedNotificationEntity = getNotificationEntity(bundle, NotificationService.EXTRA_NOTIFICATION_OBJECT);
 
             if (postedNotificationEntity != null && postedNotificationEntity.isFollowed()) {
 
