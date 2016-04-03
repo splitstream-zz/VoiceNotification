@@ -81,6 +81,10 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver implements 
                 logger.d(TAG, Intent.ACTION_SCREEN_ON);
                 actionScreenOn();
                 break;
+            case NotificationService.ACTION_NOTIFICATION_REMOVED:
+                logger.d(TAG, NotificationService.ACTION_NOTIFICATION_REMOVED);
+                removeNotificationPosted(intent);
+                break;
         }
     }
 
@@ -88,6 +92,9 @@ public class NotificationBroadcastReceiver extends BroadcastReceiver implements 
 
     private void actionScreenOn() {
         //stopSpeaking();
+    }
+    private void removeNotificationPosted(Intent intent) {
+        logger.d(TAG,"feature not implemented");
     }
 
     private void actionNotificationPosted(Intent intent) {

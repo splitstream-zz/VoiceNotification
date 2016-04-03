@@ -36,7 +36,6 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
     private BaseLogger logger = BaseLogger.getInstance();
     private AudioManager am;
     private static SpeechModule SINGLETON;
-    private int mVolume;
 
     public static SpeechModule getInstance(Context context)
     {
@@ -91,14 +90,10 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
         }
         return result;
     }
-
+//todo cos nie tak tutaj!!!!!!!!
     public synchronized void start() {
         logger.d(TAG, "start()");
-        if(!start(mUtterances,mTts,mStatus))
-        {
-
-        }
-
+        start(mUtterances,mTts,mStatus);
     }
     private boolean start(Queue<UtteranceEntity> utterances, TextToSpeech tts, int status)
     {
@@ -107,6 +102,10 @@ public class SpeechModule extends android.speech.tts.UtteranceProgressListener i
             if (tts != null && status == TextToSpeech.SUCCESS) {
                 speak(utterances.remove());
                 result = true;
+            }
+            else
+            {
+                tts = new TextToSpeech(mContext,this);
             }
         }
         return result;
